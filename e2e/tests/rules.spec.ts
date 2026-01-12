@@ -215,12 +215,13 @@ test.describe('Rules Page', () => {
     // Click Apply Rules
     await page.getByRole('button', { name: 'Apply Rules' }).click();
 
-    // Wait for success message
-    await expect(page.getByRole('status')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText(/Categorized \d+ of \d+/)).toBeVisible();
+    // Wait for success message (use specific selector to avoid multiple role="status" elements)
+    const successMessage = page.locator('.bg-green-50[role="status"]');
+    await expect(successMessage).toBeVisible({ timeout: 10000 });
+    await expect(successMessage.getByText(/Categorized \d+ of \d+/)).toBeVisible();
 
     // Verify the apply result shows categorization happened (message displayed)
-    const applyResultText = await page.locator('[role="status"]').textContent();
+    const applyResultText = await successMessage.textContent();
     expect(applyResultText).toMatch(/Categorized \d+ of \d+/);
 
     // Clean up

@@ -691,7 +691,7 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 ---
 
 ### WI-19: E2E Test Suite
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 
 **Description:** Comprehensive end-to-end tests for all user flows.
 
@@ -707,12 +707,21 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - Screenshots on failure
 
 **Acceptance Criteria:**
-- [ ] All 5 test flows pass
-- [ ] Tests run in under 2 minutes
-- [ ] Can run in CI environment
-- [ ] Failures produce useful screenshots/logs
+- [x] All 5 test flows pass
+- [x] Tests run in under 2 minutes
+- [x] Can run in CI environment
+- [x] Failures produce useful screenshots/logs
 
 **Dependencies:** WI-10, WI-11, WI-12, WI-13
+
+**Implementation Notes:**
+- Created `e2e/tests/user-flows.spec.ts` with comprehensive tests for all 5 user flows
+- Flow 1: Upload flow tests file selection, upload success, bank breakdown, and navigation
+- Flow 2: Dashboard flow tests charts, stats cards, date range filtering, and empty state
+- Flow 3: Transactions flow tests filtering by bank, search, uncategorized filter, and inline category editing
+- Flow 4: Rules flow tests adding rules, applying rules to categorize transactions, edit, and delete
+- Flow 5: Export flow tests CSV and JSON downloads with filters applied
+- Updated `e2e/playwright.config.ts` with CI-ready settings: HTML reporter, screenshots on failure, video on retry, output directory for artifacts
 
 ---
 
