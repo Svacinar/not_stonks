@@ -1,12 +1,21 @@
 #!/usr/bin/env bash
 set -e
 
+MAX_ITERATIONS=${MAX_ITERATIONS:-20}
+COUNT=0
+
 while grep -q "NOT IMPLEMENTED" IMPLEMENTATION_PLAN.md; do
-  echo "Running Claude..."
+  COUNT=$((COUNT + 1))
+  if [ "$COUNT" -gt "$MAX_ITERATIONS" ]; then
+    echo "Max iterations ($MAX_ITERATIONS) reached. Stopping."
+    break
+  fi
+
+  echo "=== Iteration $COUNT / $MAX_ITERATIONS ==="
 
   BEFORE=$(git rev-parse HEAD)
 
-  timeout 20m claude "$(cat PROMPT.md)"
+  claude "$(cat PROMPT.md)"
 
   AFTER=$(git rev-parse HEAD)
 
@@ -15,3 +24,5 @@ while grep -q "NOT IMPLEMENTED" IMPLEMENTATION_PLAN.md; do
     break
   fi
 done
+
+echo "=== Loop finished ==="

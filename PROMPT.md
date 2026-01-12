@@ -22,7 +22,12 @@ Workflow:
    - Description
    - Detailed requirements
    - Acceptance criteria checklist
-5) Update ONLY this one work item section in IMPLEMENTATION_PLAN.md:
+5) Verify your implementation:
+   - Run `npm run test` (if tests exist)
+   - Run `npm run build` (if build script exists)
+   - All tests MUST pass before marking as DONE
+   - If tests fail, fix the issues before proceeding
+6) Update ONLY this one work item section in IMPLEMENTATION_PLAN.md:
    - Change status to DONE
    - Tick all acceptance criteria satisfied
    - Add "Implementation notes" (max 6 bullets) including files changed
@@ -35,14 +40,14 @@ Engineering rules:
 - No opportunistic refactors and no “while I'm here” improvements.
 
 Git rules (MANDATORY):
-- If and only if the chosen work item is fully complete and meets acceptance criteria:
+- If and only if the chosen work item is fully complete, tests pass, and meets acceptance criteria:
   - Create exactly ONE commit.
   - Commit message format: "<WI-ID>: <short title>"
   - Include only changes required for this work item.
-- If you cannot fully meet acceptance criteria:
+- If you cannot fully meet acceptance criteria OR tests fail:
   - Do not commit
   - Leave status as NOT IMPLEMENTED
-  - Add a "Blocking issues" list
+  - Add a "Blocking issues" list explaining what failed
 
 End of run output:
 - Print the chosen work item ID and title
