@@ -350,7 +350,7 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 ---
 
 ### WI-09: Frontend Shell & Routing
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 
 **Description:** Create the main app shell with navigation and routing.
 
@@ -367,13 +367,21 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - Loading and error states
 
 **Acceptance Criteria:**
-- [ ] Navigation between all pages works
-- [ ] Mobile responsive (sidebar toggle)
-- [ ] API client handles errors uniformly
-- [ ] Loading states shown during API calls
-- [ ] Clean, modern UI with Tailwind
+- [x] Navigation between all pages works
+- [x] Mobile responsive (sidebar toggle)
+- [x] API client handles errors uniformly
+- [x] Loading states shown during API calls
+- [x] Clean, modern UI with Tailwind
 
 **Dependencies:** WI-01
+
+**Implementation Notes:**
+- Created `frontend/src/api/client.ts` with typed API client supporting GET/POST/PATCH/DELETE, file upload, and download
+- Created `frontend/src/components/Sidebar.tsx` with responsive navigation (slides in on mobile, static on desktop)
+- Created loading/error components: `LoadingSpinner.tsx`, `ErrorMessage.tsx`, `PageLoading.tsx`
+- Created page placeholders: `DashboardPage.tsx`, `TransactionsPage.tsx`, `UploadPage.tsx`, `RulesPage.tsx`
+- Updated `App.tsx` with full layout shell, header with mobile menu toggle, and React Router routes
+- All components use Tailwind CSS for styling with responsive breakpoints (lg:)
 
 ---
 
