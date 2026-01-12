@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Sidebar } from './components';
+import { Sidebar, ToastProvider } from './components';
 import { DashboardPage, TransactionsPage, UploadPage, RulesPage } from './pages';
 
 function AppLayout() {
@@ -60,7 +60,9 @@ function AppLayout() {
 function App() {
   return (
     <BrowserRouter>
-      <AppLayout />
+      <ToastProvider>
+        <AppLayout />
+      </ToastProvider>
     </BrowserRouter>
   );
 }

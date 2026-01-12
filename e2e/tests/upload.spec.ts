@@ -116,6 +116,24 @@ test.describe('Upload Page', () => {
     fs.unlinkSync(invalidFile);
   });
 
+  test('shows error for empty file upload', async ({ page }) => {
+    // Create an empty file
+    const emptyFile = await createTestFile('empty.csv', '');
+
+    const fileInput = page.locator('[data-testid="file-input"]');
+    await fileInput.setInputFiles([emptyFile]);
+
+    // Click upload button
+    await page.getByRole('button', { name: 'Upload 1 file' }).click();
+
+    // Should show error message about empty file in the alert
+    const alert = page.getByRole('alert');
+    await expect(alert).toBeVisible({ timeout: 10000 });
+    await expect(alert.getByText(/File is empty/i)).toBeVisible();
+
+    fs.unlinkSync(emptyFile);
+  });
+
   test('upload button shows file count', async ({ page }) => {
     const file1 = await createTestFile('csob_upload1.csv', 'csob,data');
     const file2 = await createTestFile('revolut_upload2.csv', 'revolut,data');

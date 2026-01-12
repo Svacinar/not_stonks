@@ -651,7 +651,7 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 ---
 
 ### WI-18: Error Handling & Edge Cases
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 
 **Description:** Comprehensive error handling across the application.
 
@@ -673,12 +673,20 @@ Building a personal finance dashboard that consolidates bank statements from CSO
   - Size limit (5MB)
 
 **Acceptance Criteria:**
-- [ ] No unhandled promise rejections
-- [ ] User sees friendly error messages
-- [ ] Errors logged for debugging
-- [ ] E2E test: upload invalid file, verify error shown
+- [x] No unhandled promise rejections
+- [x] User sees friendly error messages
+- [x] Errors logged for debugging
+- [x] E2E test: upload invalid file, verify error shown
 
 **Dependencies:** WI-04, WI-09
+
+**Implementation Notes:**
+- Created `backend/src/middleware/errorHandler.ts` with global error handler, custom error classes (AppError, ValidationError, NotFoundError, BadRequestError), and logger utility
+- Added 404 handler for unmatched API routes and integrated global error handler in `backend/src/index.ts`
+- Created `frontend/src/components/Toast.tsx` with ToastProvider context and toast notification system
+- Enhanced `frontend/src/api/client.ts` with retry mechanism (exponential backoff for GET requests) and network error detection
+- Updated `backend/src/routes/upload.ts` with file validation for empty files, corrupted content, and improved error propagation
+- Added E2E test in `e2e/tests/upload.spec.ts` for empty file upload error handling
 
 ---
 

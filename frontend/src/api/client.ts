@@ -1,6 +1,7 @@
 /**
  * API client utility for backend calls.
  * Handles errors uniformly and provides typed responses.
+ * Includes retry mechanism and graceful degradation.
  */
 
 export interface ApiError {
@@ -10,16 +11,42 @@ export interface ApiError {
 
 export class ApiRequestError extends Error {
   status: number;
+  isNetworkError: boolean;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, isNetworkError = false) {
     super(message);
     this.name = 'ApiRequestError';
     this.status = status;
+    this.isNetworkError = isNetworkError;
   }
 }
 
 interface RequestOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
+  /** Number of retry attempts for failed requests (default: 2 for GET, 0 for others) */
+  retries?: number;
+  /** Base delay in ms between retries, doubles on each attempt (default: 1000) */
+  retryDelay?: number;
+}
+
+/**
+ * Delays execution for the specified number of milliseconds
+ */
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Checks if an error is retryable (network errors, 5xx, 429)
+ */
+function isRetryableError(error: unknown): boolean {
+  if (error instanceof ApiRequestError) {
+    // Retry network errors
+    if (error.isNetworkError) return true;
+    // Retry server errors (5xx) and rate limiting (429)
+    if (error.status >= 500 || error.status === 429) return true;
+  }
+  return false;
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
@@ -33,7 +60,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
     } catch {
       // Use default message if parsing fails
     }
-    throw new ApiRequestError(message, response.status);
+    throw new ApiRequestError(message, response.status, false);
   }
 
   // Handle empty responses (204 No Content)
@@ -51,11 +78,36 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return response.text() as Promise<T>;
 }
 
+/**
+ * Wraps fetch with network error handling
+ */
+async function fetchWithNetworkErrorHandling(
+  endpoint: string,
+  config: RequestInit
+): Promise<Response> {
+  try {
+    return await fetch(endpoint, config);
+  } catch (error) {
+    // Network errors (no connection, CORS, etc.)
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Network error. Please check your connection.';
+    throw new ApiRequestError(
+      message.includes('Failed to fetch')
+        ? 'Unable to connect to server. Please check your connection and try again.'
+        : message,
+      0,
+      true
+    );
+  }
+}
+
 async function request<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { body, headers, ...restOptions } = options;
+  const { body, headers, retries, retryDelay = 1000, ...restOptions } = options;
 
   const config: RequestInit = {
     ...restOptions,
@@ -69,8 +121,30 @@ async function request<T>(
     config.body = JSON.stringify(body);
   }
 
-  const response = await fetch(endpoint, config);
-  return handleResponse<T>(response);
+  // Determine number of retries (default: 2 for GET, 0 for others)
+  const maxRetries = retries ?? (restOptions.method === 'GET' || !restOptions.method ? 2 : 0);
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetchWithNetworkErrorHandling(endpoint, config);
+      return await handleResponse<T>(response);
+    } catch (error) {
+      lastError = error;
+
+      // Don't retry if not retryable or if we've exhausted retries
+      if (!isRetryableError(error) || attempt >= maxRetries) {
+        throw error;
+      }
+
+      // Exponential backoff: delay * 2^attempt
+      const backoffDelay = retryDelay * Math.pow(2, attempt);
+      await delay(backoffDelay);
+    }
+  }
+
+  // This should never be reached, but TypeScript needs it
+  throw lastError;
 }
 
 export const api = {
@@ -93,6 +167,7 @@ export const api = {
   /**
    * Upload files using multipart/form-data.
    * Does not set Content-Type header (browser sets it with boundary).
+   * No retries for uploads to avoid duplicate data.
    */
   async upload<T>(endpoint: string, files: File[]): Promise<T> {
     const formData = new FormData();
@@ -100,7 +175,7 @@ export const api = {
       formData.append('files', file);
     });
 
-    const response = await fetch(endpoint, {
+    const response = await fetchWithNetworkErrorHandling(endpoint, {
       method: 'POST',
       body: formData,
     });
@@ -111,35 +186,52 @@ export const api = {
   /**
    * Download a file from the given endpoint.
    * Returns a Blob for the caller to handle.
+   * Includes retry logic for transient failures.
    */
-  async download(endpoint: string): Promise<{ blob: Blob; filename: string }> {
-    const response = await fetch(endpoint);
+  async download(endpoint: string, retries = 2): Promise<{ blob: Blob; filename: string }> {
+    let lastError: unknown;
 
-    if (!response.ok) {
-      let message = `Download failed with status ${response.status}`;
+    for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        const errorData = await response.json();
-        if (errorData.error) {
-          message = errorData.error;
+        const response = await fetchWithNetworkErrorHandling(endpoint, { method: 'GET' });
+
+        if (!response.ok) {
+          let message = `Download failed with status ${response.status}`;
+          try {
+            const errorData = await response.json();
+            if (errorData.error) {
+              message = errorData.error;
+            }
+          } catch {
+            // Use default message
+          }
+          throw new ApiRequestError(message, response.status, false);
         }
-      } catch {
-        // Use default message
+
+        const blob = await response.blob();
+
+        // Extract filename from Content-Disposition header
+        const contentDisposition = response.headers.get('content-disposition');
+        let filename = 'download';
+        if (contentDisposition) {
+          const match = contentDisposition.match(/filename="?([^";\n]+)"?/);
+          if (match) {
+            filename = match[1];
+          }
+        }
+
+        return { blob, filename };
+      } catch (error) {
+        lastError = error;
+
+        if (!isRetryableError(error) || attempt >= retries) {
+          throw error;
+        }
+
+        await delay(1000 * Math.pow(2, attempt));
       }
-      throw new ApiRequestError(message, response.status);
     }
 
-    const blob = await response.blob();
-
-    // Extract filename from Content-Disposition header
-    const contentDisposition = response.headers.get('content-disposition');
-    let filename = 'download';
-    if (contentDisposition) {
-      const match = contentDisposition.match(/filename="?([^";\n]+)"?/);
-      if (match) {
-        filename = match[1];
-      }
-    }
-
-    return { blob, filename };
+    throw lastError;
   },
 };
