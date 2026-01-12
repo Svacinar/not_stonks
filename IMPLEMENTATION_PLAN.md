@@ -421,7 +421,7 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 ---
 
 ### WI-11: Transactions Page
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 
 **Description:** Create transactions list with filtering and inline editing.
 
@@ -443,14 +443,24 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - Export button (opens modal with format options)
 
 **Acceptance Criteria:**
-- [ ] All transactions displayed correctly
-- [ ] Filters work and update URL params
-- [ ] Inline category edit works
-- [ ] Pagination shows total count
-- [ ] Export downloads file
-- [ ] E2E test: filter, edit category, verify
+- [x] All transactions displayed correctly
+- [x] Filters work and update URL params
+- [x] Inline category edit works
+- [x] Pagination shows total count
+- [x] Export downloads file
+- [x] E2E test: filter, edit category, verify
 
 **Dependencies:** WI-05, WI-06, WI-09
+
+**Implementation Notes:**
+- Created `frontend/src/pages/TransactionsPage.tsx` with full feature set
+- Table with sortable columns (Date, Description, Amount, Bank, Category) via column header clicks
+- Filter panel with date range, bank checkboxes, category checkboxes, search input, and uncategorized toggle
+- All filters sync to URL params using React Router's useSearchParams
+- Inline category editing: click category cell opens dropdown, selection saves via PATCH API
+- Pagination with 50 items per page, Previous/Next buttons, and total count display
+- Export modal with CSV and JSON download options using the /api/export/transactions endpoint
+- 7 E2E tests in `e2e/tests/transactions.spec.ts` covering all features
 
 ---
 
