@@ -1,3 +1,23 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* React DayPicker custom overrides */
+.rdp-root {
+  --rdp-accent-color: #2563eb;
+  --rdp-accent-background-color: #eff6ff;
+}
+
+.rdp-day_button:hover:not(.rdp-selected) {
+  background-color: #f3f4f6;
+}
+
+.rdp-selected .rdp-day_button {
+  background-color: #2563eb;
+  color: white;
+}
+
+.rdp-range_middle .rdp-day_button {
+  background-color: #eff6ff;
+  color: #1e40af;
+}

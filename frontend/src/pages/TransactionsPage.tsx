@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api, ApiRequestError } from '../api/client';
-import { LoadingSpinner } from '../components/LoadingSpinner';
-import { ErrorMessage } from '../components/ErrorMessage';
+import { LoadingSpinner, ErrorMessage, DateRangePicker } from '../components';
+import { getDefaultDateRange, type DateRange } from '../utils/dateUtils';
 import type { Transaction, Category, BankName } from '../../../shared/types';
 
 interface TransactionWithCategory extends Transaction {
@@ -55,6 +55,26 @@ export function TransactionsPage() {
   const sortColumn = (searchParams.get('sort') as SortColumn) || 'date';
   const sortOrder = (searchParams.get('order') as SortOrder) || 'desc';
   const page = parseInt(searchParams.get('page') || '1', 10);
+
+  // Initialize with default date range if no dates in URL
+  useEffect(() => {
+    if (!searchParams.has('startDate') && !searchParams.has('endDate')) {
+      const defaultRange = getDefaultDateRange();
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set('startDate', defaultRange.startDate);
+      newParams.set('endDate', defaultRange.endDate);
+      setSearchParams(newParams, { replace: true });
+    }
+  }, []); // Only run on mount
+
+  // Derived date range for the picker component
+  const dateRange: DateRange = useMemo(
+    () => ({
+      startDate: startDate,
+      endDate: endDate,
+    }),
+    [startDate, endDate]
+  );
 
   // Inline editing state
   const [editingTransactionId, setEditingTransactionId] = useState<number | null>(null);
@@ -139,10 +159,11 @@ export function TransactionsPage() {
     fetchTransactions();
   }, [fetchTransactions]);
 
-  // Handle filter changes
-  const handleDateChange = (type: 'start' | 'end', value: string) => {
+  // Handle date range picker change
+  const handleDateRangeChange = (range: DateRange) => {
     updateParams({
-      [type === 'start' ? 'startDate' : 'endDate']: value || null,
+      startDate: range.startDate || null,
+      endDate: range.endDate || null,
       page: null, // Reset to page 1
     });
   };
@@ -309,30 +330,9 @@ export function TransactionsPage() {
 
       {/* Filter Panel */}
       <div className="bg-white rounded-lg shadow p-4 space-y-4">
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-4 items-center">
           {/* Date Range */}
-          <div className="flex items-center gap-2">
-            <label htmlFor="startDate" className="text-sm font-medium text-gray-700">
-              From
-            </label>
-            <input
-              type="date"
-              id="startDate"
-              value={startDate}
-              onChange={(e) => handleDateChange('start', e.target.value)}
-              className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-            />
-            <label htmlFor="endDate" className="text-sm font-medium text-gray-700">
-              To
-            </label>
-            <input
-              type="date"
-              id="endDate"
-              value={endDate}
-              onChange={(e) => handleDateChange('end', e.target.value)}
-              className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-            />
-          </div>
+          <DateRangePicker value={dateRange} onChange={handleDateRangeChange} />
 
           {/* Search */}
           <div className="flex-1 min-w-48">

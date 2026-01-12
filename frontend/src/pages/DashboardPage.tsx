@@ -14,8 +14,12 @@ import {
 } from 'chart.js';
 import { Pie, Bar, Line } from 'react-chartjs-2';
 import { api, ApiRequestError } from '../api/client';
-import { LoadingSpinner } from '../components/LoadingSpinner';
-import { ErrorMessage } from '../components/ErrorMessage';
+import { LoadingSpinner, ErrorMessage, DateRangePicker } from '../components';
+import {
+  getDefaultDateRange,
+  formatDateForDisplay,
+  type DateRange,
+} from '../utils/dateUtils';
 import type { TransactionStats, Transaction, BankName } from '../../../shared/types';
 
 // Register Chart.js components
@@ -43,18 +47,6 @@ interface TransactionListResponse {
   offset: number;
 }
 
-// Helper to get default date range (last 3 months)
-function getDefaultDateRange(): { startDate: string; endDate: string } {
-  const end = new Date();
-  const start = new Date();
-  start.setMonth(start.getMonth() - 3);
-
-  return {
-    startDate: start.toISOString().split('T')[0],
-    endDate: end.toISOString().split('T')[0],
-  };
-}
-
 // Format currency in CZK
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('cs-CZ', {
@@ -63,16 +55,6 @@ function formatCurrency(amount: number): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(Math.abs(amount));
-}
-
-// Format date for display
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('cs-CZ', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
 }
 
 // Bank colors
@@ -89,9 +71,7 @@ export function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Date range state - default to last 3 months
-  const defaultRange = getDefaultDateRange();
-  const [startDate, setStartDate] = useState(defaultRange.startDate);
-  const [endDate, setEndDate] = useState(defaultRange.endDate);
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange);
 
   // Fetch stats and recent transactions
   const fetchData = async () => {
@@ -100,8 +80,8 @@ export function DashboardPage() {
 
     try {
       const params = new URLSearchParams();
-      if (startDate) params.set('startDate', startDate);
-      if (endDate) params.set('endDate', endDate);
+      if (dateRange.startDate) params.set('startDate', dateRange.startDate);
+      if (dateRange.endDate) params.set('endDate', dateRange.endDate);
 
       // Fetch stats and recent transactions in parallel
       const [statsData, transactionsData] = await Promise.all([
@@ -121,7 +101,7 @@ export function DashboardPage() {
 
   useEffect(() => {
     fetchData();
-  }, [startDate, endDate]);
+  }, [dateRange]);
 
   // Calculate derived stats
   const derivedStats = useMemo(() => {
@@ -279,15 +259,6 @@ export function DashboardPage() {
     },
   };
 
-  // Handle date changes
-  const handleDateChange = (type: 'start' | 'end', value: string) => {
-    if (type === 'start') {
-      setStartDate(value);
-    } else {
-      setEndDate(value);
-    }
-  };
-
   // Check if we have any data
   const hasData = stats && stats.total_count > 0;
 
@@ -298,28 +269,7 @@ export function DashboardPage() {
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
 
         {/* Date Range Selector */}
-        <div className="flex items-center gap-2">
-          <label htmlFor="startDate" className="text-sm font-medium text-gray-700">
-            From
-          </label>
-          <input
-            type="date"
-            id="startDate"
-            value={startDate}
-            onChange={(e) => handleDateChange('start', e.target.value)}
-            className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-          />
-          <label htmlFor="endDate" className="text-sm font-medium text-gray-700">
-            To
-          </label>
-          <input
-            type="date"
-            id="endDate"
-            value={endDate}
-            onChange={(e) => handleDateChange('end', e.target.value)}
-            className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-          />
-        </div>
+        <DateRangePicker value={dateRange} onChange={setDateRange} />
       </div>
 
       {/* Error */}
@@ -528,7 +478,7 @@ export function DashboardPage() {
                     recentTransactions.map((tx) => (
                       <tr key={tx.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {formatDate(tx.date)}
+                          {formatDateForDisplay(tx.date)}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
                           {tx.description}
