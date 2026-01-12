@@ -123,7 +123,7 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 ---
 
 ### WI-03: Bank Parser Interface & Dummy Parsers
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 
 **Description:** Create parser interface/facade and dummy implementations for all 3 banks with sample data.
 
@@ -151,13 +151,21 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - Include sample transactions with realistic descriptions (ALBERT, LIDL, SHELL, etc.)
 
 **Acceptance Criteria:**
-- [ ] `ParserService.parse(buffer, filename)` returns parsed transactions
-- [ ] Bank auto-detection works based on file content/name patterns
-- [ ] Each dummy parser returns 10 realistic sample transactions
-- [ ] Unit tests verify parser interface contract
-- [ ] Easy to swap dummy implementations for real ones later
+- [x] `ParserService.parse(buffer, filename)` returns parsed transactions
+- [x] Bank auto-detection works based on file content/name patterns
+- [x] Each dummy parser returns 10 realistic sample transactions
+- [x] Unit tests verify parser interface contract
+- [x] Easy to swap dummy implementations for real ones later
 
 **Dependencies:** WI-01
+
+**Implementation Notes:**
+- Created `BankParser` interface in `backend/src/parsers/types.ts` (uses `ParsedTransaction` from shared/types)
+- Implemented `CsobParser`, `RaiffeisenParser`, `RevolutParser` with dummy data
+- Each parser has `detect()` method checking filename patterns and content markers
+- `ParserService` auto-detects bank and delegates parsing, with `registerParser()` for extensibility
+- `RevolutParser` includes `originalCategory` on all sample transactions
+- 44 unit tests in `backend/tests/parsers.test.ts` covering interface contract, detection, and parsing
 
 ---
 
