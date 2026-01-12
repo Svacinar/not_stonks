@@ -2,5 +2,6 @@ import { test, expect } from '@playwright/test';
 
 test('homepage loads', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('h1')).toContainText('Spending Dashboard');
+  // Use more specific selector for the header title
+  await expect(page.getByRole('heading', { name: 'Spending Dashboard' })).toBeVisible();
 });

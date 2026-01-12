@@ -386,7 +386,7 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 ---
 
 ### WI-10: Upload Page
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 
 **Description:** Create file upload interface.
 
@@ -400,14 +400,23 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - Navigate to transactions after successful upload
 
 **Acceptance Criteria:**
-- [ ] Drag-and-drop works
-- [ ] Multiple files can be selected
-- [ ] Progress shown during upload
-- [ ] Success shows: "Imported X transactions from Y banks"
-- [ ] Errors displayed clearly
-- [ ] E2E test: upload dummy files and verify
+- [x] Drag-and-drop works
+- [x] Multiple files can be selected
+- [x] Progress shown during upload
+- [x] Success shows: "Imported X transactions from Y banks"
+- [x] Errors displayed clearly
+- [x] E2E test: upload dummy files and verify
 
 **Dependencies:** WI-04, WI-09
+
+**Implementation Notes:**
+- Created `frontend/src/pages/UploadPage.tsx` with complete upload interface
+- Drag-and-drop zone with visual feedback (border/background color change on drag over)
+- File browser fallback via hidden file input triggered by Browse Files button
+- Supports multiple files with validation (CSV, TXT, XLSX, XLS, max 5MB each, up to 10 files)
+- File list displays name, size with remove buttons and "Clear all" option
+- Loading spinner shown during upload, button disabled while uploading
+- 12 E2E tests in `e2e/tests/upload.spec.ts` covering all acceptance criteria
 
 ---
 
