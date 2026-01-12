@@ -15,7 +15,7 @@ while grep -q "NOT IMPLEMENTED" IMPLEMENTATION_PLAN.md; do
 
   BEFORE=$(git rev-parse HEAD)
 
-  claude -p "$(cat PROMPT.md)"
+  claude -p "$(cat PROMPT.md)" --output-format stream-json --verbose
 
   AFTER=$(git rev-parse HEAD)
 
