@@ -1,0 +1,24 @@
+{
+  "name": "spending-dashboard",
+  "version": "1.0.0",
+  "description": "Personal finance dashboard for bank statement analysis",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "shared",
+    "e2e"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm run dev -w backend",
+    "dev:frontend": "npm run dev -w frontend",
+    "build": "npm run build -w shared && npm run build -w backend && npm run build -w frontend",
+    "test": "npm run test -w backend && npm run test -w frontend",
+    "test:e2e": "npm run test -w e2e",
+    "lint": "npm run lint -w backend && npm run lint -w frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
