@@ -254,7 +254,7 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 ---
 
 ### WI-06: Categories API
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 
 **Description:** Create CRUD API for categories.
 
@@ -266,13 +266,22 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - `DELETE /api/categories/:id` - delete category (set transactions to null)
 
 **Acceptance Criteria:**
-- [ ] All CRUD operations work
-- [ ] Category list includes transaction counts
-- [ ] Cannot create duplicate names
-- [ ] Delete handles foreign key gracefully
-- [ ] Unit tests pass
+- [x] All CRUD operations work
+- [x] Category list includes transaction counts
+- [x] Cannot create duplicate names
+- [x] Delete handles foreign key gracefully
+- [x] Unit tests pass
 
 **Dependencies:** WI-02
+
+**Implementation Notes:**
+- Created `backend/src/routes/categories.ts` with full CRUD operations for categories
+- GET list returns categories ordered by name with transaction counts via LEFT JOIN
+- GET single returns category with transaction_count and total_amount stats
+- POST validates name/color, enforces unique names (case-insensitive), validates hex color format
+- PATCH supports partial updates of name and/or color with duplicate name checks
+- DELETE returns count of affected transactions; foreign key ON DELETE SET NULL handles transactions
+- 18 unit tests in `backend/tests/categories.test.ts` covering all endpoints and edge cases
 
 ---
 
