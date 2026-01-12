@@ -465,7 +465,7 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 ---
 
 ### WI-12: Dashboard Page
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 
 **Description:** Create main dashboard with charts and stats.
 
@@ -483,14 +483,23 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - Default to last 3 months
 
 **Acceptance Criteria:**
-- [ ] All charts render with real data
-- [ ] Charts are interactive (hover shows values)
-- [ ] Date range filter updates all components
-- [ ] Empty state when no data
-- [ ] Responsive on tablet/mobile
-- [ ] E2E test: verify charts appear with data
+- [x] All charts render with real data
+- [x] Charts are interactive (hover shows values)
+- [x] Date range filter updates all components
+- [x] Empty state when no data
+- [x] Responsive on tablet/mobile
+- [x] E2E test: verify charts appear with data
 
 **Dependencies:** WI-05, WI-09
+
+**Implementation Notes:**
+- Created `frontend/src/pages/DashboardPage.tsx` with complete dashboard implementation using Chart.js/react-chartjs-2
+- Quick stats cards show total spending, transaction count, average transaction, and largest category expense
+- Three charts: Pie (by category), Bar (by bank), Line (spending over time by month)
+- Recent transactions table showing last 10 transactions with "View all" link to Transactions page
+- Date range selector defaults to last 3 months; filters update all components via parallel API calls
+- Empty state with chart icon and "Upload Statements" button when no data available
+- 7 E2E tests in `e2e/tests/dashboard.spec.ts` covering all acceptance criteria
 
 ---
 
