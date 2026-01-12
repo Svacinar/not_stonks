@@ -80,7 +80,7 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 ---
 
 ### WI-02: Database Schema & Setup
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 
 **Description:** Create SQLite database with all tables, migrations, and seed data.
 
@@ -104,13 +104,21 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - Add indexes for common queries (date, bank, category_id)
 
 **Acceptance Criteria:**
-- [ ] Database file created at `backend/data/spending.db`
-- [ ] All tables created with correct schema
-- [ ] Default categories seeded on first run
-- [ ] Unit tests for database operations pass
-- [ ] Database handles concurrent access gracefully
+- [x] Database file created at `backend/data/spending.db`
+- [x] All tables created with correct schema
+- [x] Default categories seeded on first run
+- [x] Unit tests for database operations pass
+- [x] Database handles concurrent access gracefully
 
 **Dependencies:** WI-01
+
+**Implementation Notes:**
+- Created `backend/src/db/database.ts` with SQLite database service using better-sqlite3
+- Database uses WAL mode for better concurrency and foreign keys enabled
+- All 4 tables created: categories, transactions, category_rules, upload_log
+- Indexes created for date, bank, category_id, and keyword fields
+- Dynamic DB_PATH via `getDbPath()` function to support test environment configuration
+- 15 unit tests in `backend/tests/database.test.ts` covering schema, seeding, indexes, constraints, and concurrency
 
 ---
 
