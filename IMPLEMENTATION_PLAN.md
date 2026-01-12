@@ -317,7 +317,7 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 ---
 
 ### WI-08: Export API
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 
 **Description:** Create export endpoints for data download.
 
@@ -331,13 +331,21 @@ Building a personal finance dashboard that consolidates bank statements from CSO
   - CSV or JSON format
 
 **Acceptance Criteria:**
-- [ ] CSV export has proper headers and escaping
-- [ ] JSON export is valid and well-structured
-- [ ] Filters work same as transactions list
-- [ ] File downloads with correct Content-Disposition
-- [ ] Unit tests pass
+- [x] CSV export has proper headers and escaping
+- [x] JSON export is valid and well-structured
+- [x] Filters work same as transactions list
+- [x] File downloads with correct Content-Disposition
+- [x] Unit tests pass
 
 **Dependencies:** WI-05
+
+**Implementation Notes:**
+- Created `backend/src/routes/export.ts` with two endpoints: `/transactions` and `/summary`
+- CSV escaping handles commas, quotes, and newlines per RFC 4180
+- Both endpoints support same filters as transactions list (startDate, endDate, bank, category, uncategorized, search)
+- Summary endpoint returns totals, by_category, by_month, and by_category_month groupings
+- Content-Disposition header set with date-stamped filenames for proper file downloads
+- 23 unit tests in `backend/tests/export.test.ts` covering filters, escaping, JSON structure, and filenames
 
 ---
 

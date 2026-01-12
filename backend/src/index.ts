@@ -4,6 +4,7 @@ import uploadRouter from './routes/upload';
 import transactionsRouter from './routes/transactions';
 import categoriesRouter from './routes/categories';
 import rulesRouter from './routes/rules';
+import exportRouter from './routes/export';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -22,6 +23,7 @@ app.use('/api/upload', uploadRouter);
 app.use('/api/transactions', transactionsRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/rules', rulesRouter);
+app.use('/api/export', exportRouter);
 
 // Start server
 app.listen(PORT, () => {
