@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import uploadRouter from './routes/upload';
+import transactionsRouter from './routes/transactions';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -15,10 +16,6 @@ app.get('/api/health', (_req, res) => {
 });
 
 // Placeholder routes
-app.get('/api/transactions', (_req, res) => {
-  res.json({ transactions: [], total: 0 });
-});
-
 app.get('/api/categories', (_req, res) => {
   res.json({ categories: [] });
 });
@@ -27,8 +24,9 @@ app.get('/api/rules', (_req, res) => {
   res.json({ rules: [] });
 });
 
-// Upload route
+// Routes
 app.use('/api/upload', uploadRouter);
+app.use('/api/transactions', transactionsRouter);
 
 // Start server
 app.listen(PORT, () => {

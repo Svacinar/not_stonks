@@ -210,7 +210,7 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 ---
 
 ### WI-05: Transactions API
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 
 **Description:** Create CRUD API for transactions.
 
@@ -235,14 +235,21 @@ Building a personal finance dashboard that consolidates bank statements from CSO
   - Date range (min, max)
 
 **Acceptance Criteria:**
-- [ ] All endpoints work correctly
-- [ ] Filters combine properly (AND logic)
-- [ ] Pagination returns correct totals
-- [ ] Category update creates keyword rule
-- [ ] Stats endpoint returns all aggregates
-- [ ] Unit tests for all endpoints
+- [x] All endpoints work correctly
+- [x] Filters combine properly (AND logic)
+- [x] Pagination returns correct totals
+- [x] Category update creates keyword rule
+- [x] Stats endpoint returns all aggregates
+- [x] Unit tests for all endpoints
 
 **Dependencies:** WI-02
+
+**Implementation Notes:**
+- Created `backend/src/routes/transactions.ts` with full CRUD operations for transactions
+- GET list supports all filters: date range, bank, category, uncategorized, search, pagination, sorting
+- PATCH endpoint auto-creates category_rules using keyword extraction from description
+- Stats endpoint returns totals, by_category, by_bank, by_month, and date_range aggregates
+- 30 unit tests in `backend/tests/transactions.test.ts` covering all endpoints and edge cases
 
 ---
 
