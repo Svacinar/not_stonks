@@ -286,7 +286,7 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 ---
 
 ### WI-07: Category Rules API
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 
 **Description:** Create CRUD API for categorization rules.
 
@@ -298,12 +298,21 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - `POST /api/rules/apply` - re-apply all rules to uncategorized transactions
 
 **Acceptance Criteria:**
-- [ ] All CRUD operations work
-- [ ] Keywords are case-insensitive
-- [ ] Apply endpoint categorizes existing transactions
-- [ ] Unit tests pass
+- [x] All CRUD operations work
+- [x] Keywords are case-insensitive
+- [x] Apply endpoint categorizes existing transactions
+- [x] Unit tests pass
 
 **Dependencies:** WI-02
+
+**Implementation Notes:**
+- Created `backend/src/routes/rules.ts` with full CRUD operations for category rules
+- GET list returns rules ordered by keyword with category names via JOIN
+- POST validates keyword/category_id, enforces unique keywords (case-insensitive), stores keywords lowercase
+- PATCH supports partial updates of keyword and/or category_id with duplicate keyword checks
+- DELETE removes rule and returns success status
+- POST /apply re-applies all rules to uncategorized transactions using case-insensitive substring matching
+- 20 unit tests in `backend/tests/rules.test.ts` covering all endpoints and edge cases
 
 ---
 

@@ -3,6 +3,7 @@ import cors from 'cors';
 import uploadRouter from './routes/upload';
 import transactionsRouter from './routes/transactions';
 import categoriesRouter from './routes/categories';
+import rulesRouter from './routes/rules';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -16,15 +17,11 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Placeholder routes
-app.get('/api/rules', (_req, res) => {
-  res.json({ rules: [] });
-});
-
 // Routes
 app.use('/api/upload', uploadRouter);
 app.use('/api/transactions', transactionsRouter);
 app.use('/api/categories', categoriesRouter);
+app.use('/api/rules', rulesRouter);
 
 // Start server
 app.listen(PORT, () => {
