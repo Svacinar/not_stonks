@@ -227,4 +227,55 @@ test.describe('Dashboard Page', () => {
     await expect(page).toHaveURL('/upload');
     await expect(page.getByRole('heading', { name: 'Upload Bank Statements' })).toBeVisible();
   });
+
+  test('pie chart includes uncategorized expenses', async ({ page }) => {
+    const csobFile = await createTestFile('csob_uncategorized.csv', 'csob,data,test');
+
+    try {
+      // Upload
+      await page.goto('/upload');
+      const fileInput = page.locator('[data-testid="file-input"]');
+      await fileInput.setInputFiles([csobFile]);
+      await page.getByRole('button', { name: 'Upload 1 file' }).click();
+      await expect(page.getByText('Upload Successful')).toBeVisible({ timeout: 10000 });
+
+      // Intercept the stats API to verify Uncategorized is included
+      let statsResponse: { by_category: Array<{ name: string; count: number; sum: number }> } | null = null;
+      await page.route('**/api/transactions/stats*', async (route) => {
+        const response = await route.fetch();
+        const json = await response.json();
+        statsResponse = json;
+        await route.fulfill({ response });
+      });
+
+      // Navigate to dashboard
+      await page.goto('/');
+      await waitForLoad(page);
+
+      // Expand date range to include dummy data from 2024 using the new DateRangePicker
+      // Click the date picker button to open dropdown
+      await page.getByRole('button', { name: /Last 3 months|All time/ }).click();
+      // Select "All time" preset to include all data
+      await page.getByRole('button', { name: 'All time' }).click();
+      await page.waitForTimeout(300);
+      await waitForLoad(page);
+
+      // Wait for stats API response to be captured
+      await page.waitForTimeout(500);
+
+      // Verify the stats API response includes Uncategorized in by_category
+      expect(statsResponse).not.toBeNull();
+      const uncategorized = statsResponse!.by_category.find((c) => c.name === 'Uncategorized');
+      expect(uncategorized).toBeDefined();
+      expect(uncategorized!.count).toBeGreaterThan(0);
+      // Uncategorized is included in the response - it will show in pie chart if sum is negative (expenses)
+      // The sum can be positive (income) or negative (expenses) depending on the data
+      expect(typeof uncategorized!.sum).toBe('number');
+
+      // Verify the pie chart section is visible
+      await expect(page.getByText('Spending by Category')).toBeVisible();
+    } finally {
+      fs.unlinkSync(csobFile);
+    }
+  });
 });

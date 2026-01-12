@@ -143,11 +143,23 @@ export function DashboardPage() {
       '#ec4899', '#14b8a6', '#f97316', '#84cc16',
     ];
 
+    // Gray color for uncategorized items
+    const uncategorizedColor = '#6b7280';
+
+    // Assign colors: gray for Uncategorized, default colors for others
+    let colorIndex = 0;
+    const colors = expenses.map(c => {
+      if (c.name === 'Uncategorized') {
+        return uncategorizedColor;
+      }
+      return defaultColors[colorIndex++ % defaultColors.length];
+    });
+
     return {
       labels: expenses.map(c => c.name),
       datasets: [{
         data: expenses.map(c => Math.abs(c.sum)),
-        backgroundColor: defaultColors.slice(0, expenses.length),
+        backgroundColor: colors,
         borderWidth: 1,
       }],
     };

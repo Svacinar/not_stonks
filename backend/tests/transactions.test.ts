@@ -410,6 +410,35 @@ describe('Transactions Route Logic', () => {
       expect(result.find((c) => c.name === 'Uncategorized')?.count).toBe(3);
     });
 
+    it('should return uncategorized expenses with correct sum for pie chart', () => {
+      const db = getDatabase();
+      seedTestTransactions(db);
+
+      const result = db
+        .prepare(
+          `
+        SELECT
+          COALESCE(c.name, 'Uncategorized') as name,
+          COUNT(*) as count,
+          SUM(t.amount) as sum
+        FROM transactions t
+        LEFT JOIN categories c ON t.category_id = c.id
+        GROUP BY t.category_id
+        ORDER BY sum ASC
+      `
+        )
+        .all() as { name: string; count: number; sum: number }[];
+
+      // Verify uncategorized is included with correct sum
+      const uncategorized = result.find((c) => c.name === 'Uncategorized');
+      expect(uncategorized).toBeDefined();
+      expect(uncategorized?.count).toBe(3);
+      // Sum should be: -100 (AMAZON) + -75 (NETFLIX) + -200 (Unknown) = -375
+      expect(uncategorized?.sum).toBe(-375);
+      // Uncategorized should have negative sum (expense) for pie chart display
+      expect(uncategorized!.sum).toBeLessThan(0);
+    });
+
     it('should return stats by bank', () => {
       const db = getDatabase();
       seedTestTransactions(db);
