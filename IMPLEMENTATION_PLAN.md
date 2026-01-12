@@ -540,7 +540,7 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 ---
 
 ### WI-14: Categorization Engine
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 
 **Description:** Implement the keyword matching logic for auto-categorization.
 
@@ -557,13 +557,21 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - Return category_id or null if no match
 
 **Acceptance Criteria:**
-- [ ] Categorize finds matching rules
-- [ ] Keyword extraction produces sensible keywords
-- [ ] Batch categorization is efficient
-- [ ] Learning creates new rules correctly
-- [ ] Unit tests with various descriptions
+- [x] Categorize finds matching rules
+- [x] Keyword extraction produces sensible keywords
+- [x] Batch categorization is efficient
+- [x] Learning creates new rules correctly
+- [x] Unit tests with various descriptions
 
 **Dependencies:** WI-02, WI-07
+
+**Implementation Notes:**
+- Created `backend/src/services/categorizationService.ts` with full `CategorizationService` class
+- `extractKeyword()` skips 60+ stop words (payment terms, prepositions, abbreviations, currency codes)
+- `categorize()` loads rules from DB and uses case-insensitive substring matching
+- `categorizeAll()` loads rules once and applies to all transactions efficiently (Map of index→category_id)
+- `learnRule()` extracts keyword, validates category, checks duplicates, returns success/failure status
+- 36 unit tests in `backend/tests/categorization.test.ts` covering all methods and edge cases
 
 ---
 
