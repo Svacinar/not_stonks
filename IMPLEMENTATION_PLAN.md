@@ -170,7 +170,7 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 ---
 
 ### WI-04: Upload API Endpoint
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 
 **Description:** Create file upload endpoint that processes bank statements.
 
@@ -188,16 +188,24 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - Handle errors gracefully (invalid file, parsing errors)
 
 **Acceptance Criteria:**
-- [ ] Endpoint accepts file uploads
-- [ ] Correct bank detection and parsing
-- [ ] Categorization applied to new transactions
-- [ ] Duplicates detected and skipped
-- [ ] Upload logged to database
-- [ ] Returns accurate import summary
-- [ ] Unit tests for upload logic
-- [ ] Error responses have clear messages
+- [x] Endpoint accepts file uploads
+- [x] Correct bank detection and parsing
+- [x] Categorization applied to new transactions
+- [x] Duplicates detected and skipped
+- [x] Upload logged to database
+- [x] Returns accurate import summary
+- [x] Unit tests for upload logic
+- [x] Error responses have clear messages
 
 **Dependencies:** WI-02, WI-03
+
+**Implementation Notes:**
+- Created `backend/src/routes/upload.ts` with multer middleware for multipart file handling
+- Created `backend/src/services/uploadService.ts` with core upload processing logic
+- Supports CSV, TXT, XLS, XLSX files up to 5MB, max 10 files per request
+- Deduplication checks date + amount + description + bank for exact match
+- Categorization uses case-insensitive keyword matching from category_rules table
+- 14 unit tests in `backend/tests/upload.test.ts` covering imports, duplicates, categorization, and error handling
 
 ---
 

@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import uploadRouter from './routes/upload';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -25,6 +26,9 @@ app.get('/api/categories', (_req, res) => {
 app.get('/api/rules', (_req, res) => {
   res.json({ rules: [] });
 });
+
+// Upload route
+app.use('/api/upload', uploadRouter);
 
 // Start server
 app.listen(PORT, () => {
