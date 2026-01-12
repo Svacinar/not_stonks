@@ -504,7 +504,7 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 ---
 
 ### WI-13: Rules Management Page
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 
 **Description:** Create page to view and manage categorization rules.
 
@@ -520,13 +520,22 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - Show count of uncategorized transactions
 
 **Acceptance Criteria:**
-- [ ] All rules displayed
-- [ ] Add, edit, delete work
-- [ ] Apply rules updates transaction count
-- [ ] Confirmation before delete
-- [ ] E2E test: add rule, apply, verify transaction categorized
+- [x] All rules displayed
+- [x] Add, edit, delete work
+- [x] Apply rules updates transaction count
+- [x] Confirmation before delete
+- [x] E2E test: add rule, apply, verify transaction categorized
 
 **Dependencies:** WI-07, WI-09
+
+**Implementation Notes:**
+- Created `frontend/src/pages/RulesPage.tsx` with complete rules management interface
+- Rules table displays keyword, category (with color dot), created date, and action buttons
+- Add New Rule form with keyword input and category dropdown; form clears on successful add
+- Inline edit mode: click edit button transforms row to show input/select fields
+- Delete confirmation: click delete shows "Delete?" with confirm/cancel buttons
+- Apply Rules button calls `/api/rules/apply` and shows success message with categorization count
+- 8 E2E tests in `e2e/tests/rules.spec.ts` covering all acceptance criteria
 
 ---
 

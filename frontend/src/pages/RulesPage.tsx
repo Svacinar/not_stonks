@@ -1,10 +1,537 @@
+import { useState, useEffect, useCallback } from 'react';
+import { api, ApiRequestError } from '../api/client';
+import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ErrorMessage } from '../components/ErrorMessage';
+import type { Category, CategoryRule } from '../../../shared/types';
+
+interface RuleWithCategory extends CategoryRule {
+  category_name: string;
+}
+
+interface RulesListResponse {
+  rules: RuleWithCategory[];
+}
+
+interface CategoryListResponse {
+  categories: (Category & { transaction_count: number })[];
+}
+
+interface ApplyRulesResponse {
+  success: boolean;
+  categorized: number;
+  total_uncategorized?: number;
+  message?: string;
+}
+
+interface UncategorizedCountResponse {
+  transactions: unknown[];
+  total: number;
+}
+
 export function RulesPage() {
+  // Data state
+  const [rules, setRules] = useState<RuleWithCategory[]>([]);
+  const [categories, setCategories] = useState<(Category & { transaction_count: number })[]>([]);
+  const [uncategorizedCount, setUncategorizedCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Form state
+  const [newKeyword, setNewKeyword] = useState('');
+  const [newCategoryId, setNewCategoryId] = useState<number | ''>('');
+  const [addingRule, setAddingRule] = useState(false);
+
+  // Edit state
+  const [editingRuleId, setEditingRuleId] = useState<number | null>(null);
+  const [editKeyword, setEditKeyword] = useState('');
+  const [editCategoryId, setEditCategoryId] = useState<number | ''>('');
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  // Delete confirmation state
+  const [deletingRuleId, setDeletingRuleId] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+
+  // Apply rules state
+  const [applyingRules, setApplyingRules] = useState(false);
+  const [applyResult, setApplyResult] = useState<{ categorized: number; total: number } | null>(null);
+
+  // Fetch data
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const [rulesRes, categoriesRes, uncategorizedRes] = await Promise.all([
+        api.get<RulesListResponse>('/api/rules'),
+        api.get<CategoryListResponse>('/api/categories'),
+        api.get<UncategorizedCountResponse>('/api/transactions?uncategorized=true&limit=0'),
+      ]);
+
+      setRules(rulesRes.rules);
+      setCategories(categoriesRes.categories);
+      setUncategorizedCount(uncategorizedRes.total);
+    } catch (err) {
+      const message =
+        err instanceof ApiRequestError ? err.message : 'Failed to load data';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Add new rule
+  const handleAddRule = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newKeyword.trim() || newCategoryId === '') {
+      return;
+    }
+
+    setAddingRule(true);
+    setError(null);
+
+    try {
+      const newRule = await api.post<RuleWithCategory>('/api/rules', {
+        keyword: newKeyword.trim(),
+        category_id: newCategoryId,
+      });
+
+      setRules((prev) => [...prev, newRule].sort((a, b) => a.keyword.localeCompare(b.keyword)));
+      setNewKeyword('');
+      setNewCategoryId('');
+    } catch (err) {
+      const message =
+        err instanceof ApiRequestError ? err.message : 'Failed to add rule';
+      setError(message);
+    } finally {
+      setAddingRule(false);
+    }
+  };
+
+  // Start editing a rule
+  const handleStartEdit = (rule: RuleWithCategory) => {
+    setEditingRuleId(rule.id);
+    setEditKeyword(rule.keyword);
+    setEditCategoryId(rule.category_id);
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setEditingRuleId(null);
+    setEditKeyword('');
+    setEditCategoryId('');
+  };
+
+  // Save edited rule
+  const handleSaveEdit = async () => {
+    if (!editKeyword.trim() || editCategoryId === '' || editingRuleId === null) {
+      return;
+    }
+
+    setSavingEdit(true);
+    setError(null);
+
+    try {
+      const updatedRule = await api.patch<RuleWithCategory>(`/api/rules/${editingRuleId}`, {
+        keyword: editKeyword.trim(),
+        category_id: editCategoryId,
+      });
+
+      setRules((prev) =>
+        prev
+          .map((r) => (r.id === editingRuleId ? updatedRule : r))
+          .sort((a, b) => a.keyword.localeCompare(b.keyword))
+      );
+      handleCancelEdit();
+    } catch (err) {
+      const message =
+        err instanceof ApiRequestError ? err.message : 'Failed to update rule';
+      setError(message);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  // Delete rule
+  const handleDeleteRule = async (ruleId: number) => {
+    setDeletingRuleId(ruleId);
+    setError(null);
+
+    try {
+      await api.delete(`/api/rules/${ruleId}`);
+      setRules((prev) => prev.filter((r) => r.id !== ruleId));
+      setShowDeleteConfirm(null);
+    } catch (err) {
+      const message =
+        err instanceof ApiRequestError ? err.message : 'Failed to delete rule';
+      setError(message);
+    } finally {
+      setDeletingRuleId(null);
+    }
+  };
+
+  // Apply rules to uncategorized transactions
+  const handleApplyRules = async () => {
+    setApplyingRules(true);
+    setApplyResult(null);
+    setError(null);
+
+    try {
+      const result = await api.post<ApplyRulesResponse>('/api/rules/apply');
+      setApplyResult({
+        categorized: result.categorized,
+        total: result.total_uncategorized || uncategorizedCount,
+      });
+
+      // Refresh uncategorized count
+      const uncategorizedRes = await api.get<UncategorizedCountResponse>(
+        '/api/transactions?uncategorized=true&limit=0'
+      );
+      setUncategorizedCount(uncategorizedRes.total);
+    } catch (err) {
+      const message =
+        err instanceof ApiRequestError ? err.message : 'Failed to apply rules';
+      setError(message);
+    } finally {
+      setApplyingRules(false);
+    }
+  };
+
+  // Get category color
+  const getCategoryColor = (categoryId: number) => {
+    const category = categories.find((c) => c.id === categoryId);
+    return category?.color || '#9ca3af';
+  };
+
+  // Format date
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900">Rules</h1>
-      <p className="mt-2 text-gray-600">
-        Categorization rules management will be implemented here.
-      </p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Categorization Rules</h1>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-gray-600">
+            <span className="font-medium">{uncategorizedCount}</span> uncategorized transaction
+            {uncategorizedCount !== 1 ? 's' : ''}
+          </span>
+          <button
+            type="button"
+            onClick={handleApplyRules}
+            disabled={applyingRules || rules.length === 0 || uncategorizedCount === 0}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {applyingRules ? (
+              <>
+                <LoadingSpinner size="sm" className="mr-2" />
+                Applying...
+              </>
+            ) : (
+              'Apply Rules'
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Apply Result */}
+      {applyResult && (
+        <div className="rounded-md bg-green-50 border border-green-200 p-4" role="status">
+          <div className="flex items-center">
+            <svg
+              className="h-5 w-5 text-green-400 mr-2"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <p className="text-sm text-green-700">
+              Categorized <span className="font-medium">{applyResult.categorized}</span> of{' '}
+              <span className="font-medium">{applyResult.total}</span> uncategorized transactions
+            </p>
+            <button
+              type="button"
+              onClick={() => setApplyResult(null)}
+              className="ml-auto text-green-600 hover:text-green-800"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Error */}
+      {error && <ErrorMessage message={error} onRetry={fetchData} />}
+
+      {/* Add New Rule Form */}
+      <div className="bg-white shadow rounded-lg p-4">
+        <h2 className="text-lg font-medium text-gray-900 mb-4">Add New Rule</h2>
+        <form onSubmit={handleAddRule} className="flex flex-wrap gap-4 items-end">
+          <div className="flex-1 min-w-48">
+            <label htmlFor="newKeyword" className="block text-sm font-medium text-gray-700 mb-1">
+              Keyword
+            </label>
+            <input
+              type="text"
+              id="newKeyword"
+              value={newKeyword}
+              onChange={(e) => setNewKeyword(e.target.value)}
+              placeholder="Enter keyword..."
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+              disabled={addingRule}
+            />
+          </div>
+          <div className="flex-1 min-w-48">
+            <label htmlFor="newCategory" className="block text-sm font-medium text-gray-700 mb-1">
+              Category
+            </label>
+            <select
+              id="newCategory"
+              value={newCategoryId}
+              onChange={(e) => setNewCategoryId(e.target.value ? parseInt(e.target.value, 10) : '')}
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+              disabled={addingRule}
+            >
+              <option value="">Select category...</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="submit"
+            disabled={addingRule || !newKeyword.trim() || newCategoryId === ''}
+            className="px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {addingRule ? (
+              <>
+                <LoadingSpinner size="sm" className="mr-2 inline-block" />
+                Adding...
+              </>
+            ) : (
+              'Add Rule'
+            )}
+          </button>
+        </form>
+      </div>
+
+      {/* Loading */}
+      {loading && (
+        <div className="flex justify-center py-8">
+          <LoadingSpinner size="lg" />
+        </div>
+      )}
+
+      {/* Rules Table */}
+      {!loading && (
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Keyword
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Category
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Created
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {rules.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                      No rules defined yet. Add a rule above to auto-categorize transactions.
+                    </td>
+                  </tr>
+                ) : (
+                  rules.map((rule) => (
+                    <tr key={rule.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {editingRuleId === rule.id ? (
+                          <input
+                            type="text"
+                            value={editKeyword}
+                            onChange={(e) => setEditKeyword(e.target.value)}
+                            className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm w-full max-w-xs"
+                            disabled={savingEdit}
+                            autoFocus
+                          />
+                        ) : (
+                          <span className="font-mono text-gray-900">{rule.keyword}</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {editingRuleId === rule.id ? (
+                          <select
+                            value={editCategoryId}
+                            onChange={(e) =>
+                              setEditCategoryId(e.target.value ? parseInt(e.target.value, 10) : '')
+                            }
+                            className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                            disabled={savingEdit}
+                          >
+                            <option value="">Select category...</option>
+                            {categories.map((cat) => (
+                              <option key={cat.id} value={cat.id}>
+                                {cat.name}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            <span
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: getCategoryColor(rule.category_id) }}
+                            />
+                            <span className="text-gray-900">{rule.category_name}</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(rule.created_at)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                        {editingRuleId === rule.id ? (
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={handleSaveEdit}
+                              disabled={savingEdit || !editKeyword.trim() || editCategoryId === ''}
+                              className="text-green-600 hover:text-green-800 disabled:opacity-50"
+                            >
+                              {savingEdit ? (
+                                <LoadingSpinner size="sm" />
+                              ) : (
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleCancelEdit}
+                              disabled={savingEdit}
+                              className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                            >
+                              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ) : showDeleteConfirm === rule.id ? (
+                          <div className="flex items-center justify-end gap-2">
+                            <span className="text-sm text-gray-600 mr-2">Delete?</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteRule(rule.id)}
+                              disabled={deletingRuleId === rule.id}
+                              className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                            >
+                              {deletingRuleId === rule.id ? (
+                                <LoadingSpinner size="sm" />
+                              ) : (
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowDeleteConfirm(null)}
+                              disabled={deletingRuleId === rule.id}
+                              className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                            >
+                              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleStartEdit(rule)}
+                              className="text-blue-600 hover:text-blue-800"
+                              title="Edit rule"
+                            >
+                              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowDeleteConfirm(rule.id)}
+                              className="text-red-600 hover:text-red-800"
+                              title="Delete rule"
+                            >
+                              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Rules count */}
+      {!loading && rules.length > 0 && (
+        <div className="text-sm text-gray-600">
+          <span className="font-medium">{rules.length}</span> rule{rules.length !== 1 ? 's' : ''} defined
+        </div>
+      )}
     </div>
   );
 }
