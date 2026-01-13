@@ -431,7 +431,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-13: Create AlertDialog Component
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** Delete confirmation in RulesPage is inline with confusing "Delete?" text and checkmark to confirm.
@@ -446,11 +446,19 @@ This document contains work items to modernize the spending dashboard UI from a 
 2. Verify subcomponents: AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction
 
 **Acceptance Criteria:**
-- [ ] AlertDialog component exists
-- [ ] Confirmation has clear title and description
-- [ ] Cancel and Action buttons clearly labeled
-- [ ] Action button supports destructive styling
-- [ ] Cancel is focused by default
+- [x] AlertDialog component exists
+- [x] Confirmation has clear title and description
+- [x] Cancel and Action buttons clearly labeled
+- [x] Action button supports destructive styling
+- [x] Cancel is focused by default
+
+**Implementation Notes:**
+- Ran `npx shadcn@latest add alert-dialog` which installed `@radix-ui/react-alert-dialog` dependency
+- Component exports all required subcomponents: AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction
+- Also includes bonus components: AlertDialogPortal, AlertDialogOverlay for advanced customization
+- Cancel button focus by default is built into Radix UI AlertDialog primitive (prevents accidental destructive actions)
+- Action button supports destructive styling via `buttonVariants({ variant: "destructive" })` classes
+- Files created: `frontend/src/components/ui/alert-dialog.tsx`
 
 ---
 
