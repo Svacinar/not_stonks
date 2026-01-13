@@ -408,7 +408,7 @@ workers: 1,
 ---
 
 ### WR-17: Memoize Chart Options
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Problem:** Chart options recreated on every render.
@@ -416,7 +416,14 @@ workers: 1,
 **File:** `frontend/src/pages/DashboardPage.tsx:195-260`
 
 **Acceptance Criteria:**
-- [ ] Options wrapped in useMemo
+- [x] Options wrapped in useMemo
+
+**Implementation Notes:**
+- Wrapped `pieOptions` in `useMemo` with empty dependency array (lines 207-222)
+- Wrapped `barOptions` in `useMemo` with empty dependency array (lines 224-247)
+- Wrapped `lineOptions` in `useMemo` with empty dependency array (lines 249-272)
+- `formatCurrency` is defined outside component scope, so no dependencies needed
+- Files changed: `frontend/src/pages/DashboardPage.tsx`
 
 ---
 

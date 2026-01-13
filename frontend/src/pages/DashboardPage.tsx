@@ -203,8 +203,8 @@ export function DashboardPage() {
     };
   }, [stats]);
 
-  // Chart options
-  const pieOptions = {
+  // Chart options - memoized to prevent recreation on every render
+  const pieOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -219,9 +219,9 @@ export function DashboardPage() {
         },
       },
     },
-  };
+  }), []);
 
-  const barOptions = {
+  const barOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -244,9 +244,9 @@ export function DashboardPage() {
         },
       },
     },
-  };
+  }), []);
 
-  const lineOptions = {
+  const lineOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -269,7 +269,7 @@ export function DashboardPage() {
         },
       },
     },
-  };
+  }), []);
 
   // Check if we have any data
   const hasData = stats && stats.total_count > 0;
