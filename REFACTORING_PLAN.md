@@ -1,0 +1,465 @@
+# Refactoring Plan: Bank Statement Dashboard
+
+## Overview
+
+This document outlines findings from a comprehensive codebase analysis identifying problems, gaps, and areas for improvement.
+
+**Context:** This is a personal finance dashboard for local/personal use. Authentication is not required.
+
+**Analysis Summary:**
+- Backend Issues: 42 findings (3 high, 17 medium, 22 low)
+- Frontend Issues: 30 findings (5 high, 18 medium, 7 low)
+- Infrastructure Issues: 25+ findings including test coverage gaps
+
+---
+
+## Work Items - UX Critical (Fix First)
+
+### WR-01: Fix Missing Input Border Classes
+**Status:** NOT IMPLEMENTED
+**Severity:** HIGH (UX)
+
+**Problem:** Multiple input fields have `border-gray-300` without `border` class, making fields invisible.
+
+**Files Affected:**
+- `frontend/src/pages/TransactionsPage.tsx:238, 338, 344`
+- `frontend/src/pages/RulesPage.tsx:295, 303, 387-391, 400-407`
+
+**Acceptance Criteria:**
+- [ ] All input fields have `border` class
+- [ ] All select elements have `border` class
+- [ ] Visual inspection confirms fields visible
+
+---
+
+### WR-02: Replace Frontend alert() with Toast Notifications
+**Status:** NOT IMPLEMENTED
+**Severity:** HIGH
+
+**Problem:** Multiple pages use browser `alert()` for error handling - poor UX.
+
+**Files Affected:**
+- `frontend/src/pages/TransactionsPage.tsx:238, 273-274`
+- `frontend/src/pages/RulesPage.tsx:110-112`
+
+**Acceptance Criteria:**
+- [ ] All alert() calls replaced with toast notifications
+- [ ] Toast component (already exists) used properly
+
+---
+
+## Work Items - Testing
+
+### WR-03: Add Frontend Component Unit Tests
+**Status:** NOT IMPLEMENTED
+**Severity:** HIGH
+
+**Problem:** Frontend has 0% component test coverage. Only 2 trivial tests exist.
+
+**Files Needing Tests:**
+- `frontend/src/pages/DashboardPage.tsx`
+- `frontend/src/pages/TransactionsPage.tsx`
+- `frontend/src/pages/RulesPage.tsx`
+- `frontend/src/pages/UploadPage.tsx`
+- `frontend/src/components/DateRangePicker.tsx`
+- `frontend/src/api/client.ts`
+
+**Acceptance Criteria:**
+- [ ] @testing-library/react installed
+- [ ] vitest.config.ts with jsdom environment
+- [ ] Tests for all pages: rendering, user interactions, API states
+- [ ] 80%+ coverage target
+
+---
+
+### WR-04: Add Vitest Configuration Files
+**Status:** NOT IMPLEMENTED
+**Severity:** HIGH
+
+**Problem:** No explicit `vitest.config.ts` files - tests rely on defaults.
+
+**Files to Create:**
+- `backend/vitest.config.ts`
+- `frontend/vitest.config.ts`
+
+**Acceptance Criteria:**
+- [ ] Backend config: node environment, isolation
+- [ ] Frontend config: jsdom environment, coverage
+- [ ] Coverage thresholds set (70% minimum)
+
+---
+
+### WR-05: Fix E2E Test Performance
+**Status:** NOT IMPLEMENTED
+**Severity:** HIGH
+
+**Problem:** E2E tests run sequentially with single worker, taking 2+ minutes.
+
+**File:** `e2e/playwright.config.ts`
+
+**Current Config:**
+```typescript
+fullyParallel: false,
+workers: 1,
+```
+
+**Acceptance Criteria:**
+- [ ] Database isolation for parallel tests
+- [ ] Workers increased (4+ or CPU cores)
+- [ ] E2E suite runs in <30 seconds
+
+---
+
+### WR-06: Add Integration Tests for API Endpoints
+**Status:** NOT IMPLEMENTED
+**Severity:** MEDIUM
+
+**Problem:** Backend routes tested via SQL queries, not HTTP endpoint tests.
+
+**Acceptance Criteria:**
+- [ ] supertest library installed
+- [ ] HTTP endpoint tests for all routes
+- [ ] Request/response validation
+
+---
+
+### WR-07: Add Test Fixtures and Factories
+**Status:** NOT IMPLEMENTED
+**Severity:** MEDIUM
+
+**Problem:** Tests create data inline with duplication.
+
+**Acceptance Criteria:**
+- [ ] Transaction, Category, Rule factories
+- [ ] Database seeding utilities
+- [ ] Consistent test data across suites
+
+---
+
+## Work Items - Code Quality
+
+### WR-08: Extract Duplicated Query Building Logic
+**Status:** NOT IMPLEMENTED
+**Severity:** MEDIUM
+
+**Problem:** WHERE clause building duplicated across 3+ files.
+
+**Files Affected:**
+- `backend/src/routes/transactions.ts:45-80, 138-164`
+- `backend/src/routes/export.ts:44-84`
+
+**Acceptance Criteria:**
+- [ ] Shared utility `buildTransactionWhereClause(query)` created
+- [ ] All routes use shared utility
+- [ ] Unit tests for utility
+
+---
+
+### WR-09: Standardize Error Response Format
+**Status:** NOT IMPLEMENTED
+**Severity:** MEDIUM
+
+**Problem:** Inconsistent error response formats across endpoints.
+
+**Acceptance Criteria:**
+- [ ] Standard format: `{ success: false, error: { code, message, details? } }`
+- [ ] All endpoints use consistent format
+- [ ] Frontend handles standard format
+
+---
+
+### WR-10: Add Input Validation Middleware
+**Status:** NOT IMPLEMENTED
+**Severity:** MEDIUM
+
+**Problem:** ID parameters and query filters cast directly without validation.
+
+**Files Affected:**
+- `backend/src/routes/transactions.ts:267`
+- `backend/src/routes/categories.ts:59`
+- `backend/src/routes/rules.ts:119`
+
+**Acceptance Criteria:**
+- [ ] Centralized validation using Zod or express-validator
+- [ ] All ID parameters validated as positive integers
+- [ ] Validation errors return 400 with details
+
+---
+
+### WR-11: Add Environment Configuration
+**Status:** NOT IMPLEMENTED
+**Severity:** MEDIUM
+
+**Problem:** No `.env.example` file or documentation.
+
+**Required Variables:**
+- `NODE_ENV`, `PORT`, `DB_PATH`, `ALLOWED_ORIGINS`, `LOG_LEVEL`
+
+**Acceptance Criteria:**
+- [ ] `.env.example` created
+- [ ] README documents environment setup
+- [ ] Defaults work for development
+
+---
+
+## Work Items - Security Hardening
+
+### WR-12: Fix CORS Configuration
+**Status:** NOT IMPLEMENTED
+**Severity:** MEDIUM
+
+**Problem:** `app.use(cors())` allows all origins. Less critical for personal use but good practice.
+
+**File:** `backend/src/index.ts:14`
+
+**Acceptance Criteria:**
+- [ ] CORS restricted to localhost by default
+- [ ] Configurable via environment variable
+
+---
+
+### WR-13: Secure Database File Permissions
+**Status:** NOT IMPLEMENTED
+**Severity:** MEDIUM
+
+**Problem:** Database directory created with default permissions.
+
+**File:** `backend/src/db/database.ts:25-27`
+
+**Acceptance Criteria:**
+- [ ] Directory created with 700 permissions
+
+---
+
+### WR-14: Add Rate Limiting
+**Status:** NOT IMPLEMENTED
+**Severity:** LOW
+
+**Problem:** No rate limiting - could be abused if exposed.
+
+**Acceptance Criteria:**
+- [ ] express-rate-limit installed
+- [ ] Upload endpoint limited (10/min)
+- [ ] API endpoints limited (100/min)
+
+---
+
+## Work Items - Performance
+
+### WR-15: Optimize Rule Application Logic
+**Status:** NOT IMPLEMENTED
+**Severity:** MEDIUM
+
+**Problem:** Rules application uses O(n*m) nested loop.
+
+**File:** `backend/src/routes/rules.ts:273-286`
+
+**Acceptance Criteria:**
+- [ ] Bulk UPDATE statement instead of loop
+- [ ] Performance tested with 1000+ transactions
+
+---
+
+### WR-16: Add Streaming for Large Exports
+**Status:** NOT IMPLEMENTED
+**Severity:** MEDIUM
+
+**Problem:** CSV export builds entire string in memory.
+
+**File:** `backend/src/routes/export.ts:145-156`
+
+**Acceptance Criteria:**
+- [ ] Streaming response for >1000 rows
+- [ ] Memory usage bounded
+
+---
+
+### WR-17: Memoize Chart Options
+**Status:** NOT IMPLEMENTED
+**Severity:** LOW
+
+**Problem:** Chart options recreated on every render.
+
+**File:** `frontend/src/pages/DashboardPage.tsx:195-260`
+
+**Acceptance Criteria:**
+- [ ] Options wrapped in useMemo
+
+---
+
+## Work Items - Database
+
+### WR-18: Add Case-Insensitive Unique Constraint
+**Status:** NOT IMPLEMENTED
+**Severity:** LOW
+
+**Problem:** Category name uniqueness is case-sensitive at DB level but case-insensitive in app.
+
+**File:** `backend/src/db/database.ts:35`
+
+**Acceptance Criteria:**
+- [ ] UNIQUE constraint uses COLLATE NOCASE
+
+---
+
+### WR-19: Add Database Constraints
+**Status:** NOT IMPLEMENTED
+**Severity:** LOW
+
+**Problem:** Database has minimal CHECK constraints.
+
+**Acceptance Criteria:**
+- [ ] Date format validation
+- [ ] Name/keyword NOT EMPTY
+- [ ] Color format validation
+
+---
+
+## Work Items - Accessibility
+
+### WR-20: Add Proper Form Labels
+**Status:** NOT IMPLEMENTED
+**Severity:** MEDIUM
+
+**Problem:** Input fields missing `<label>` associations.
+
+**Acceptance Criteria:**
+- [ ] All inputs have associated labels
+- [ ] Labels use htmlFor attribute
+
+---
+
+### WR-21: Add ARIA Labels
+**Status:** NOT IMPLEMENTED
+**Severity:** LOW
+
+**Problem:** Sortable headers, date picker missing ARIA attributes.
+
+**Acceptance Criteria:**
+- [ ] Sortable headers have aria-sort
+- [ ] Date picker has aria-label
+
+---
+
+## Work Items - Infrastructure
+
+### WR-22: Add ESLint Configuration
+**Status:** NOT IMPLEMENTED
+**Severity:** MEDIUM
+
+**Problem:** npm lint scripts exist but no `.eslintrc` found.
+
+**Acceptance Criteria:**
+- [ ] `.eslintrc.js` with TypeScript rules
+- [ ] @typescript-eslint configured
+
+---
+
+### WR-23: Add Prettier Configuration
+**Status:** NOT IMPLEMENTED
+**Severity:** LOW
+
+**Acceptance Criteria:**
+- [ ] `.prettierrc` created
+- [ ] Format script in package.json
+
+---
+
+### WR-24: Fix TypeScript Configuration Inconsistencies
+**Status:** NOT IMPLEMENTED
+**Severity:** LOW
+
+**Problem:** Three tsconfig files have conflicting settings.
+
+**Acceptance Criteria:**
+- [ ] Consistent target across packages
+- [ ] Build outputs consistent
+
+---
+
+### WR-25: Add Structured Logging
+**Status:** NOT IMPLEMENTED
+**Severity:** LOW
+
+**Problem:** Errors logged to console only.
+
+**Acceptance Criteria:**
+- [ ] Logger with configurable levels
+- [ ] File logging option
+
+---
+
+### WR-26: Improve Health Check Endpoint
+**Status:** NOT IMPLEMENTED
+**Severity:** LOW
+
+**Acceptance Criteria:**
+- [ ] Health checks database connectivity
+- [ ] Returns version information
+
+---
+
+### WR-27: Add API Documentation
+**Status:** NOT IMPLEMENTED
+**Severity:** LOW
+
+**Acceptance Criteria:**
+- [ ] OpenAPI 3.0 specification
+- [ ] Swagger UI at /api-docs
+
+---
+
+## Priority Summary
+
+### P0 - Critical (Fix First)
+1. **WR-01:** Fix Input Borders (users can't see form fields!)
+2. **WR-02:** Replace alert() with Toast
+3. **WR-03:** Frontend Component Tests (0% coverage)
+
+### P1 - High Priority
+4. **WR-04:** Vitest Configuration
+5. **WR-05:** E2E Test Performance
+6. **WR-08:** Extract Query Logic
+7. **WR-09:** Standardize Errors
+8. **WR-10:** Input Validation
+
+### P2 - Medium Priority
+9. **WR-06:** API Integration Tests
+10. **WR-07:** Test Fixtures
+11. **WR-11:** Environment Config
+12. **WR-12:** CORS Config
+13. **WR-15:** Rule Application Performance
+14. **WR-20:** Form Labels
+15. **WR-22:** ESLint Config
+
+### P3 - Lower Priority
+16-27: Database constraints, accessibility polish, infrastructure improvements
+
+---
+
+## Verification
+
+After implementing:
+
+1. **Visual Check:**
+   - All form fields visible and usable
+   - No browser alerts appear
+
+2. **Test Coverage:**
+   ```bash
+   npm run test -- --coverage
+   # Target: 70%+ coverage
+   ```
+
+3. **E2E Performance:**
+   ```bash
+   time npm run test:e2e
+   # Target: <30 seconds
+   ```
+
+4. **Build Check:**
+   ```bash
+   npm run build
+   npm start
+   # All features work
+   ```
