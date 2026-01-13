@@ -61,14 +61,16 @@ describe('RulesPage', () => {
     expect(screen.getByText('Categorization Rules')).toBeInTheDocument();
   });
 
-  it('shows loading spinner while fetching data', () => {
+  it('shows loading skeleton while fetching data', () => {
     vi.mocked(apiClient.api.get).mockImplementation(
       () => new Promise(() => {})
     );
 
     renderRulesPage();
 
-    expect(screen.getByLabelText('Loading')).toBeInTheDocument();
+    // Skeleton table should be visible during loading
+    const skeletonElements = document.querySelectorAll('.animate-pulse');
+    expect(skeletonElements.length).toBeGreaterThan(0);
   });
 
   it('shows error message on API failure', async () => {

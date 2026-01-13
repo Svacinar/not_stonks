@@ -723,7 +723,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-21: Add Loading Skeletons to All Pages
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Problem:** Loading states only show spinner, no content preview.
@@ -744,9 +744,16 @@ This document contains work items to modernize the spending dashboard UI from a 
 3. Replace LoadingSpinner usage with appropriate skeletons in each page
 
 **Acceptance Criteria:**
-- [ ] Each page has appropriate loading skeleton
-- [ ] Skeletons match layout of loaded content
-- [ ] Smooth transition from skeleton to content
+- [x] Each page has appropriate loading skeleton
+- [x] Skeletons match layout of loaded content
+- [x] Smooth transition from skeleton to content
+
+**Implementation Notes:**
+- Created `TransactionTableSkeleton` with 5 columns (Date, Description, Amount, Bank, Category) and configurable `rowCount` prop (default 8)
+- Created `RulesTableSkeleton` with 4 columns (Keyword, Category, Created, Actions) and configurable `rowCount` prop (default 5)
+- Updated `TransactionsPage.tsx` to import and use `TransactionTableSkeleton` instead of `LoadingSpinner` during loading
+- Updated `RulesPage.tsx` to import and use `RulesTableSkeleton` instead of `LoadingSpinner` during loading
+- Updated tests in `TransactionsPage.test.tsx` and `RulesPage.test.tsx` to check for `.animate-pulse` skeleton elements instead of `aria-label="Loading"` spinner
 
 ---
 

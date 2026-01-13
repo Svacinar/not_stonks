@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api, ApiRequestError } from '../api/client';
 import { LoadingSpinner, ErrorMessage, DateRangePicker, useToast } from '../components';
+import { TransactionTableSkeleton } from '@/components/skeletons/TransactionTableSkeleton';
 import { getDefaultDateRange, type DateRange } from '../utils/dateUtils';
 import type { Transaction, Category, BankName } from '../../../shared/types';
 import { Button } from '@/components/ui/button';
@@ -431,11 +432,7 @@ export function TransactionsPage() {
       {error && <ErrorMessage message={error} onRetry={fetchTransactions} />}
 
       {/* Loading */}
-      {loading && !error && (
-        <div className="flex justify-center py-8">
-          <LoadingSpinner size="lg" />
-        </div>
-      )}
+      {loading && !error && <TransactionTableSkeleton rowCount={10} />}
 
       {/* Table */}
       {!loading && !error && (

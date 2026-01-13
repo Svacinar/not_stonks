@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { api, ApiRequestError } from '../api/client';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ErrorMessage } from '../components/ErrorMessage';
+import { RulesTableSkeleton } from '@/components/skeletons/RulesTableSkeleton';
 import type { Category, CategoryRule } from '../../../shared/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -353,11 +354,7 @@ export function RulesPage() {
       </Card>
 
       {/* Loading */}
-      {loading && (
-        <div className="flex justify-center py-8">
-          <LoadingSpinner size="lg" />
-        </div>
-      )}
+      {loading && <RulesTableSkeleton rowCount={5} />}
 
       {/* Rules Table */}
       {!loading && (
