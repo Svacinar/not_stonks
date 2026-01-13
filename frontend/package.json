@@ -12,12 +12,17 @@
     "lint": "eslint src --ext .ts,.tsx"
   },
   "dependencies": {
+    "@radix-ui/react-slot": "^1.2.4",
     "chart.js": "^4.4.7",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.2.0",
     "react-day-picker": "^9.13.0",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.1.1"
+    "react-router-dom": "^7.1.1",
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",

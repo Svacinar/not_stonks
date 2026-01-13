@@ -18,7 +18,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ## Work Items - Foundation (Must Complete First)
 
 ### UI-01: Initialize shadcn/ui and Configure Tooling
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** No component library exists. Tailwind config is minimal with empty `extend: {}`. No utility function for conditional classes.
@@ -44,10 +44,18 @@ This document contains work items to modernize the spending dashboard UI from a 
 6. Install `tailwindcss-animate` plugin
 
 **Acceptance Criteria:**
-- [ ] `npx shadcn add button` works without errors
-- [ ] `cn()` utility available at `@/lib/utils`
-- [ ] TypeScript compiles without path alias errors
-- [ ] `npm run dev` starts without errors
+- [x] `npx shadcn add button` works without errors
+- [x] `cn()` utility available at `@/lib/utils`
+- [x] TypeScript compiles without path alias errors
+- [x] `npm run dev` starts without errors
+
+**Implementation Notes:**
+- Created `frontend/components.json` with shadcn/ui configuration (style=default, baseColor=slate, cssVariables=true)
+- Created `frontend/src/lib/utils.ts` with `cn()` utility using clsx and tailwind-merge
+- Added `baseUrl` and `paths` to `frontend/tsconfig.json` for `@/*` alias
+- Updated `frontend/vite.config.ts` with path alias resolution using `path.resolve`
+- Installed dependencies: clsx, tailwind-merge, class-variance-authority, @radix-ui/react-slot, tailwindcss-animate
+- Button component created at `frontend/src/components/ui/button.tsx` as test (verified shadcn CLI works)
 
 ---
 
