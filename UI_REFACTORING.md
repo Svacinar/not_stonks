@@ -166,7 +166,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ## Work Items - Core Components
 
 ### UI-05: Create Button Component
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** Button styling repeated 20+ times across pages with long class strings.
@@ -183,11 +183,19 @@ This document contains work items to modernize the spending dashboard UI from a 
 4. Test rendering all variants
 
 **Acceptance Criteria:**
-- [ ] Button component exists at `src/components/ui/button.tsx`
-- [ ] All 6 variants render correctly
-- [ ] All 4 sizes render correctly
-- [ ] Focus ring visible on keyboard focus
-- [ ] Disabled state works
+- [x] Button component exists at `src/components/ui/button.tsx`
+- [x] All 6 variants render correctly
+- [x] All 4 sizes render correctly
+- [x] Focus ring visible on keyboard focus
+- [x] Disabled state works
+
+**Implementation Notes:**
+- Button component was created during UI-01 initialization as a test for shadcn CLI
+- Component uses class-variance-authority (cva) for variant management
+- Includes all 6 variants: default, destructive, outline, secondary, ghost, link
+- Includes all 4 sizes: default, sm, lg, icon
+- Focus ring implemented via `focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`
+- Disabled state implemented via `disabled:pointer-events-none disabled:opacity-50`
 
 ---
 
