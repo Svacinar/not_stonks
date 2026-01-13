@@ -133,7 +133,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-04: Update CLAUDE.md After Foundation Setup
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** CLAUDE.md contains planned structure that should be verified against actual implementation.
@@ -150,9 +150,16 @@ This document contains work items to modernize the spending dashboard UI from a 
 4. Ensure color token table is accurate
 
 **Acceptance Criteria:**
-- [ ] CLAUDE.md accurately reflects the actual setup
-- [ ] Import examples work when copied into code
-- [ ] Color token table matches index.css values
+- [x] CLAUDE.md accurately reflects the actual setup
+- [x] Import examples work when copied into code
+- [x] Color token table matches index.css values
+
+**Implementation Notes:**
+- Updated CLAUDE.md semantic colors table to include all tokens defined in index.css
+- Added missing tokens: `--popover`, `--popover-foreground`, `--secondary-foreground`, `--accent-foreground`, `--destructive-foreground`, `--input`, `--radius`
+- Verified import path examples (`@/lib/utils`, `@/components/ui/*`) work with tsconfig.json paths configuration
+- Verified all color values in table match actual index.css values for both light and dark modes
+- Files changed: `CLAUDE.md`
 
 ---
 

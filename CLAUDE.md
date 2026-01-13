@@ -47,15 +47,22 @@ All colors are defined as CSS variables in `frontend/src/index.css`. Use Tailwin
 | `--foreground` | `222 84% 5%` | `210 40% 98%` | Primary text |
 | `--card` | `0 0% 100%` | `222 84% 5%` | Card background |
 | `--card-foreground` | `222 84% 5%` | `210 40% 98%` | Card text |
+| `--popover` | `0 0% 100%` | `222 84% 5%` | Popover/dropdown background |
+| `--popover-foreground` | `222 84% 5%` | `210 40% 98%` | Popover/dropdown text |
 | `--primary` | `221 83% 53%` (blue-600) | `217 91% 60%` | Primary actions |
 | `--primary-foreground` | `210 40% 98%` | `222 84% 5%` | Text on primary |
 | `--secondary` | `210 40% 96%` | `217 33% 17%` | Secondary elements |
+| `--secondary-foreground` | `222 84% 5%` | `210 40% 98%` | Text on secondary |
 | `--muted` | `210 40% 96%` | `217 33% 17%` | Muted backgrounds |
 | `--muted-foreground` | `215 16% 47%` | `215 20% 65%` | Secondary text |
 | `--accent` | `210 40% 96%` | `217 33% 17%` | Hover states |
+| `--accent-foreground` | `222 84% 5%` | `210 40% 98%` | Text on accent |
 | `--destructive` | `0 84% 60%` (red-500) | `0 62% 30%` | Delete, errors |
+| `--destructive-foreground` | `210 40% 98%` | `210 40% 98%` | Text on destructive |
 | `--border` | `214 32% 91%` | `217 33% 17%` | Borders |
+| `--input` | `214 32% 91%` | `217 33% 17%` | Input borders |
 | `--ring` | `221 83% 53%` | `224 76% 48%` | Focus rings |
+| `--radius` | `0.5rem` | `0.5rem` | Base border radius |
 
 ### Bank Colors
 
