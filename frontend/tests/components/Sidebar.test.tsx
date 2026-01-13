@@ -2,11 +2,14 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { Sidebar } from '../../src/components/Sidebar';
+import { ThemeProvider } from '../../src/contexts/ThemeContext';
 
 function renderSidebar(isOpen: boolean = true, onClose: () => void = vi.fn()) {
   return render(
     <BrowserRouter>
-      <Sidebar isOpen={isOpen} onClose={onClose} />
+      <ThemeProvider>
+        <Sidebar isOpen={isOpen} onClose={onClose} />
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

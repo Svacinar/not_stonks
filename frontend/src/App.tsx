@@ -1,25 +1,26 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Sidebar, ToastProvider } from './components';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { DashboardPage, TransactionsPage, UploadPage, RulesPage } from './pages';
 
 function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-background">
       {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b border-gray-200">
+        <header className="bg-card shadow-sm border-b border-border">
           <div className="flex items-center justify-between h-16 px-4">
             {/* Mobile menu button */}
             <button
               type="button"
-              className="p-2 text-gray-500 hover:text-gray-600 lg:hidden"
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors lg:hidden"
               onClick={() => setSidebarOpen(true)}
               aria-label="Open sidebar"
             >
@@ -34,7 +35,7 @@ function AppLayout() {
             </button>
 
             {/* App title */}
-            <h1 className="text-xl font-semibold text-gray-900 lg:ml-0 ml-2">
+            <h1 className="text-xl font-semibold text-foreground lg:ml-0 ml-2">
               Spending Dashboard
             </h1>
 
@@ -60,9 +61,11 @@ function AppLayout() {
 function App() {
   return (
     <BrowserRouter>
-      <ToastProvider>
-        <AppLayout />
-      </ToastProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <AppLayout />
+        </ToastProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

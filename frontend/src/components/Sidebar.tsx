@@ -1,5 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/contexts/ThemeContext';
+import { Button } from '@/components/ui/button';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -71,7 +73,43 @@ const navItems: NavItem[] = [
   },
 ];
 
+// Icons for theme toggle
+const SunIcon = () => (
+  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+    />
+  </svg>
+);
+
+const MoonIcon = () => (
+  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+    />
+  </svg>
+);
+
+const MonitorIcon = () => (
+  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+    />
+  </svg>
+);
+
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { theme, setTheme } = useTheme();
+
   return (
     <>
       {/* Mobile overlay */}
@@ -86,7 +124,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-30 w-64 bg-gray-900 transform transition-transform duration-300 ease-in-out',
+          'fixed inset-y-0 left-0 z-30 w-64 bg-gray-900 transform transition-transform duration-300 ease-in-out flex flex-col',
           'lg:translate-x-0 lg:static lg:inset-auto',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
@@ -112,7 +150,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="mt-4 px-2">
+        <nav className="mt-4 px-2 flex-1">
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.path}>
@@ -136,6 +174,48 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             ))}
           </ul>
         </nav>
+
+        {/* Theme toggle */}
+        <div className="p-4 border-t border-gray-800">
+          <div className="flex items-center justify-between gap-1 p-1 bg-gray-800 rounded-lg">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setTheme('light')}
+              className={cn(
+                'flex-1 h-8 text-gray-400 hover:text-white hover:bg-gray-700',
+                theme === 'light' && 'bg-gray-700 text-white'
+              )}
+              aria-label="Light theme"
+            >
+              <SunIcon />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setTheme('dark')}
+              className={cn(
+                'flex-1 h-8 text-gray-400 hover:text-white hover:bg-gray-700',
+                theme === 'dark' && 'bg-gray-700 text-white'
+              )}
+              aria-label="Dark theme"
+            >
+              <MoonIcon />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setTheme('system')}
+              className={cn(
+                'flex-1 h-8 text-gray-400 hover:text-white hover:bg-gray-700',
+                theme === 'system' && 'bg-gray-700 text-white'
+              )}
+              aria-label="System theme"
+            >
+              <MonitorIcon />
+            </Button>
+          </div>
+        </div>
       </aside>
     </>
   );

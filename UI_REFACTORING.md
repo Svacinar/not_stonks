@@ -684,7 +684,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ## Work Items - Polish & Enhancement
 
 ### UI-20: Add Dark Mode Support
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** No dark mode support. All pages only have light theme.
@@ -706,11 +706,19 @@ This document contains work items to modernize the spending dashboard UI from a 
 4. Add inline script to index.html to prevent flash of wrong theme
 
 **Acceptance Criteria:**
-- [ ] Dark mode toggle visible in sidebar
-- [ ] All pages render correctly in dark mode
-- [ ] Charts adapt to dark mode
-- [ ] Theme preference persists across sessions
-- [ ] No flash of wrong theme on page load
+- [x] Dark mode toggle visible in sidebar
+- [x] All pages render correctly in dark mode
+- [x] Charts adapt to dark mode
+- [x] Theme preference persists across sessions
+- [x] No flash of wrong theme on page load
+
+**Implementation Notes:**
+- Created `frontend/src/contexts/ThemeContext.tsx` with ThemeProvider and useTheme hook supporting 'light', 'dark', and 'system' themes
+- Theme state persisted to localStorage under key `spending-dashboard-theme`, system preference detected via `matchMedia('(prefers-color-scheme: dark)')`
+- Wrapped App with ThemeProvider in `frontend/src/App.tsx`, updated AppLayout to use design system colors (`bg-background`, `bg-card`, `text-foreground`, etc.)
+- Added theme toggle button to Sidebar with Sun/Moon/Monitor icons for light/dark/system selection
+- Added inline script to `frontend/index.html` that runs before React to apply stored theme class, preventing flash of wrong theme
+- Updated `frontend/tests/setup.ts` to mock localStorage, updated `frontend/tests/components/Sidebar.test.tsx` to wrap with ThemeProvider
 
 ---
 
