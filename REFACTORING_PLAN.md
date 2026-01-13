@@ -515,14 +515,22 @@ workers: 1,
 ## Work Items - Infrastructure
 
 ### WR-22: Add ESLint Configuration
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** npm lint scripts exist but no `.eslintrc` found.
 
 **Acceptance Criteria:**
-- [ ] `.eslintrc.js` with TypeScript rules
-- [ ] @typescript-eslint configured
+- [x] `eslint.config.js` with TypeScript rules (ESLint 9 flat config format)
+- [x] @typescript-eslint configured
+
+**Implementation Notes:**
+- Installed ESLint 9, typescript-eslint, @eslint/js in backend
+- Installed ESLint 9, typescript-eslint, @eslint/js, eslint-plugin-react, eslint-plugin-react-hooks in frontend
+- Created `backend/eslint.config.js` with TypeScript rules using ESLint 9 flat config format
+- Created `frontend/eslint.config.js` with TypeScript + React + React Hooks rules
+- Both configs extend eslint:recommended and @typescript-eslint/recommended
+- Files changed: `backend/eslint.config.js`, `frontend/eslint.config.js`, `backend/package.json`, `frontend/package.json`
 
 ---
 
