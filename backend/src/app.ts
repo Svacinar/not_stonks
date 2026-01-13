@@ -9,8 +9,32 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 const app = express();
 
+// CORS Configuration
+// Defaults to localhost:3000 (frontend dev server) if ALLOWED_ORIGINS not set
+const getAllowedOrigins = (): string[] => {
+  const envOrigins = process.env.ALLOWED_ORIGINS;
+  if (envOrigins) {
+    return envOrigins.split(',').map((origin) => origin.trim());
+  }
+  // Default to localhost origins for development
+  return ['http://localhost:3000', 'http://localhost:5173'];
+};
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    const allowedOrigins = getAllowedOrigins();
+    // Allow requests with no origin (e.g., same-origin, curl, Postman)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
+  credentials: true,
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Health check endpoint

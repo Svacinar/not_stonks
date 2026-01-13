@@ -300,7 +300,7 @@ workers: 1,
 ## Work Items - Security Hardening
 
 ### WR-12: Fix CORS Configuration
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** `app.use(cors())` allows all origins. Less critical for personal use but good practice.
@@ -308,8 +308,16 @@ workers: 1,
 **File:** `backend/src/index.ts:14`
 
 **Acceptance Criteria:**
-- [ ] CORS restricted to localhost by default
-- [ ] Configurable via environment variable
+- [x] CORS restricted to localhost by default
+- [x] Configurable via environment variable
+
+**Implementation Notes:**
+- Added `getAllowedOrigins()` function in `backend/src/app.ts` to parse `ALLOWED_ORIGINS` env var
+- Default origins: `http://localhost:3000` and `http://localhost:5173` (both common frontend dev servers)
+- CORS config uses origin callback to validate requests against allowed list
+- Requests with no origin (same-origin, curl, Postman) are allowed for development convenience
+- Updated `.env.example` to reflect implementation and remove "not implemented" note
+- Files changed: `backend/src/app.ts`, `.env.example`
 
 ---
 
