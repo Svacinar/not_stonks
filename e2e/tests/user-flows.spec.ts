@@ -34,9 +34,10 @@ async function waitForLoad(page: Page): Promise<void> {
   await page.waitForTimeout(300);
 }
 
-// Helper to set date range to include dummy data (from 2024)
-async function setDateRangeForDummyData(page: Page): Promise<void> {
-  await page.locator('#startDate').fill('2024-01-01');
+// Helper to set date range to "All time" to include dummy data from 2024
+async function selectAllTimeRange(page: Page): Promise<void> {
+  await page.getByRole('button', { name: /Last 3 months|All time|Custom/ }).click();
+  await page.getByRole('button', { name: 'All time' }).click();
   await page.waitForTimeout(300);
   await waitForLoad(page);
 }
@@ -60,6 +61,9 @@ async function waitForCategoriesToLoad(page: Page): Promise<void> {
 }
 
 test.describe('E2E User Flows - WI-19', () => {
+  // Configure all flow tests to run sequentially
+  test.describe.configure({ mode: 'serial' });
+
   /**
    * Flow 1: Upload Flow
    * Complete user journey: upload files → see success → navigate to transactions
@@ -100,8 +104,8 @@ test.describe('E2E User Flows - WI-19', () => {
         // Step 5: Navigate to transactions
         await page.getByRole('button', { name: 'View Transactions' }).click();
 
-        // Step 6: Verify on transactions page with data
-        await expect(page).toHaveURL('/transactions');
+        // Step 6: Verify on transactions page with data (URL may have query params)
+        await expect(page).toHaveURL(/\/transactions/);
         await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
 
         // Wait for table to load
@@ -134,8 +138,8 @@ test.describe('E2E User Flows - WI-19', () => {
         await page.goto('/');
         await waitForLoad(page);
 
-        // Step 2: Set date range to include dummy data
-        await setDateRangeForDummyData(page);
+        // Select "All time" to include dummy data from 2024
+        await selectAllTimeRange(page);
 
         // Step 3: Verify all stats cards are visible
         await expect(page.getByText('Total Spending')).toBeVisible();
@@ -160,8 +164,9 @@ test.describe('E2E User Flows - WI-19', () => {
         const totalSpendingCard = page.locator('.bg-white.rounded-lg').filter({ hasText: 'Total Spending' });
         const initialSpending = await totalSpendingCard.textContent();
 
-        // Step 6: Change date range to far future (should show no data)
-        await page.locator('#startDate').fill('2099-01-01');
+        // Step 6: Change date range to "Last 3 months" (should show no data since dummy data is from 2024)
+        await page.getByRole('button', { name: /All time|Last 3 months|Custom/ }).click();
+        await page.getByRole('button', { name: 'Last 3 months' }).click();
         await page.waitForTimeout(500);
         await waitForLoad(page);
 
@@ -169,10 +174,8 @@ test.describe('E2E User Flows - WI-19', () => {
         await expect(page.getByText('No data available')).toBeVisible();
         await expect(page.getByText('Upload some bank statements')).toBeVisible();
 
-        // Step 8: Reset date range to valid range
-        await page.locator('#startDate').fill('2024-01-01');
-        await page.waitForTimeout(500);
-        await waitForLoad(page);
+        // Step 8: Reset date range to "All time"
+        await selectAllTimeRange(page);
 
         // Step 9: Verify charts are back with data
         await expect(page.getByText('Total Spending')).toBeVisible();
@@ -191,7 +194,7 @@ test.describe('E2E User Flows - WI-19', () => {
         await uploadFile(page, csobFile);
         await page.goto('/');
         await waitForLoad(page);
-        await setDateRangeForDummyData(page);
+        await selectAllTimeRange(page);
 
         // Verify charts exist
         const chartCanvases = page.locator('canvas');
@@ -237,6 +240,18 @@ test.describe('E2E User Flows - WI-19', () => {
 
         // Step 1: Navigate to transactions
         await page.goto('/transactions');
+        await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
+
+        // Select "All time" date range to include dummy data from 2024
+        const dateButton = page.getByRole('button', { name: /Last 3 months|All time|Custom/ });
+        await dateButton.click();
+        // Wait for dropdown to open and then click All time
+        const allTimeButton = page.getByRole('button', { name: 'All time' });
+        await allTimeButton.waitFor({ state: 'visible', timeout: 5000 });
+        await allTimeButton.click({ force: true });
+        await page.waitForTimeout(500);
+
+        // Wait for table to load
         await page.waitForSelector('table tbody tr', { timeout: 10000 });
 
         // Step 2: Verify initial state - all transactions displayed

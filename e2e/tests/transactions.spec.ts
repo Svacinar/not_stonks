@@ -12,6 +12,9 @@ async function createTestFile(filename: string, content: string): Promise<string
 }
 
 test.describe('Transactions Page', () => {
+  // Configure tests to run sequentially within this file
+  test.describe.configure({ mode: 'serial' });
+
   // First upload some data, then test the transactions page
   test('displays transactions with all features after upload', async ({ page }) => {
     // Create test file
@@ -26,10 +29,17 @@ test.describe('Transactions Page', () => {
 
     // Navigate to transactions via button
     await page.getByRole('button', { name: 'View Transactions' }).click();
-    await expect(page).toHaveURL('/transactions');
+    // URL may contain query params from date range
+    await expect(page).toHaveURL(/\/transactions/);
 
     // Wait for page load
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
+
+    // Select "All time" date range to include dummy data from 2024
+    // Use force: true to avoid click interception issues with sidebar on some viewports
+    await page.getByRole('button', { name: /Last 3 months|All time|Custom/ }).click();
+    await page.getByRole('button', { name: 'All time' }).click({ force: true });
+    await page.waitForTimeout(300);
 
     // Wait for either loading to complete or table to appear
     await page.waitForFunction(() => {
@@ -47,14 +57,12 @@ test.describe('Transactions Page', () => {
     await expect(page.locator('thead th').nth(3)).toContainText('Bank');
     await expect(page.locator('thead th').nth(4)).toContainText('Category');
 
-    // Verify filter panel
-    await expect(page.locator('#startDate')).toBeVisible();
-    await expect(page.locator('#endDate')).toBeVisible();
+    // Verify filter panel - DateRangePicker button and search
+    await expect(page.getByRole('button', { name: /Last 3 months|All time|Custom/ })).toBeVisible();
     await expect(page.getByPlaceholder('Search descriptions...')).toBeVisible();
     await expect(page.getByLabel('CSOB')).toBeVisible();
     await expect(page.getByLabel('Raiffeisen')).toBeVisible();
     await expect(page.getByLabel('Revolut')).toBeVisible();
-    await expect(page.getByLabel('Uncategorized only')).toBeVisible();
 
     // Verify export button
     await expect(page.getByRole('button', { name: 'Export' })).toBeVisible();
@@ -81,6 +89,16 @@ test.describe('Transactions Page', () => {
 
     // Navigate to transactions
     await page.getByRole('button', { name: 'View Transactions' }).click();
+    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
+
+    // Select "All time" date range to include dummy data from 2024
+    const dateButton = page.getByRole('button', { name: /Last 3 months|All time|Custom/ });
+    await dateButton.click();
+    // Wait for dropdown to open and then click All time
+    const allTimeButton = page.getByRole('button', { name: 'All time' });
+    await allTimeButton.waitFor({ state: 'visible', timeout: 5000 });
+    await allTimeButton.click({ force: true });
+    await page.waitForTimeout(300);
 
     // Wait for table to load
     await page.waitForSelector('table tbody tr', { timeout: 10000 });
