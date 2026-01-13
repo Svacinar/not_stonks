@@ -509,7 +509,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-15: Refactor TransactionsPage to Use Design System
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** Largest page with most UI patterns. Export modal has accessibility issues.
@@ -529,11 +529,20 @@ This document contains work items to modernize the spending dashboard UI from a 
 7. Replace pagination buttons with Button component
 
 **Acceptance Criteria:**
-- [ ] Filter panel uses Card with form components
-- [ ] Form elements use Input/Select/Label components
-- [ ] Table uses Table component
-- [ ] Modal uses Dialog component with proper accessibility
-- [ ] Pagination buttons use Button component
+- [x] Filter panel uses Card with form components
+- [x] Form elements use Input/Select/Label components
+- [x] Table uses Table component
+- [x] Modal uses Dialog component with proper accessibility
+- [x] Pagination buttons use Button component
+
+**Implementation Notes:**
+- Imported Button, Card, CardContent, Input, Label, Dialog (with all subcomponents), Table (with all subcomponents), and cn utility
+- Replaced filter panel `<div className="bg-white rounded-lg shadow p-4">` with Card/CardContent components
+- Replaced search input with Input component, text labels with Label component using design system tokens
+- Kept native select for inline category editing (autoFocus requirement not well-supported by Radix Select)
+- Replaced export modal with Dialog component using DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter for full accessibility (focus trap, Escape key, screen reader support)
+- Replaced table with Table/TableHeader/TableBody/TableRow/TableHead/TableCell components
+- Replaced pagination buttons with Button variant="outline" size="sm"
 
 ---
 
