@@ -274,7 +274,7 @@ workers: 1,
 ---
 
 ### WR-11: Add Environment Configuration
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** No `.env.example` file or documentation.
@@ -283,9 +283,17 @@ workers: 1,
 - `NODE_ENV`, `PORT`, `DB_PATH`, `ALLOWED_ORIGINS`, `LOG_LEVEL`
 
 **Acceptance Criteria:**
-- [ ] `.env.example` created
-- [ ] README documents environment setup
-- [ ] Defaults work for development
+- [x] `.env.example` created
+- [x] README documents environment setup
+- [x] Defaults work for development
+
+**Implementation Notes:**
+- Created `.env.example` with all required environment variables and documentation
+- Variables include: NODE_ENV, PORT, DB_PATH, ALLOWED_ORIGINS, LOG_LEVEL
+- Each variable has sensible development defaults (no configuration needed for dev)
+- Updated README.md with Environment Configuration section including variable table
+- Notes in .env.example reference related work items (WR-12 for CORS, WR-25 for structured logging)
+- Files changed: `.env.example`, `README.md`
 
 ---
 

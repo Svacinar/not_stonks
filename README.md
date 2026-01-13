@@ -21,6 +21,26 @@ Personal finance dashboard that consolidates bank statements from CSOB, Raiffeis
 npm install
 ```
 
+### Environment Configuration
+
+Copy the example environment file and customize if needed:
+
+```bash
+cp .env.example .env
+```
+
+Available environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `NODE_ENV` | `development` | Environment mode (`development` or `production`) |
+| `PORT` | `3001` | Backend server port |
+| `DB_PATH` | `./backend/data/spending.db` | Path to SQLite database file |
+| `ALLOWED_ORIGINS` | `http://localhost:3000` | Allowed CORS origins (comma-separated) |
+| `LOG_LEVEL` | `info` | Log level (`error`, `warn`, `info`, `debug`) |
+
+All variables have sensible defaults for development, so configuration is optional.
+
 ### Development
 
 Start both backend and frontend in development mode:
