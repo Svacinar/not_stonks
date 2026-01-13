@@ -37,7 +37,7 @@ test.describe('Transactions Page', () => {
 
     // Select "All time" date range to include dummy data from 2024
     // Use force: true to avoid click interception issues with sidebar on some viewports
-    await page.getByRole('button', { name: /Last 3 months|All time|Custom/ }).click();
+    await page.getByRole('button', { name: 'Select date range' }).click();
     await page.getByRole('button', { name: 'All time' }).click({ force: true });
     await page.waitForTimeout(300);
 
@@ -58,7 +58,7 @@ test.describe('Transactions Page', () => {
     await expect(page.locator('thead th').nth(4)).toContainText('Category');
 
     // Verify filter panel - DateRangePicker button and search
-    await expect(page.getByRole('button', { name: /Last 3 months|All time|Custom/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Select date range' })).toBeVisible();
     await expect(page.getByPlaceholder('Search descriptions...')).toBeVisible();
     await expect(page.getByLabel('CSOB')).toBeVisible();
     await expect(page.getByLabel('Raiffeisen')).toBeVisible();
@@ -92,7 +92,7 @@ test.describe('Transactions Page', () => {
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
 
     // Select "All time" date range to include dummy data from 2024
-    const dateButton = page.getByRole('button', { name: /Last 3 months|All time|Custom/ });
+    const dateButton = page.getByRole('button', { name: 'Select date range' });
     await dateButton.click();
     // Wait for dropdown to open and then click All time
     const allTimeButton = page.getByRole('button', { name: 'All time' });

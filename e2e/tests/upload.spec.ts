@@ -57,7 +57,7 @@ test.describe('Upload Page', () => {
     await expect(page.getByText('csob_test.csv')).toBeVisible();
     // Check for the file size element that appears after the filename
     const fileListItem = page.locator('li').filter({ hasText: 'csob_test.csv' });
-    await expect(fileListItem.locator('span.text-xs.text-gray-500')).toContainText(/\d+\s*(B|KB)/);
+    await expect(fileListItem.locator('span.text-xs')).toContainText(/\d+\s*(B|KB)/);
 
     fs.unlinkSync(filepath);
   });

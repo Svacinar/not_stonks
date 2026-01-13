@@ -33,8 +33,8 @@ test.describe('Rules Page', () => {
     // Verify Apply Rules button
     await expect(page.getByRole('button', { name: 'Apply Rules' })).toBeVisible();
 
-    // Verify Add New Rule form
-    await expect(page.getByRole('heading', { name: 'Add New Rule' })).toBeVisible();
+    // Verify Add New Rule form (CardTitle renders as div, not heading)
+    await expect(page.getByText('Add New Rule')).toBeVisible();
     await expect(page.locator('#newKeyword')).toBeVisible();
     await expect(page.locator('#newCategory')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Add Rule' })).toBeVisible();
@@ -133,11 +133,12 @@ test.describe('Rules Page', () => {
     const row = page.locator('table tbody tr').filter({ hasText: uniqueKeyword });
     await row.locator('button[title="Delete rule"]').click();
 
-    // Verify confirmation appears
-    await expect(row.getByText('Delete?')).toBeVisible();
+    // Verify AlertDialog confirmation appears
+    await expect(page.getByRole('alertdialog')).toBeVisible();
+    await expect(page.getByRole('alertdialog').getByText('Delete Rule')).toBeVisible();
 
-    // Confirm delete (click the checkmark button)
-    await row.locator('button.text-red-600').first().click();
+    // Confirm delete (click the Delete button in the dialog)
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Delete' }).click();
 
     // Wait for delete
     await page.waitForTimeout(500);
@@ -169,14 +170,14 @@ test.describe('Rules Page', () => {
     const row = page.locator('table tbody tr').filter({ hasText: uniqueKeyword });
     await row.locator('button[title="Delete rule"]').click();
 
-    // Verify confirmation appears
-    await expect(row.getByText('Delete?')).toBeVisible();
+    // Verify AlertDialog confirmation appears
+    await expect(page.getByRole('alertdialog')).toBeVisible();
 
-    // Cancel (click the X button)
-    await row.locator('button.text-gray-400').click();
+    // Cancel (click the Cancel button)
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Cancel' }).click();
 
-    // Verify confirmation disappears and rule still exists
-    await expect(row.getByText('Delete?')).not.toBeVisible();
+    // Verify dialog disappears and rule still exists
+    await expect(page.getByRole('alertdialog')).not.toBeVisible();
     await expect(page.locator('table tbody tr').filter({ hasText: uniqueKeyword })).toBeVisible();
   });
 
@@ -197,7 +198,7 @@ test.describe('Rules Page', () => {
     await waitForCategoriesToLoad(page);
 
     // Check there are uncategorized transactions (more specific selector)
-    const uncategorizedSpan = page.locator('span.text-gray-600').filter({ hasText: /\d+ uncategorized transaction/ });
+    const uncategorizedSpan = page.locator('span.text-muted-foreground, span.text-sm').filter({ hasText: /\d+ uncategorized transaction/ });
     const uncategorizedText = await uncategorizedSpan.textContent();
     const initialCount = parseInt(uncategorizedText?.match(/\d+/)?.[0] || '0', 10);
 
@@ -216,9 +217,8 @@ test.describe('Rules Page', () => {
     await page.getByRole('button', { name: 'Apply Rules' }).click();
 
     // Wait for success message (use specific selector to avoid multiple role="status" elements)
-    const successMessage = page.locator('.bg-green-50[role="status"]');
+    const successMessage = page.locator('[role="status"]').filter({ hasText: /Categorized \d+ of \d+/ });
     await expect(successMessage).toBeVisible({ timeout: 10000 });
-    await expect(successMessage.getByText(/Categorized \d+ of \d+/)).toBeVisible();
 
     // Verify the apply result shows categorization happened (message displayed)
     const applyResultText = await successMessage.textContent();

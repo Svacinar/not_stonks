@@ -36,7 +36,7 @@ async function waitForLoad(page: Page): Promise<void> {
 
 // Helper to set date range to "All time" to include dummy data from 2024
 async function selectAllTimeRange(page: Page): Promise<void> {
-  await page.getByRole('button', { name: /Last 3 months|All time|Custom/ }).click();
+  await page.getByRole('button', { name: 'Select date range' }).click();
   await page.getByRole('button', { name: 'All time' }).click();
   await page.waitForTimeout(300);
   await waitForLoad(page);
@@ -157,15 +157,15 @@ test.describe('E2E User Flows - WI-19', () => {
         const chartCount = await chartCanvases.count();
         expect(chartCount).toBeGreaterThanOrEqual(3);
 
-        // Step 5: Verify recent transactions section
-        await expect(page.getByRole('heading', { name: 'Recent Transactions' })).toBeVisible();
+        // Step 5: Verify recent transactions section (CardTitle renders as div, not heading)
+        await expect(page.getByText('Recent Transactions')).toBeVisible();
 
         // Get initial spending value for comparison
-        const totalSpendingCard = page.locator('.bg-white.rounded-lg').filter({ hasText: 'Total Spending' });
+        const totalSpendingCard = page.locator('.rounded-xl').filter({ hasText: 'Total Spending' });
         const initialSpending = await totalSpendingCard.textContent();
 
         // Step 6: Change date range to "Last 3 months" (should show no data since dummy data is from 2024)
-        await page.getByRole('button', { name: /All time|Last 3 months|Custom/ }).click();
+        await page.getByRole('button', { name: 'Select date range' }).click();
         await page.getByRole('button', { name: 'Last 3 months' }).click();
         await page.waitForTimeout(500);
         await waitForLoad(page);
@@ -243,7 +243,7 @@ test.describe('E2E User Flows - WI-19', () => {
         await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
 
         // Select "All time" date range to include dummy data from 2024
-        const dateButton = page.getByRole('button', { name: /Last 3 months|All time|Custom/ });
+        const dateButton = page.getByRole('button', { name: 'Select date range' });
         await dateButton.click();
         // Wait for dropdown to open and then click All time
         const allTimeButton = page.getByRole('button', { name: 'All time' });

@@ -34,7 +34,7 @@ async function waitForDataView(page: any): Promise<void> {
 
 // Helper to set date range to "All time" to include dummy data from 2024
 async function selectAllTimeRange(page: any): Promise<void> {
-  await page.getByRole('button', { name: /Last 3 months|All time|Custom/ }).click();
+  await page.getByRole('button', { name: 'Select date range' }).click();
   await page.getByRole('button', { name: 'All time' }).click();
   await page.waitForTimeout(300);
   await waitForLoad(page);
@@ -80,7 +80,7 @@ test.describe('Dashboard Page', () => {
       await waitForLoad(page);
 
       // Change date range to "All time" to include dummy data from 2024
-      await page.getByRole('button', { name: /Last 3 months|All time|Custom/ }).click();
+      await page.getByRole('button', { name: 'Select date range' }).click();
       await page.getByRole('button', { name: 'All time' }).click();
       await page.waitForTimeout(300);
       await waitForLoad(page);
@@ -96,8 +96,8 @@ test.describe('Dashboard Page', () => {
       await expect(page.getByText('Spending by Bank')).toBeVisible();
       await expect(page.getByText('Spending Over Time')).toBeVisible();
 
-      // Verify recent transactions section
-      await expect(page.getByRole('heading', { name: 'Recent Transactions' })).toBeVisible();
+      // Verify recent transactions section (CardTitle renders as div, not heading)
+      await expect(page.getByText('Recent Transactions')).toBeVisible();
       await expect(page.getByRole('link', { name: 'View all' })).toBeVisible();
     } finally {
       fs.unlinkSync(csobFile);
@@ -126,7 +126,7 @@ test.describe('Dashboard Page', () => {
       await expect(page.getByText('Total Spending')).toBeVisible();
 
       // Change to "Last 3 months" - should show no data (dummy data is from 2024)
-      await page.getByRole('button', { name: /All time|Last 3 months|Custom/ }).click();
+      await page.getByRole('button', { name: 'Select date range' }).click();
       await page.getByRole('button', { name: 'Last 3 months' }).click();
       await page.waitForTimeout(300);
       await waitForLoad(page);
@@ -135,7 +135,7 @@ test.describe('Dashboard Page', () => {
       await expect(page.getByText('No data available')).toBeVisible();
 
       // Select "All time" again to show data
-      await page.getByRole('button', { name: /Last 3 months|All time|Custom/ }).click();
+      await page.getByRole('button', { name: 'Select date range' }).click();
       await page.getByRole('button', { name: 'All time' }).click();
       await page.waitForTimeout(300);
       await waitForLoad(page);
