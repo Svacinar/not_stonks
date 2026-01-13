@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { getDatabase } from '../db/database';
 import type { Transaction, BankName } from 'shared/types';
+import { buildTransactionWhereClause } from '../utils/queryBuilder';
 
 const router = Router();
 
@@ -39,51 +40,6 @@ function escapeCsvValue(value: string | number | null): string {
 }
 
 /**
- * Build WHERE clause from query filters (reusable helper)
- */
-function buildWhereClause(query: ExportQuery): { whereClause: string; params: (string | number)[] } {
-  const { startDate, endDate, bank, category, uncategorized, search } = query;
-
-  const conditions: string[] = [];
-  const params: (string | number)[] = [];
-
-  if (startDate) {
-    conditions.push('t.date >= ?');
-    params.push(startDate);
-  }
-
-  if (endDate) {
-    conditions.push('t.date <= ?');
-    params.push(endDate);
-  }
-
-  if (bank) {
-    const banks = bank.split(',').map((b) => b.trim());
-    conditions.push(`t.bank IN (${banks.map(() => '?').join(', ')})`);
-    params.push(...banks);
-  }
-
-  if (category) {
-    const categoryIds = category.split(',').map((c) => parseInt(c.trim(), 10));
-    conditions.push(`t.category_id IN (${categoryIds.map(() => '?').join(', ')})`);
-    params.push(...categoryIds);
-  }
-
-  if (uncategorized === 'true') {
-    conditions.push('t.category_id IS NULL');
-  }
-
-  if (search) {
-    conditions.push('t.description LIKE ?');
-    params.push(`%${search}%`);
-  }
-
-  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-
-  return { whereClause, params };
-}
-
-/**
  * GET /api/export/transactions
  * Export transactions with filters
  * Supports CSV and JSON formats
@@ -99,7 +55,7 @@ router.get('/transactions', (req: Request<{}, {}, {}, ExportQuery>, res: Respons
       return;
     }
 
-    const { whereClause, params } = buildWhereClause(req.query);
+    const { whereClause, params } = buildTransactionWhereClause(req.query);
 
     // Get transactions with category info
     const dataQuery = `
@@ -179,7 +135,7 @@ router.get('/summary', (req: Request<{}, {}, {}, ExportQuery>, res: Response): v
       return;
     }
 
-    const { whereClause, params } = buildWhereClause(req.query);
+    const { whereClause, params } = buildTransactionWhereClause(req.query);
 
     // Get summary by category
     const byCategoryQuery = `

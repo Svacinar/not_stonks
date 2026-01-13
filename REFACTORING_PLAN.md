@@ -201,7 +201,7 @@ workers: 1,
 ## Work Items - Code Quality
 
 ### WR-08: Extract Duplicated Query Building Logic
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** WHERE clause building duplicated across 3+ files.
@@ -211,9 +211,17 @@ workers: 1,
 - `backend/src/routes/export.ts:44-84`
 
 **Acceptance Criteria:**
-- [ ] Shared utility `buildTransactionWhereClause(query)` created
-- [ ] All routes use shared utility
-- [ ] Unit tests for utility
+- [x] Shared utility `buildTransactionWhereClause(query)` created
+- [x] All routes use shared utility
+- [x] Unit tests for utility
+
+**Implementation Notes:**
+- Created `backend/src/utils/queryBuilder.ts` with `buildTransactionWhereClause` function and TypeScript interfaces
+- Updated `backend/src/routes/transactions.ts` GET `/` route to use shared utility
+- Updated `backend/src/routes/transactions.ts` GET `/stats` route to use shared utility
+- Updated `backend/src/routes/export.ts` to import shared utility and removed local duplicate function
+- Created `backend/tests/queryBuilder.test.ts` with 16 unit tests covering all filter combinations
+- All 430 tests pass (274 backend + 156 frontend)
 
 ---
 

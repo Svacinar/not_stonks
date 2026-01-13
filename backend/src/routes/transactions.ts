@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { getDatabase } from '../db/database';
 import type { Transaction, TransactionStats, BankName } from 'shared/types';
+import { buildTransactionWhereClause } from '../utils/queryBuilder';
 
 const router = Router();
 
@@ -42,42 +43,15 @@ router.get('/', (req: Request<{}, {}, {}, TransactionListQuery>, res: Response):
       order = 'desc',
     } = req.query;
 
-    // Build WHERE conditions
-    const conditions: string[] = [];
-    const params: (string | number)[] = [];
-
-    if (startDate) {
-      conditions.push('t.date >= ?');
-      params.push(startDate);
-    }
-
-    if (endDate) {
-      conditions.push('t.date <= ?');
-      params.push(endDate);
-    }
-
-    if (bank) {
-      const banks = bank.split(',').map((b) => b.trim());
-      conditions.push(`t.bank IN (${banks.map(() => '?').join(', ')})`);
-      params.push(...banks);
-    }
-
-    if (category) {
-      const categoryIds = category.split(',').map((c) => parseInt(c.trim(), 10));
-      conditions.push(`t.category_id IN (${categoryIds.map(() => '?').join(', ')})`);
-      params.push(...categoryIds);
-    }
-
-    if (uncategorized === 'true') {
-      conditions.push('t.category_id IS NULL');
-    }
-
-    if (search) {
-      conditions.push('t.description LIKE ?');
-      params.push(`%${search}%`);
-    }
-
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    // Build WHERE conditions using shared utility
+    const { whereClause, params } = buildTransactionWhereClause({
+      startDate,
+      endDate,
+      bank,
+      category,
+      uncategorized,
+      search,
+    });
 
     // Validate sort column
     const allowedSortColumns = ['date', 'amount', 'description', 'bank', 'created_at'];
@@ -135,33 +109,13 @@ router.get('/stats', (req: Request<{}, {}, {}, TransactionListQuery>, res: Respo
     const db = getDatabase();
     const { startDate, endDate, bank, category } = req.query;
 
-    // Build WHERE conditions
-    const conditions: string[] = [];
-    const params: (string | number)[] = [];
-
-    if (startDate) {
-      conditions.push('t.date >= ?');
-      params.push(startDate);
-    }
-
-    if (endDate) {
-      conditions.push('t.date <= ?');
-      params.push(endDate);
-    }
-
-    if (bank) {
-      const banks = bank.split(',').map((b) => b.trim());
-      conditions.push(`t.bank IN (${banks.map(() => '?').join(', ')})`);
-      params.push(...banks);
-    }
-
-    if (category) {
-      const categoryIds = category.split(',').map((c) => parseInt(c.trim(), 10));
-      conditions.push(`t.category_id IN (${categoryIds.map(() => '?').join(', ')})`);
-      params.push(...categoryIds);
-    }
-
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    // Build WHERE conditions using shared utility
+    const { whereClause, params } = buildTransactionWhereClause({
+      startDate,
+      endDate,
+      bank,
+      category,
+    });
 
     // Total count and amount
     const totalsQuery = `
