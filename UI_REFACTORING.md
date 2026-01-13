@@ -60,7 +60,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-02: Define Color Design Tokens
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** Colors hardcoded throughout. Example: `BANK_COLORS` object in DashboardPage.tsx with hex values like `#005BAC`.
@@ -81,10 +81,18 @@ This document contains work items to modernize the spending dashboard UI from a 
 5. Create `constants/colors.ts` exporting `BANK_COLORS` and `CHART_COLORS_HEX` arrays
 
 **Acceptance Criteria:**
-- [ ] CSS variables defined in `:root` and `.dark`
-- [ ] `constants/colors.ts` exports BANK_COLORS and CHART_COLORS_HEX
-- [ ] No TypeScript errors
-- [ ] Page renders correctly (visual check)
+- [x] CSS variables defined in `:root` and `.dark`
+- [x] `constants/colors.ts` exports BANK_COLORS and CHART_COLORS_HEX
+- [x] No TypeScript errors
+- [x] Page renders correctly (visual check)
+
+**Implementation Notes:**
+- Added CSS variables to `frontend/src/index.css` in `:root` (light) and `.dark` (dark) selectors
+- Included all semantic tokens: background, foreground, card, popover, primary, secondary, muted, accent, destructive, border, input, ring, radius
+- Added bank colors: --bank-csob, --bank-raiffeisen, --bank-revolut
+- Added chart palette: --chart-1 through --chart-12 with dark mode variants
+- Created `frontend/src/constants/colors.ts` with BANK_COLORS, CHART_COLORS_HEX, CHART_COLORS_HSL, and BANK_COLORS_HSL exports
+- Updated React DayPicker overrides to use CSS variable-based colors
 
 ---
 
