@@ -573,14 +573,24 @@ workers: 1,
 ---
 
 ### WR-25: Add Structured Logging
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Problem:** Errors logged to console only.
 
 **Acceptance Criteria:**
-- [ ] Logger with configurable levels
-- [ ] File logging option
+- [x] Logger with configurable levels
+- [x] File logging option
+
+**Implementation Notes:**
+- Created `backend/src/utils/logger.ts` with configurable log levels (debug, info, warn, error)
+- Logger reads `LOG_LEVEL` environment variable (default: info) to control minimum output level
+- Added file logging via `LOG_FILE_PATH` environment variable (optional)
+- JSON format used in production, human-readable format in development
+- Updated `backend/src/middleware/errorHandler.ts` to import/re-export new logger
+- Added comprehensive tests in `backend/tests/logger.test.ts` (24 tests)
+- Updated `.env.example` with `LOG_FILE_PATH` documentation
+- Files changed: `backend/src/utils/logger.ts`, `backend/src/middleware/errorHandler.ts`, `backend/tests/logger.test.ts`, `.env.example`
 
 ---
 

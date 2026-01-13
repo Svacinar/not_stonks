@@ -99,56 +99,9 @@ export class ConflictError extends AppError {
   }
 }
 
-/**
- * Logger utility for error logging
- * In production, this could be enhanced with file logging or external services
- */
-export const logger = {
-  error: (message: string, meta?: Record<string, unknown>) => {
-    const timestamp = new Date().toISOString();
-    const logEntry = {
-      timestamp,
-      level: 'error',
-      message,
-      ...meta,
-    };
-
-    if (process.env.NODE_ENV === 'production') {
-      // In production, log as JSON for easier parsing
-      console.error(JSON.stringify(logEntry));
-    } else {
-      // In development, log more readable format
-      console.error(`[${timestamp}] ERROR: ${message}`);
-      if (meta) {
-        console.error('Details:', JSON.stringify(meta, null, 2));
-      }
-    }
-  },
-
-  warn: (message: string, meta?: Record<string, unknown>) => {
-    const timestamp = new Date().toISOString();
-    if (process.env.NODE_ENV === 'production') {
-      console.warn(JSON.stringify({ timestamp, level: 'warn', message, ...meta }));
-    } else {
-      console.warn(`[${timestamp}] WARN: ${message}`);
-      if (meta) {
-        console.warn('Details:', JSON.stringify(meta, null, 2));
-      }
-    }
-  },
-
-  info: (message: string, meta?: Record<string, unknown>) => {
-    const timestamp = new Date().toISOString();
-    if (process.env.NODE_ENV === 'production') {
-      console.log(JSON.stringify({ timestamp, level: 'info', message, ...meta }));
-    } else {
-      console.log(`[${timestamp}] INFO: ${message}`);
-      if (meta) {
-        console.log('Details:', JSON.stringify(meta, null, 2));
-      }
-    }
-  },
-};
+// Import and re-export logger from utils/logger
+import { logger } from '../utils/logger';
+export { logger };
 
 /**
  * 404 Not Found handler for unmatched routes
