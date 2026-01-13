@@ -341,7 +341,7 @@ export function TransactionsPage() {
               placeholder="Search descriptions..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+              className="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
             />
           </div>
         </div>
@@ -500,7 +500,7 @@ export function TransactionsPage() {
                                   )
                                 }
                                 disabled={updatingCategoryId === tx.id}
-                                className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                className="rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
                                 autoFocus
                               >
                                 <option value="">Uncategorized</option>

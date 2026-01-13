@@ -292,7 +292,7 @@ export function RulesPage() {
               value={newKeyword}
               onChange={(e) => setNewKeyword(e.target.value)}
               placeholder="Enter keyword..."
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+              className="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
               disabled={addingRule}
             />
           </div>
@@ -304,7 +304,7 @@ export function RulesPage() {
               id="newCategory"
               value={newCategoryId}
               onChange={(e) => setNewCategoryId(e.target.value ? parseInt(e.target.value, 10) : '')}
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+              className="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
               disabled={addingRule}
             >
               <option value="">Select category...</option>
@@ -388,7 +388,7 @@ export function RulesPage() {
                             type="text"
                             value={editKeyword}
                             onChange={(e) => setEditKeyword(e.target.value)}
-                            className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm w-full max-w-xs"
+                            className="rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm w-full max-w-xs"
                             disabled={savingEdit}
                             autoFocus
                           />
@@ -403,7 +403,7 @@ export function RulesPage() {
                             onChange={(e) =>
                               setEditCategoryId(e.target.value ? parseInt(e.target.value, 10) : '')
                             }
-                            className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                            className="rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
                             disabled={savingEdit}
                           >
                             <option value="">Select category...</option>

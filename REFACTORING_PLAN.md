@@ -16,7 +16,7 @@ This document outlines findings from a comprehensive codebase analysis identifyi
 ## Work Items - UX Critical (Fix First)
 
 ### WR-01: Fix Missing Input Border Classes
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH (UX)
 
 **Problem:** Multiple input fields have `border-gray-300` without `border` class, making fields invisible.
@@ -26,9 +26,17 @@ This document outlines findings from a comprehensive codebase analysis identifyi
 - `frontend/src/pages/RulesPage.tsx:295, 303, 387-391, 400-407`
 
 **Acceptance Criteria:**
-- [ ] All input fields have `border` class
-- [ ] All select elements have `border` class
-- [ ] Visual inspection confirms fields visible
+- [x] All input fields have `border` class
+- [x] All select elements have `border` class
+- [x] Visual inspection confirms fields visible
+
+**Implementation Notes:**
+- Added `border` class to search input in TransactionsPage.tsx (line 344)
+- Added `border` class to category select in TransactionsPage.tsx (line 503)
+- Added `border` class to newKeyword input in RulesPage.tsx (line 295)
+- Added `border` class to newCategory select in RulesPage.tsx (line 307)
+- Added `border` class to editKeyword input in RulesPage.tsx (line 391)
+- Added `border` class to editCategory select in RulesPage.tsx (line 406)
 
 ---
 
