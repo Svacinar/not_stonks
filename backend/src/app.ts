@@ -6,6 +6,7 @@ import categoriesRouter from './routes/categories';
 import rulesRouter from './routes/rules';
 import exportRouter from './routes/export';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import { apiLimiter, uploadLimiter } from './middleware/rateLimit';
 
 const app = express();
 
@@ -42,12 +43,14 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Routes
-app.use('/api/upload', uploadRouter);
-app.use('/api/transactions', transactionsRouter);
-app.use('/api/categories', categoriesRouter);
-app.use('/api/rules', rulesRouter);
-app.use('/api/export', exportRouter);
+// Routes with rate limiting
+// Upload has stricter limit (10/min) due to resource intensity
+app.use('/api/upload', uploadLimiter, uploadRouter);
+// All other API routes use standard limit (100/min)
+app.use('/api/transactions', apiLimiter, transactionsRouter);
+app.use('/api/categories', apiLimiter, categoriesRouter);
+app.use('/api/rules', apiLimiter, rulesRouter);
+app.use('/api/export', apiLimiter, exportRouter);
 
 // 404 handler for unmatched API routes
 app.use('/api/*', notFoundHandler);

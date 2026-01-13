@@ -342,15 +342,23 @@ workers: 1,
 ---
 
 ### WR-14: Add Rate Limiting
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Problem:** No rate limiting - could be abused if exposed.
 
 **Acceptance Criteria:**
-- [ ] express-rate-limit installed
-- [ ] Upload endpoint limited (10/min)
-- [ ] API endpoints limited (100/min)
+- [x] express-rate-limit installed
+- [x] Upload endpoint limited (10/min)
+- [x] API endpoints limited (100/min)
+
+**Implementation Notes:**
+- Installed `express-rate-limit` package in backend
+- Created `backend/src/middleware/rateLimit.ts` with two rate limiters
+- `uploadLimiter`: 10 requests per minute for resource-intensive uploads
+- `apiLimiter`: 100 requests per minute for general API endpoints
+- Rate limit responses use standard error format with `RATE_LIMIT_EXCEEDED` code
+- Files changed: `backend/src/middleware/rateLimit.ts`, `backend/src/app.ts`, `backend/package.json`
 
 ---
 
