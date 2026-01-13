@@ -141,7 +141,7 @@ export function DateRangePicker({
 
       {/* Dropdown Panel */}
       {isOpen && (
-        <div className="absolute right-0 z-50 mt-2 bg-card border border-border rounded-xl shadow-lg">
+        <div className="absolute right-0 z-50 mt-2 bg-card text-card-foreground border border-border rounded-xl shadow-lg">
           <div className={cn('flex', isMobile && 'flex-col')}>
             {/* Presets Sidebar */}
             <div

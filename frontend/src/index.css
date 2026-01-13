@@ -127,6 +127,49 @@
   color: hsl(var(--primary));
 }
 
+/* Dark mode overrides for react-day-picker */
+.dark .rdp-root {
+  --rdp-accent-color: hsl(var(--primary));
+  --rdp-accent-background-color: hsl(var(--primary) / 0.1);
+  --rdp-today-color: hsl(var(--primary));
+  color: hsl(var(--foreground));
+}
+
+.dark .rdp-caption_label {
+  color: hsl(var(--foreground));
+}
+
+.dark .rdp-weekday {
+  color: hsl(var(--muted-foreground));
+}
+
+.dark .rdp-day_button {
+  color: hsl(var(--foreground));
+}
+
+.dark .rdp-outside .rdp-day_button {
+  color: hsl(var(--muted-foreground));
+}
+
+.dark .rdp-button_next,
+.dark .rdp-button_previous {
+  color: hsl(var(--foreground));
+}
+
+.dark .rdp-button_next:hover,
+.dark .rdp-button_previous:hover {
+  background-color: hsl(var(--accent));
+}
+
+.dark .rdp-chevron {
+  fill: hsl(var(--foreground));
+}
+
+.dark .rdp-today:not(.rdp-selected) .rdp-day_button {
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+
 /* Base transition utilities for interactive elements */
 @layer base {
   button,
