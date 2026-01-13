@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api, ApiRequestError } from '../api/client';
-import { LoadingSpinner, ErrorMessage, DateRangePicker } from '../components';
+import { LoadingSpinner, ErrorMessage, DateRangePicker, useToast } from '../components';
 import { getDefaultDateRange, type DateRange } from '../utils/dateUtils';
 import type { Transaction, Category, BankName } from '../../../shared/types';
 
@@ -29,6 +29,7 @@ const PAGE_SIZE = 50;
 
 export function TransactionsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { addToast } = useToast();
 
   // Data state
   const [transactions, setTransactions] = useState<TransactionWithCategory[]>([]);
@@ -235,7 +236,7 @@ export function TransactionsPage() {
     } catch (err) {
       const message =
         err instanceof ApiRequestError ? err.message : 'Failed to update category';
-      alert(message);
+      addToast('error', message);
     } finally {
       setUpdatingCategoryId(null);
     }
@@ -271,7 +272,7 @@ export function TransactionsPage() {
       setShowExportModal(false);
     } catch (err) {
       const message = err instanceof ApiRequestError ? err.message : 'Failed to export';
-      alert(message);
+      addToast('error', message);
     } finally {
       setExporting(false);
     }

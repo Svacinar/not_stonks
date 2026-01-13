@@ -41,7 +41,7 @@ This document outlines findings from a comprehensive codebase analysis identifyi
 ---
 
 ### WR-02: Replace Frontend alert() with Toast Notifications
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** Multiple pages use browser `alert()` for error handling - poor UX.
@@ -51,8 +51,16 @@ This document outlines findings from a comprehensive codebase analysis identifyi
 - `frontend/src/pages/RulesPage.tsx:110-112`
 
 **Acceptance Criteria:**
-- [ ] All alert() calls replaced with toast notifications
-- [ ] Toast component (already exists) used properly
+- [x] All alert() calls replaced with toast notifications
+- [x] Toast component (already exists) used properly
+
+**Implementation Notes:**
+- Imported `useToast` hook in TransactionsPage.tsx
+- Added `addToast` hook call at component level
+- Replaced `alert()` in `handleCategoryChange` error handler with `addToast('error', message)`
+- Replaced `alert()` in `handleExport` error handler with `addToast('error', message)`
+- Note: RulesPage.tsx already used `setError()` pattern (no alert() calls found)
+- Files changed: `frontend/src/pages/TransactionsPage.tsx`
 
 ---
 
