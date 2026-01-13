@@ -451,15 +451,23 @@ workers: 1,
 ---
 
 ### WR-19: Add Database Constraints
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Problem:** Database has minimal CHECK constraints.
 
 **Acceptance Criteria:**
-- [ ] Date format validation
-- [ ] Name/keyword NOT EMPTY
-- [ ] Color format validation
+- [x] Date format validation
+- [x] Name/keyword NOT EMPTY
+- [x] Color format validation
+
+**Implementation Notes:**
+- Added date format CHECK constraint to `transactions.date`: validates YYYY-MM-DD pattern using GLOB
+- Added NOT EMPTY CHECK constraint to `categories.name`: uses `length(trim(name)) > 0`
+- Added NOT EMPTY CHECK constraint to `category_rules.keyword`: uses `length(trim(keyword)) > 0`
+- Added hex color format CHECK constraint to `categories.color`: validates #RRGGBB format using GLOB
+- Added 8 unit tests covering valid/invalid inputs for all new constraints
+- Files changed: `backend/src/db/database.ts`, `backend/tests/database.test.ts`
 
 ---
 

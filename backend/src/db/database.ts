@@ -33,14 +33,14 @@ function createTables(database: Database.Database): void {
     -- Categories table
     CREATE TABLE IF NOT EXISTS categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL UNIQUE COLLATE NOCASE,
-      color TEXT NOT NULL
+      name TEXT NOT NULL UNIQUE COLLATE NOCASE CHECK (length(trim(name)) > 0),
+      color TEXT NOT NULL CHECK (color GLOB '#[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]')
     );
 
     -- Transactions table
     CREATE TABLE IF NOT EXISTS transactions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      date TEXT NOT NULL,
+      date TEXT NOT NULL CHECK (date GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
       amount REAL NOT NULL,
       description TEXT NOT NULL,
       bank TEXT NOT NULL CHECK (bank IN ('CSOB', 'Raiffeisen', 'Revolut')),
@@ -52,7 +52,7 @@ function createTables(database: Database.Database): void {
     -- Category rules table
     CREATE TABLE IF NOT EXISTS category_rules (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      keyword TEXT NOT NULL,
+      keyword TEXT NOT NULL CHECK (length(trim(keyword)) > 0),
       category_id INTEGER NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE

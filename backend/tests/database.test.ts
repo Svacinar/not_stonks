@@ -189,6 +189,167 @@ describe('Database', () => {
     });
   });
 
+  describe('Date Format Constraint', () => {
+    it('should accept valid YYYY-MM-DD date format', () => {
+      const db = getDatabase();
+
+      expect(() => {
+        db.prepare('INSERT INTO transactions (date, amount, description, bank) VALUES (?, ?, ?, ?)')
+          .run('2024-01-15', -100, 'Valid date', 'CSOB');
+      }).not.toThrow();
+
+      expect(() => {
+        db.prepare('INSERT INTO transactions (date, amount, description, bank) VALUES (?, ?, ?, ?)')
+          .run('2023-12-31', -100, 'Valid date 2', 'CSOB');
+      }).not.toThrow();
+    });
+
+    it('should reject invalid date formats', () => {
+      const db = getDatabase();
+
+      // Wrong separator
+      expect(() => {
+        db.prepare('INSERT INTO transactions (date, amount, description, bank) VALUES (?, ?, ?, ?)')
+          .run('2024/01/15', -100, 'Invalid date', 'CSOB');
+      }).toThrow();
+
+      // US format MM-DD-YYYY
+      expect(() => {
+        db.prepare('INSERT INTO transactions (date, amount, description, bank) VALUES (?, ?, ?, ?)')
+          .run('01-15-2024', -100, 'Invalid date', 'CSOB');
+      }).toThrow();
+
+      // European format DD-MM-YYYY
+      expect(() => {
+        db.prepare('INSERT INTO transactions (date, amount, description, bank) VALUES (?, ?, ?, ?)')
+          .run('15-01-2024', -100, 'Invalid date', 'CSOB');
+      }).toThrow();
+
+      // Missing leading zeros
+      expect(() => {
+        db.prepare('INSERT INTO transactions (date, amount, description, bank) VALUES (?, ?, ?, ?)')
+          .run('2024-1-15', -100, 'Invalid date', 'CSOB');
+      }).toThrow();
+
+      // Random string
+      expect(() => {
+        db.prepare('INSERT INTO transactions (date, amount, description, bank) VALUES (?, ?, ?, ?)')
+          .run('not-a-date', -100, 'Invalid date', 'CSOB');
+      }).toThrow();
+    });
+  });
+
+  describe('Name/Keyword NOT EMPTY Constraint', () => {
+    it('should reject empty category names', () => {
+      const db = getDatabase();
+
+      expect(() => {
+        db.prepare('INSERT INTO categories (name, color) VALUES (?, ?)')
+          .run('', '#ff0000');
+      }).toThrow();
+
+      expect(() => {
+        db.prepare('INSERT INTO categories (name, color) VALUES (?, ?)')
+          .run('   ', '#ff0000');
+      }).toThrow();
+    });
+
+    it('should accept valid category names', () => {
+      const db = getDatabase();
+
+      expect(() => {
+        db.prepare('INSERT INTO categories (name, color) VALUES (?, ?)')
+          .run('NewCategory', '#ff0000');
+      }).not.toThrow();
+    });
+
+    it('should reject empty rule keywords', () => {
+      const db = getDatabase();
+      const categoryId = (db.prepare('SELECT id FROM categories WHERE name = ?').get('Food') as { id: number }).id;
+
+      expect(() => {
+        db.prepare('INSERT INTO category_rules (keyword, category_id) VALUES (?, ?)')
+          .run('', categoryId);
+      }).toThrow();
+
+      expect(() => {
+        db.prepare('INSERT INTO category_rules (keyword, category_id) VALUES (?, ?)')
+          .run('   ', categoryId);
+      }).toThrow();
+    });
+
+    it('should accept valid rule keywords', () => {
+      const db = getDatabase();
+      const categoryId = (db.prepare('SELECT id FROM categories WHERE name = ?').get('Food') as { id: number }).id;
+
+      expect(() => {
+        db.prepare('INSERT INTO category_rules (keyword, category_id) VALUES (?, ?)')
+          .run('groceries', categoryId);
+      }).not.toThrow();
+    });
+  });
+
+  describe('Color Format Constraint', () => {
+    it('should accept valid hex color format', () => {
+      const db = getDatabase();
+
+      expect(() => {
+        db.prepare('INSERT INTO categories (name, color) VALUES (?, ?)')
+          .run('ColorTest1', '#ff0000');
+      }).not.toThrow();
+
+      expect(() => {
+        db.prepare('INSERT INTO categories (name, color) VALUES (?, ?)')
+          .run('ColorTest2', '#00FF00');
+      }).not.toThrow();
+
+      expect(() => {
+        db.prepare('INSERT INTO categories (name, color) VALUES (?, ?)')
+          .run('ColorTest3', '#123abc');
+      }).not.toThrow();
+    });
+
+    it('should reject invalid color formats', () => {
+      const db = getDatabase();
+
+      // Missing hash
+      expect(() => {
+        db.prepare('INSERT INTO categories (name, color) VALUES (?, ?)')
+          .run('ColorFail1', 'ff0000');
+      }).toThrow();
+
+      // Short hex format (3 digits)
+      expect(() => {
+        db.prepare('INSERT INTO categories (name, color) VALUES (?, ?)')
+          .run('ColorFail2', '#f00');
+      }).toThrow();
+
+      // Too long
+      expect(() => {
+        db.prepare('INSERT INTO categories (name, color) VALUES (?, ?)')
+          .run('ColorFail3', '#ff00ff00');
+      }).toThrow();
+
+      // Invalid characters
+      expect(() => {
+        db.prepare('INSERT INTO categories (name, color) VALUES (?, ?)')
+          .run('ColorFail4', '#gggggg');
+      }).toThrow();
+
+      // Named colors
+      expect(() => {
+        db.prepare('INSERT INTO categories (name, color) VALUES (?, ?)')
+          .run('ColorFail5', 'red');
+      }).toThrow();
+
+      // RGB format
+      expect(() => {
+        db.prepare('INSERT INTO categories (name, color) VALUES (?, ?)')
+          .run('ColorFail6', 'rgb(255,0,0)');
+      }).toThrow();
+    });
+  });
+
   describe('Concurrent Access', () => {
     it('should handle concurrent reads', () => {
       const db = getDatabase();
