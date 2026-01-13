@@ -650,7 +650,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-19: Update DateRangePicker Component
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** DateRangePicker could use Button component for trigger and preset buttons.
@@ -667,9 +667,17 @@ This document contains work items to modernize the spending dashboard UI from a 
 4. Update dropdown panel styling to use rounded-xl and shadow-lg
 
 **Acceptance Criteria:**
-- [ ] Trigger uses Button component with outline variant
-- [ ] Dropdown panel has rounded corners and shadow
-- [ ] Preset buttons use Button ghost/secondary variants
+- [x] Trigger uses Button component with outline variant
+- [x] Dropdown panel has rounded corners and shadow
+- [x] Preset buttons use Button ghost/secondary variants
+
+**Implementation Notes:**
+- Imported `Button` from `@/components/ui/button` and `cn` from `@/lib/utils`
+- Replaced trigger button with `Button variant="outline"`, using design system colors (`text-muted-foreground` for icons)
+- Replaced string concatenation for conditional classes with `cn()` utility throughout
+- Replaced preset buttons with `Button variant="secondary"` for active preset and `Button variant="ghost"` for inactive presets
+- Updated dropdown panel to use `bg-card`, `border-border`, `rounded-xl`, `shadow-lg` and footer to use `bg-muted/50`, `rounded-b-xl`
+- Updated test in `frontend/tests/components/DateRangePicker.test.tsx` to check for `bg-secondary` class instead of `bg-blue-50`
 
 ---
 

@@ -10,6 +10,8 @@ import {
   formatDateToISO,
   getPresetFromDateRange,
 } from '../utils/dateUtils';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface DateRangePickerProps {
   /** Current date range */
@@ -90,19 +92,19 @@ export function DateRangePicker({
   };
 
   return (
-    <div ref={containerRef} className={`relative ${className}`}>
+    <div ref={containerRef} className={cn('relative', className)}>
       {/* Trigger Button */}
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm font-medium text-gray-700"
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         aria-label="Select date range"
       >
         {/* Calendar Icon */}
         <svg
-          className="h-5 w-5 text-gray-400"
+          className="h-5 w-5 text-muted-foreground"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -120,7 +122,10 @@ export function DateRangePicker({
 
         {/* Chevron */}
         <svg
-          className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={cn(
+            'h-4 w-4 text-muted-foreground transition-transform',
+            isOpen && 'rotate-180'
+          )}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -132,36 +137,39 @@ export function DateRangePicker({
             d="M19 9l-7 7-7-7"
           />
         </svg>
-      </button>
+      </Button>
 
       {/* Dropdown Panel */}
       {isOpen && (
-        <div className="absolute right-0 z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl">
-          <div className={`flex ${isMobile ? 'flex-col' : ''}`}>
+        <div className="absolute right-0 z-50 mt-2 bg-card border border-border rounded-xl shadow-lg">
+          <div className={cn('flex', isMobile && 'flex-col')}>
             {/* Presets Sidebar */}
             <div
-              className={`border-gray-200 p-3 space-y-1 ${isMobile ? 'border-b flex flex-wrap gap-2' : 'border-r'}`}
+              className={cn(
+                'border-border p-3 space-y-1',
+                isMobile ? 'border-b flex flex-wrap gap-2' : 'border-r'
+              )}
             >
               {!isMobile && (
-                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-2">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 px-2">
                   Quick Select
                 </div>
               )}
               {PRESETS.map(({ preset, label }) => (
-                <button
+                <Button
                   key={preset}
                   type="button"
+                  variant={activePreset === preset ? 'secondary' : 'ghost'}
+                  size="sm"
                   onClick={() => handlePresetClick(preset)}
-                  className={`text-left px-3 py-2 text-sm rounded-md transition-colors ${
-                    isMobile ? '' : 'w-full'
-                  } ${
-                    activePreset === preset
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                  className={cn(
+                    'justify-start',
+                    !isMobile && 'w-full',
+                    activePreset === preset && 'font-medium'
+                  )}
                 >
                   {label}
-                </button>
+                </Button>
               ))}
             </div>
 
@@ -179,21 +187,22 @@ export function DateRangePicker({
           </div>
 
           {/* Footer with Apply/Clear */}
-          <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 bg-gray-50 rounded-b-lg">
-            <button
+          <div className="flex items-center justify-between border-t border-border px-4 py-3 bg-muted/50 rounded-b-xl">
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => handlePresetClick('allTime')}
-              className="text-sm text-gray-600 hover:text-gray-900"
             >
               Clear dates
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              size="sm"
               onClick={() => setIsOpen(false)}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               Apply
-            </button>
+            </Button>
           </div>
         </div>
       )}

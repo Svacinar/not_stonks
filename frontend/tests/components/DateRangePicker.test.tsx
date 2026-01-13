@@ -163,8 +163,8 @@ describe('DateRangePicker', () => {
 
     // The active preset should have special styling - find it in the dropdown
     const presetButtons = screen.getAllByRole('button', { name: 'Last 3 months' });
-    // One of them should have the active styling
-    const activeButton = presetButtons.find(btn => btn.classList.contains('bg-blue-50'));
+    // One of them should have the active styling (now uses bg-secondary for active preset)
+    const activeButton = presetButtons.find(btn => btn.classList.contains('bg-secondary'));
     expect(activeButton).toBeDefined();
   });
 
