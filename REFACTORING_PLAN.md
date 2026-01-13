@@ -595,12 +595,20 @@ workers: 1,
 ---
 
 ### WR-26: Improve Health Check Endpoint
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Acceptance Criteria:**
-- [ ] Health checks database connectivity
-- [ ] Returns version information
+- [x] Health checks database connectivity
+- [x] Returns version information
+
+**Implementation Notes:**
+- Added `checkDatabaseHealth()` function that executes `SELECT 1` query to verify DB connectivity
+- Added `getVersion()` function that reads version from `package.json`
+- Health endpoint now returns: status (ok/degraded), timestamp, version, database connectivity info
+- Returns HTTP 503 if database is not connected, 200 otherwise
+- Added 3 integration tests for new health check functionality
+- Files changed: `backend/src/app.ts`, `backend/tests/integration/api.test.ts`
 
 ---
 

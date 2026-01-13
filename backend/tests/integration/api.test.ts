@@ -25,12 +25,31 @@ describe('API Integration Tests', () => {
   // Health Check Endpoint
   // =========================================
   describe('GET /api/health', () => {
-    it('should return health status', async () => {
+    it('should return health status with database connectivity', async () => {
       const response = await request(app).get('/api/health');
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('status', 'ok');
       expect(response.body).toHaveProperty('timestamp');
+      expect(response.body).toHaveProperty('version');
+      expect(response.body).toHaveProperty('database');
+      expect(response.body.database).toHaveProperty('connected', true);
+    });
+
+    it('should return version information', async () => {
+      const response = await request(app).get('/api/health');
+
+      expect(response.status).toBe(200);
+      expect(response.body.version).toBeDefined();
+      expect(typeof response.body.version).toBe('string');
+    });
+
+    it('should include timestamp in ISO format', async () => {
+      const response = await request(app).get('/api/health');
+
+      expect(response.status).toBe(200);
+      const timestamp = new Date(response.body.timestamp);
+      expect(timestamp.toISOString()).toBe(response.body.timestamp);
     });
   });
 
