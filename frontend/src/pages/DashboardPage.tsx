@@ -14,7 +14,19 @@ import {
 } from 'chart.js';
 import { Pie, Bar, Line } from 'react-chartjs-2';
 import { api, ApiRequestError } from '../api/client';
-import { LoadingSpinner, ErrorMessage, DateRangePicker } from '../components';
+import { ErrorMessage, DateRangePicker } from '../components';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
+import { BANK_COLORS, CHART_COLORS_HEX } from '@/constants/colors';
 import {
   getDefaultDateRange,
   formatDateForDisplay,
@@ -56,13 +68,6 @@ function formatCurrency(amount: number): string {
     maximumFractionDigits: 0,
   }).format(Math.abs(amount));
 }
-
-// Bank colors
-const BANK_COLORS: Record<BankName, string> = {
-  CSOB: '#005BAC',
-  Raiffeisen: '#FFD100',
-  Revolut: '#0666EB',
-};
 
 export function DashboardPage() {
   const [stats, setStats] = useState<TransactionStats | null>(null);
@@ -136,23 +141,16 @@ export function DashboardPage() {
     // Filter out positive sums (income) for expense pie chart
     const expenses = stats.by_category.filter(c => c.sum < 0);
 
-    // Default colors for categories
-    const defaultColors = [
-      '#22c55e', '#3b82f6', '#f59e0b', '#8b5cf6',
-      '#ef4444', '#06b6d4', '#64748b', '#9ca3af',
-      '#ec4899', '#14b8a6', '#f97316', '#84cc16',
-    ];
-
     // Gray color for uncategorized items
     const uncategorizedColor = '#6b7280';
 
-    // Assign colors: gray for Uncategorized, default colors for others
+    // Assign colors: gray for Uncategorized, chart colors for others
     let colorIndex = 0;
     const colors = expenses.map(c => {
       if (c.name === 'Uncategorized') {
         return uncategorizedColor;
       }
-      return defaultColors[colorIndex++ % defaultColors.length];
+      return CHART_COLORS_HEX[colorIndex++ % CHART_COLORS_HEX.length];
     });
 
     return {
@@ -174,7 +172,7 @@ export function DashboardPage() {
       datasets: [{
         label: 'Spending',
         data: stats.by_bank.map(b => Math.abs(b.sum)),
-        backgroundColor: stats.by_bank.map(b => BANK_COLORS[b.name] || '#6b7280'),
+        backgroundColor: stats.by_bank.map(b => BANK_COLORS[b.name as BankName] || '#6b7280'),
         borderWidth: 1,
       }],
     };
@@ -195,7 +193,7 @@ export function DashboardPage() {
       datasets: [{
         label: 'Monthly Spending',
         data: stats.by_month.map(m => Math.abs(m.sum)),
-        borderColor: '#3b82f6',
+        borderColor: CHART_COLORS_HEX[1], // blue
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         fill: true,
         tension: 0.3,
@@ -278,7 +276,7 @@ export function DashboardPage() {
     <div className="space-y-6">
       {/* Header with date selector */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
 
         {/* Date Range Selector */}
         <DateRangePicker value={dateRange} onChange={setDateRange} />
@@ -288,39 +286,34 @@ export function DashboardPage() {
       {error && <ErrorMessage message={error} onRetry={fetchData} />}
 
       {/* Loading */}
-      {loading && !error && (
-        <div className="flex justify-center py-16">
-          <LoadingSpinner size="lg" />
-        </div>
-      )}
+      {loading && !error && <DashboardSkeleton />}
 
       {/* Empty State */}
       {!loading && !error && !hasData && (
-        <div className="text-center py-16 bg-white rounded-lg shadow">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-            />
-          </svg>
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No data available</h3>
-          <p className="mt-2 text-sm text-gray-500">
-            Upload some bank statements to see your spending dashboard.
-          </p>
-          <Link
-            to="/upload"
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Upload Statements
-          </Link>
-        </div>
+        <Card className="text-center py-16">
+          <CardContent className="pt-6">
+            <svg
+              className="mx-auto h-12 w-12 text-muted-foreground"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
+            </svg>
+            <h3 className="mt-4 text-lg font-medium text-foreground">No data available</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Upload some bank statements to see your spending dashboard.
+            </p>
+            <Button asChild className="mt-4">
+              <Link to="/upload">Upload Statements</Link>
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {/* Dashboard Content */}
@@ -329,178 +322,187 @@ export function DashboardPage() {
           {/* Quick Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Total Spending */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-muted-foreground">Total Spending</p>
+                    <p className="text-2xl font-semibold text-foreground">
+                      {formatCurrency(derivedStats.totalSpending)}
+                    </p>
                   </div>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Total Spending</p>
-                  <p className="text-2xl font-semibold text-gray-900">
-                    {formatCurrency(derivedStats.totalSpending)}
-                  </p>
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Transaction Count */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-muted-foreground">Transactions</p>
+                    <p className="text-2xl font-semibold text-foreground">
+                      {derivedStats.transactionCount.toLocaleString('cs-CZ')}
+                    </p>
                   </div>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Transactions</p>
-                  <p className="text-2xl font-semibold text-gray-900">
-                    {derivedStats.transactionCount.toLocaleString('cs-CZ')}
-                  </p>
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Average Transaction */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-muted-foreground">Average</p>
+                    <p className="text-2xl font-semibold text-foreground">
+                      {formatCurrency(derivedStats.averageTransaction)}
+                    </p>
                   </div>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Average</p>
-                  <p className="text-2xl font-semibold text-gray-900">
-                    {formatCurrency(derivedStats.averageTransaction)}
-                  </p>
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Largest Category */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-muted-foreground">Largest Category</p>
+                    <p className="text-2xl font-semibold text-foreground">
+                      {formatCurrency(derivedStats.largestExpense)}
+                    </p>
                   </div>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Largest Category</p>
-                  <p className="text-2xl font-semibold text-gray-900">
-                    {formatCurrency(derivedStats.largestExpense)}
-                  </p>
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Spending by Category Pie Chart */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Spending by Category</h2>
-              {categoryPieData ? (
-                <div className="h-64">
-                  <Pie data={categoryPieData} options={pieOptions} />
-                </div>
-              ) : (
-                <div className="h-64 flex items-center justify-center text-gray-500">
-                  No expense data available
-                </div>
-              )}
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Spending by Category</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {categoryPieData ? (
+                  <div className="h-64">
+                    <Pie data={categoryPieData} options={pieOptions} />
+                  </div>
+                ) : (
+                  <div className="h-64 flex items-center justify-center text-muted-foreground">
+                    No expense data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Spending by Bank Bar Chart */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Spending by Bank</h2>
-              {bankBarData ? (
-                <div className="h-64">
-                  <Bar data={bankBarData} options={barOptions} />
-                </div>
-              ) : (
-                <div className="h-64 flex items-center justify-center text-gray-500">
-                  No bank data available
-                </div>
-              )}
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Spending by Bank</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {bankBarData ? (
+                  <div className="h-64">
+                    <Bar data={bankBarData} options={barOptions} />
+                  </div>
+                ) : (
+                  <div className="h-64 flex items-center justify-center text-muted-foreground">
+                    No bank data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Spending Over Time Line Chart */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Spending Over Time</h2>
-            {timeLineData ? (
-              <div className="h-64">
-                <Line data={timeLineData} options={lineOptions} />
-              </div>
-            ) : (
-              <div className="h-64 flex items-center justify-center text-gray-500">
-                No monthly data available
-              </div>
-            )}
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Spending Over Time</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {timeLineData ? (
+                <div className="h-64">
+                  <Line data={timeLineData} options={lineOptions} />
+                </div>
+              ) : (
+                <div className="h-64 flex items-center justify-center text-muted-foreground">
+                  No monthly data available
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Recent Transactions */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-lg font-medium text-gray-900">Recent Transactions</h2>
-              <Link
-                to="/transactions"
-                className="text-sm font-medium text-blue-600 hover:text-blue-500"
-              >
-                View all
-              </Link>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Description
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Amount
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Category
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+              <CardTitle className="text-lg">Recent Transactions</CardTitle>
+              <Button variant="link" asChild className="p-0 h-auto">
+                <Link to="/transactions">View all</Link>
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Category</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {recentTransactions.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
                         No recent transactions
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ) : (
                     recentTransactions.map((tx) => (
-                      <tr key={tx.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <TableRow key={tx.id}>
+                        <TableCell className="whitespace-nowrap">
                           {formatDateForDisplay(tx.date)}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">
                           {tx.description}
-                        </td>
-                        <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${
-                          tx.amount < 0 ? 'text-red-600' : 'text-green-600'
+                        </TableCell>
+                        <TableCell className={`whitespace-nowrap text-right font-medium ${
+                          tx.amount < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
                         }`}>
                           {tx.amount < 0 ? '-' : ''}{formatCurrency(tx.amount)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
                           {tx.category_name ? (
                             <span className="flex items-center gap-2">
                               <span
@@ -510,16 +512,16 @@ export function DashboardPage() {
                               {tx.category_name}
                             </span>
                           ) : (
-                            <span className="text-gray-400 italic">Uncategorized</span>
+                            <span className="text-muted-foreground italic">Uncategorized</span>
                           )}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))
                   )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </>
       )}
     </div>

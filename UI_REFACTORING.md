@@ -465,7 +465,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ## Work Items - Page Refactoring
 
 ### UI-14: Refactor DashboardPage to Use Design System
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** DashboardPage has hardcoded colors, repeated card patterns, and inline chart color arrays.
@@ -489,12 +489,22 @@ This document contains work items to modernize the spending dashboard UI from a 
 8. Create DashboardSkeleton for loading state
 
 **Acceptance Criteria:**
-- [ ] No inline `bg-white rounded-lg shadow p-6` patterns remain
-- [ ] All colors reference imports from constants/colors.ts
-- [ ] Stats cards use Card component
-- [ ] Chart containers use Card component
-- [ ] Recent transactions uses Table component
-- [ ] Loading state uses skeleton instead of spinner
+- [x] No inline `bg-white rounded-lg shadow p-6` patterns remain
+- [x] All colors reference imports from constants/colors.ts
+- [x] Stats cards use Card component
+- [x] Chart containers use Card component
+- [x] Recent transactions uses Table component
+- [x] Loading state uses skeleton instead of spinner
+
+**Implementation Notes:**
+- Created `frontend/src/components/skeletons/DashboardSkeleton.tsx` with skeleton layout matching dashboard structure
+- Replaced all Card patterns with `Card`, `CardContent`, `CardHeader`, `CardTitle` components
+- Replaced Table with `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell` components
+- Replaced "Upload Statements" button with `Button` component using `asChild` prop for Link
+- Replaced "View all" link with `Button variant="link"` component
+- Imported `BANK_COLORS` and `CHART_COLORS_HEX` from `@/constants/colors`, removed local definition
+- Updated vitest.config.ts to include `@/` path alias for test resolution
+- Updated DashboardPage.test.tsx to check for skeleton instead of loading spinner
 
 ---
 

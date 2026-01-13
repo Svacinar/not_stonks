@@ -102,14 +102,15 @@ describe('DashboardPage', () => {
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
   });
 
-  it('shows loading spinner while fetching data', () => {
+  it('shows loading skeleton while fetching data', () => {
     vi.mocked(apiClient.api.get).mockImplementation(
       () => new Promise(() => {}) // Never resolves
     );
 
     renderDashboard();
 
-    expect(screen.getByLabelText('Loading')).toBeInTheDocument();
+    // DashboardSkeleton renders multiple skeleton cards - check for the skeleton structure
+    expect(document.querySelector('.animate-pulse')).toBeInTheDocument();
   });
 
   it('shows error message on API failure', async () => {
