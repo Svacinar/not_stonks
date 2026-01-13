@@ -126,3 +126,15 @@
   background-color: hsl(var(--primary) / 0.1);
   color: hsl(var(--primary));
 }
+
+/* Base transition utilities for interactive elements */
+@layer base {
+  button,
+  [role="button"],
+  a,
+  input,
+  select,
+  textarea {
+    @apply transition-colors duration-150;
+  }
+}

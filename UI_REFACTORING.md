@@ -758,7 +758,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-22: Add Micro-Interactions and Transitions
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Problem:** No animations, UI feels static and dated.
@@ -777,10 +777,18 @@ This document contains work items to modernize the spending dashboard UI from a 
 4. Ensure table rows have transition-colors on hover
 
 **Acceptance Criteria:**
-- [ ] Buttons have smooth hover/press feedback
-- [ ] Interactive cards lift slightly on hover
-- [ ] Modals fade in smoothly
-- [ ] No jarring state changes
+- [x] Buttons have smooth hover/press feedback
+- [x] Interactive cards lift slightly on hover
+- [x] Modals fade in smoothly
+- [x] No jarring state changes
+
+**Implementation Notes:**
+- Added base transition utilities in `index.css` `@layer base` for buttons, links, inputs, selects, and textareas with `transition-colors duration-150`
+- Updated Button component to use `transition-all duration-150` and added `active:scale-[0.98]` for press feedback
+- Added `interactive` variant to Card component using `cva` with `hover:shadow-md cursor-pointer` and `transition-shadow duration-200`
+- Exported `cardVariants` from card.tsx for external use
+- Table rows already had `transition-colors` on hover (verified in TableRow component)
+- Dialog component already uses Radix UI's built-in fade animations for modal entry
 
 ---
 
