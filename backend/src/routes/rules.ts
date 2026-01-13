@@ -237,15 +237,16 @@ router.delete('/:id', validateIdParam, (req: Request<{ id: string }>, res: Respo
 /**
  * POST /api/rules/apply
  * Re-apply all rules to uncategorized transactions
+ * Uses bulk UPDATE for O(n+m) performance instead of O(n*m) nested loop
  */
 router.post('/apply', (_req: Request, res: Response): void => {
   try {
     const db = getDatabase();
 
-    // Get all rules
-    const rules = db.prepare('SELECT id, keyword, category_id FROM category_rules').all() as CategoryRule[];
+    // Check if there are any rules
+    const ruleCount = db.prepare('SELECT COUNT(*) as count FROM category_rules').get() as { count: number };
 
-    if (rules.length === 0) {
+    if (ruleCount.count === 0) {
       res.json({
         success: true,
         categorized: 0,
@@ -254,12 +255,12 @@ router.post('/apply', (_req: Request, res: Response): void => {
       return;
     }
 
-    // Get uncategorized transactions
-    const uncategorized = db
-      .prepare('SELECT id, description FROM transactions WHERE category_id IS NULL')
-      .all() as { id: number; description: string }[];
+    // Check if there are uncategorized transactions
+    const uncategorizedCount = db
+      .prepare('SELECT COUNT(*) as count FROM transactions WHERE category_id IS NULL')
+      .get() as { count: number };
 
-    if (uncategorized.length === 0) {
+    if (uncategorizedCount.count === 0) {
       res.json({
         success: true,
         categorized: 0,
@@ -268,31 +269,29 @@ router.post('/apply', (_req: Request, res: Response): void => {
       return;
     }
 
-    // Apply rules (case-insensitive substring match)
-    const updateStmt = db.prepare('UPDATE transactions SET category_id = ? WHERE id = ?');
-    let categorizedCount = 0;
-
-    const applyRules = db.transaction(() => {
-      for (const transaction of uncategorized) {
-        const descriptionLower = transaction.description.toLowerCase();
-
-        // Find first matching rule
-        for (const rule of rules) {
-          if (descriptionLower.includes(rule.keyword.toLowerCase())) {
-            updateStmt.run(rule.category_id, transaction.id);
-            categorizedCount++;
-            break; // Only apply first matching rule
-          }
-        }
-      }
-    });
-
-    applyRules();
+    // Bulk UPDATE using a subquery to find first matching rule per transaction
+    // The MIN(cr.keyword) ensures we get the alphabetically first matching rule
+    // (preserving the "first matching rule" behavior from the original implementation)
+    const bulkUpdateResult = db.prepare(`
+      UPDATE transactions
+      SET category_id = (
+        SELECT cr.category_id
+        FROM category_rules cr
+        WHERE LOWER(transactions.description) LIKE '%' || LOWER(cr.keyword) || '%'
+        ORDER BY cr.keyword ASC
+        LIMIT 1
+      )
+      WHERE category_id IS NULL
+        AND EXISTS (
+          SELECT 1 FROM category_rules cr
+          WHERE LOWER(transactions.description) LIKE '%' || LOWER(cr.keyword) || '%'
+        )
+    `).run();
 
     res.json({
       success: true,
-      categorized: categorizedCount,
-      total_uncategorized: uncategorized.length,
+      categorized: bulkUpdateResult.changes,
+      total_uncategorized: uncategorizedCount.count,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';

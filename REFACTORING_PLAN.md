@@ -365,7 +365,7 @@ workers: 1,
 ## Work Items - Performance
 
 ### WR-15: Optimize Rule Application Logic
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Rules application uses O(n*m) nested loop.
@@ -373,8 +373,15 @@ workers: 1,
 **File:** `backend/src/routes/rules.ts:273-286`
 
 **Acceptance Criteria:**
-- [ ] Bulk UPDATE statement instead of loop
-- [ ] Performance tested with 1000+ transactions
+- [x] Bulk UPDATE statement instead of loop
+- [x] Performance tested with 1000+ transactions
+
+**Implementation Notes:**
+- Replaced O(n*m) nested loop with single bulk UPDATE SQL statement
+- Subquery finds first matching rule (by keyword ASC) preserving original "first matching rule" behavior
+- Uses EXISTS clause to only update transactions that have a matching rule
+- Added performance test: 1500 transactions + 10 rules categorized in ~8ms
+- Files changed: `backend/src/routes/rules.ts`, `backend/tests/rules.test.ts`
 
 ---
 

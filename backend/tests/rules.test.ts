@@ -469,4 +469,115 @@ describe('Rules Route Logic', () => {
       expect(rulesAfter.count).toBe(0);
     });
   });
+
+  describe('POST /api/rules/apply - Performance with large dataset', () => {
+    it('should handle 1000+ transactions efficiently using bulk UPDATE', () => {
+      const db = getDatabase();
+      const transactionCount = 1500;
+      const ruleCount = 10;
+
+      // Get category IDs
+      const foodCat = db
+        .prepare("SELECT id FROM categories WHERE name = 'Food'")
+        .get() as { id: number };
+      const transportCat = db
+        .prepare("SELECT id FROM categories WHERE name = 'Transport'")
+        .get() as { id: number };
+      const shoppingCat = db
+        .prepare("SELECT id FROM categories WHERE name = 'Shopping'")
+        .get() as { id: number };
+
+      // Create test rules
+      const keywords = ['albert', 'lidl', 'shell', 'uber', 'amazon', 'netflix', 'spotify', 'metro', 'kaufland', 'tesco'];
+      const categoryIds = [foodCat.id, foodCat.id, transportCat.id, transportCat.id, shoppingCat.id,
+                          shoppingCat.id, shoppingCat.id, transportCat.id, foodCat.id, foodCat.id];
+
+      for (let i = 0; i < ruleCount; i++) {
+        db.prepare('INSERT INTO category_rules (keyword, category_id) VALUES (?, ?)')
+          .run(keywords[i], categoryIds[i]);
+      }
+
+      // Create 1500 uncategorized transactions with varied descriptions
+      const insertStmt = db.prepare(
+        'INSERT INTO transactions (date, amount, description, bank, category_id) VALUES (?, ?, ?, ?, ?)'
+      );
+
+      const descriptions = [
+        'ALBERT Store Purchase',
+        'LIDL Groceries',
+        'SHELL Gas Station',
+        'UBER Trip',
+        'AMAZON Shopping',
+        'NETFLIX Subscription',
+        'SPOTIFY Premium',
+        'METRO Store',
+        'KAUFLAND Market',
+        'TESCO Supermarket',
+        'RANDOM SHOP',  // No matching rule
+        'UNKNOWN VENDOR', // No matching rule
+      ];
+
+      const banks = ['CSOB', 'Raiffeisen', 'Revolut'];
+      const insertMany = db.transaction(() => {
+        for (let i = 0; i < transactionCount; i++) {
+          const descIndex = i % descriptions.length;
+          const bankIndex = i % banks.length;
+          const date = `2024-${String((i % 12) + 1).padStart(2, '0')}-${String((i % 28) + 1).padStart(2, '0')}`;
+          insertStmt.run(date, -(Math.random() * 100 + 10).toFixed(2), descriptions[descIndex], banks[bankIndex], null);
+        }
+      });
+      insertMany();
+
+      // Verify initial state
+      const beforeCount = db
+        .prepare('SELECT COUNT(*) as count FROM transactions WHERE category_id IS NULL')
+        .get() as { count: number };
+      expect(beforeCount.count).toBe(transactionCount);
+
+      // Apply rules using bulk UPDATE and measure time
+      const startTime = performance.now();
+
+      const bulkUpdateResult = db.prepare(`
+        UPDATE transactions
+        SET category_id = (
+          SELECT cr.category_id
+          FROM category_rules cr
+          WHERE LOWER(transactions.description) LIKE '%' || LOWER(cr.keyword) || '%'
+          ORDER BY cr.keyword ASC
+          LIMIT 1
+        )
+        WHERE category_id IS NULL
+          AND EXISTS (
+            SELECT 1 FROM category_rules cr
+            WHERE LOWER(transactions.description) LIKE '%' || LOWER(cr.keyword) || '%'
+          )
+      `).run();
+
+      const endTime = performance.now();
+      const durationMs = endTime - startTime;
+
+      // Verify results
+      const afterCount = db
+        .prepare('SELECT COUNT(*) as count FROM transactions WHERE category_id IS NULL')
+        .get() as { count: number };
+
+      // Transactions with 'RANDOM SHOP' and 'UNKNOWN VENDOR' descriptions won't be categorized
+      // 1500 total, distributed evenly across 12 descriptions, so ~125 each
+      // 10 descriptions match, 2 don't match
+      const expectedUncategorized = Math.floor(transactionCount * 2 / 12) + (transactionCount % 12 >= 11 ? 1 : 0) + (transactionCount % 12 >= 12 ? 1 : 0);
+
+      // Verify that categorization happened
+      expect(bulkUpdateResult.changes).toBeGreaterThan(1000);
+      expect(afterCount.count).toBeLessThan(beforeCount.count);
+
+      // Performance requirement: should complete within reasonable time
+      // With bulk UPDATE, 1500 transactions should complete well under 1 second
+      expect(durationMs).toBeLessThan(1000);
+
+      // Log performance metrics for verification
+      console.log(`Performance test: ${transactionCount} transactions, ${ruleCount} rules`);
+      console.log(`Categorized: ${bulkUpdateResult.changes}, Remaining uncategorized: ${afterCount.count}`);
+      console.log(`Duration: ${durationMs.toFixed(2)}ms`);
+    });
+  });
 });
