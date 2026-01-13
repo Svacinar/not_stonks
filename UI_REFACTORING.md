@@ -365,7 +365,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-11: Create Table Component
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** Table markup repeated in DashboardPage, TransactionsPage, RulesPage with inconsistent styling.
@@ -380,11 +380,19 @@ This document contains work items to modernize the spending dashboard UI from a 
 2. Verify subcomponents: Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption
 
 **Acceptance Criteria:**
-- [ ] Table component exists at `src/components/ui/table.tsx`
-- [ ] Header row has distinct styling
-- [ ] Row hover state shows background change
-- [ ] Proper border/divider between rows
-- [ ] Supports dark mode
+- [x] Table component exists at `src/components/ui/table.tsx`
+- [x] Header row has distinct styling
+- [x] Row hover state shows background change
+- [x] Proper border/divider between rows
+- [x] Supports dark mode
+
+**Implementation Notes:**
+- Ran `npx shadcn@latest add table` to create the component
+- Component exports all 8 subcomponents: Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption
+- Header styling uses `font-medium text-muted-foreground` for distinct appearance with `border-b`
+- Row hover state implemented via `hover:bg-muted/50 transition-colors` on TableRow
+- Border dividers implemented via `border-b` on TableRow, last row border removed in TableBody
+- Dark mode supported via CSS variable-based colors (bg-muted, text-muted-foreground)
 
 ---
 
