@@ -97,7 +97,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-03: Extend Tailwind Configuration
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** Tailwind config has empty `extend: {}` with no custom color mappings to CSS variables.
@@ -116,10 +116,19 @@ This document contains work items to modernize the spending dashboard UI from a 
 6. Add `tailwindcss-animate` to plugins array
 
 **Acceptance Criteria:**
-- [ ] `bg-primary`, `text-primary` classes work
-- [ ] `bg-card`, `bg-background` classes work
-- [ ] `bg-bank-csob`, `bg-bank-revolut` classes work
-- [ ] `dark:` prefix classes work for dark mode
+- [x] `bg-primary`, `text-primary` classes work
+- [x] `bg-card`, `bg-background` classes work
+- [x] `bg-bank-csob`, `bg-bank-revolut` classes work
+- [x] `dark:` prefix classes work for dark mode
+
+**Implementation Notes:**
+- Added `darkMode: ["class"]` to enable class-based dark mode switching
+- Extended colors object with all semantic tokens (background, foreground, card, popover, primary, secondary, muted, accent, destructive, border, input, ring)
+- Added bank colors under `bank.csob`, `bank.raiffeisen`, `bank.revolut`
+- Added chart colors 1-12 under `chart.1` through `chart.12`
+- Configured borderRadius with lg/md/sm variants using `--radius` CSS variable
+- Added accordion-down/accordion-up keyframes and animations for shadcn components
+- Added `tailwindcss-animate` plugin to plugins array
 
 ---
 
