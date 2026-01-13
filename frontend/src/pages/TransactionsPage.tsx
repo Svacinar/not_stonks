@@ -7,6 +7,7 @@ import { getDefaultDateRange, type DateRange } from '../utils/dateUtils';
 import type { Transaction, Category, BankName } from '../../../shared/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -374,15 +375,16 @@ export function TransactionsPage() {
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-sm font-medium text-muted-foreground">Banks:</span>
               {BANKS.map((bank) => (
-                <label key={bank} className="flex items-center gap-1.5 text-sm min-h-[44px] sm:min-h-0">
-                  <input
-                    type="checkbox"
+                <Label
+                  key={bank}
+                  className="flex items-center gap-2 text-sm font-normal cursor-pointer min-h-[44px] sm:min-h-0"
+                >
+                  <Checkbox
                     checked={selectedBanks.includes(bank)}
-                    onChange={() => handleBankToggle(bank)}
-                    className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
+                    onCheckedChange={() => handleBankToggle(bank)}
                   />
                   {bank}
-                </label>
+                </Label>
               ))}
             </div>
 
@@ -390,33 +392,35 @@ export function TransactionsPage() {
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-sm font-medium text-muted-foreground">Categories:</span>
               {categories.map((cat) => (
-                <label key={cat.id} className="flex items-center gap-1.5 text-sm min-h-[44px] sm:min-h-0">
-                  <input
-                    type="checkbox"
+                <Label
+                  key={cat.id}
+                  className={cn(
+                    "flex items-center gap-2 text-sm font-normal cursor-pointer min-h-[44px] sm:min-h-0",
+                    uncategorizedOnly && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  <Checkbox
                     checked={selectedCategories.includes(String(cat.id))}
-                    onChange={() => handleCategoryToggle(cat.id)}
+                    onCheckedChange={() => handleCategoryToggle(cat.id)}
                     disabled={uncategorizedOnly}
-                    className="h-4 w-4 rounded border-input text-primary focus:ring-ring disabled:opacity-50"
                   />
                   <span
-                    className="w-3 h-3 rounded-full inline-block"
+                    className="w-4 h-4 rounded-full inline-block border border-border"
                     style={{ backgroundColor: cat.color }}
                   />
                   {cat.name}
-                </label>
+                </Label>
               ))}
             </div>
 
             {/* Uncategorized Toggle */}
-            <label className="flex items-center gap-1.5 text-sm min-h-[44px] sm:min-h-0">
-              <input
-                type="checkbox"
+            <Label className="flex items-center gap-2 text-sm font-normal cursor-pointer min-h-[44px] sm:min-h-0">
+              <Checkbox
                 checked={uncategorizedOnly}
-                onChange={handleUncategorizedToggle}
-                className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
+                onCheckedChange={handleUncategorizedToggle}
               />
               Uncategorized only
-            </label>
+            </Label>
 
             {/* Clear Filters */}
             {hasFilters && (
