@@ -435,6 +435,7 @@ export function TransactionsPage() {
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                       onClick={() => handleSort('date')}
+                      aria-sort={sortColumn === 'date' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
                     >
                       Date{getSortIndicator('date')}
                     </th>
@@ -442,6 +443,7 @@ export function TransactionsPage() {
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                       onClick={() => handleSort('description')}
+                      aria-sort={sortColumn === 'description' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
                     >
                       Description{getSortIndicator('description')}
                     </th>
@@ -449,6 +451,7 @@ export function TransactionsPage() {
                       scope="col"
                       className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                       onClick={() => handleSort('amount')}
+                      aria-sort={sortColumn === 'amount' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
                     >
                       Amount{getSortIndicator('amount')}
                     </th>
@@ -456,6 +459,7 @@ export function TransactionsPage() {
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                       onClick={() => handleSort('bank')}
+                      aria-sort={sortColumn === 'bank' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
                     >
                       Bank{getSortIndicator('bank')}
                     </th>

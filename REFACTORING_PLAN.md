@@ -494,14 +494,21 @@ workers: 1,
 ---
 
 ### WR-21: Add ARIA Labels
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Problem:** Sortable headers, date picker missing ARIA attributes.
 
 **Acceptance Criteria:**
-- [ ] Sortable headers have aria-sort
-- [ ] Date picker has aria-label
+- [x] Sortable headers have aria-sort
+- [x] Date picker has aria-label
+
+**Implementation Notes:**
+- Added `aria-sort` attribute to all sortable table headers in TransactionsPage.tsx (date, description, amount, bank)
+- `aria-sort` dynamically set to "ascending" or "descending" based on current sort column and order
+- Added `aria-label="Select date range"` to DateRangePicker trigger button
+- Updated DateRangePicker tests to use new aria-label for button selection
+- Files changed: `frontend/src/pages/TransactionsPage.tsx`, `frontend/src/components/DateRangePicker.tsx`, `frontend/tests/components/DateRangePicker.test.tsx`
 
 ---
 

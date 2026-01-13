@@ -23,7 +23,8 @@ describe('DateRangePicker', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: /Last 3 months/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Select date range/i })).toBeInTheDocument();
+    expect(screen.getByText(/Last 3 months/i)).toBeInTheDocument();
   });
 
   it('renders "All time" label for empty date range', () => {
@@ -45,7 +46,7 @@ describe('DateRangePicker', () => {
       />
     );
 
-    const trigger = screen.getByRole('button', { name: /Last 3 months/i });
+    const trigger = screen.getByRole('button', { name: /Select date range/i });
     fireEvent.click(trigger);
 
     expect(screen.getByText('Quick Select')).toBeInTheDocument();
@@ -108,7 +109,7 @@ describe('DateRangePicker', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Last 3 months/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Select date range/i }));
     expect(screen.getByText('Apply')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('Apply'));
@@ -123,7 +124,7 @@ describe('DateRangePicker', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Last 3 months/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Select date range/i }));
     fireEvent.click(screen.getByText('Clear dates'));
 
     expect(mockOnChange).toHaveBeenCalledWith({
@@ -143,7 +144,7 @@ describe('DateRangePicker', () => {
       </div>
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Last 3 months/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Select date range/i }));
     expect(screen.getByText('Quick Select')).toBeInTheDocument();
 
     fireEvent.mouseDown(screen.getByTestId('outside'));
@@ -158,7 +159,7 @@ describe('DateRangePicker', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Last 3 months/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Select date range/i }));
 
     // The active preset should have special styling - find it in the dropdown
     const presetButtons = screen.getAllByRole('button', { name: 'Last 3 months' });
@@ -190,6 +191,7 @@ describe('DateRangePicker', () => {
     const trigger = screen.getByRole('button');
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
+    expect(trigger).toHaveAttribute('aria-label', 'Select date range');
   });
 
   it('updates aria-expanded when dropdown opens', () => {
