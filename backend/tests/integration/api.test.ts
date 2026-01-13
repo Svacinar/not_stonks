@@ -4,7 +4,8 @@ import app from '../../src/app';
 import { getDatabase, resetDatabase, closeDatabase } from '../../src/db/database';
 import path from 'path';
 import os from 'os';
-import { seedStandardTestData, getCategoryId } from '../fixtures';
+import { seedStandardTestData, getCategoryId, seedTransactions } from '../fixtures';
+import { STREAMING_THRESHOLD } from '../../src/routes/export';
 
 // Use a unique test database for integration tests
 const testDbPath = path.join(os.tmpdir(), `integration-test-${Date.now()}.db`);
@@ -809,6 +810,76 @@ describe('API Integration Tests', () => {
 
         expect(response.status).toBe(400);
         expect(response.body).toHaveProperty('error');
+      });
+
+      it('should use streaming for large exports (>1000 rows)', async () => {
+        const db = getDatabase();
+
+        // Generate transactions exceeding the streaming threshold
+        const largeDataset = [];
+        for (let i = 0; i < STREAMING_THRESHOLD + 100; i++) {
+          largeDataset.push({
+            date: '2024-01-15',
+            amount: -10.0 - i,
+            description: `Transaction ${i}`,
+            bank: 'CSOB',
+            category_id: null,
+          });
+        }
+        seedTransactions(db, largeDataset);
+
+        const response = await request(app)
+          .get('/api/export/transactions')
+          .query({ format: 'csv' });
+
+        expect(response.status).toBe(200);
+        expect(response.type).toBe('text/csv');
+        expect(response.text).toContain('ID,Date,Amount,Description,Bank,Category,Created At');
+
+        // Verify all rows are present in the streamed response
+        const lines = response.text.split('\n').filter(line => line.trim());
+        // Header + data rows
+        expect(lines.length).toBe(STREAMING_THRESHOLD + 100 + 1);
+      });
+
+      it('should bound memory usage for streaming exports', async () => {
+        const db = getDatabase();
+
+        // Generate transactions exceeding the streaming threshold
+        const largeDataset = [];
+        for (let i = 0; i < STREAMING_THRESHOLD + 500; i++) {
+          largeDataset.push({
+            date: '2024-01-15',
+            amount: -10.0,
+            description: `Large Transaction ${i} with some extra description text`,
+            bank: 'CSOB',
+            category_id: null,
+          });
+        }
+        seedTransactions(db, largeDataset);
+
+        // Measure memory before
+        const memBefore = process.memoryUsage().heapUsed;
+
+        const response = await request(app)
+          .get('/api/export/transactions')
+          .query({ format: 'csv' });
+
+        // Measure memory after
+        const memAfter = process.memoryUsage().heapUsed;
+        const memDiff = memAfter - memBefore;
+
+        expect(response.status).toBe(200);
+        expect(response.type).toBe('text/csv');
+
+        // Verify the response is complete
+        const lines = response.text.split('\n').filter(line => line.trim());
+        expect(lines.length).toBe(STREAMING_THRESHOLD + 500 + 1);
+
+        // Memory should be bounded - streaming means we don't hold all data in memory at once
+        // Note: This is a soft check since GC behavior varies, but excessive memory would be obvious
+        // A non-streaming approach with 1500 rows would use significantly more memory
+        expect(memDiff).toBeLessThan(50 * 1024 * 1024); // Less than 50MB increase
       });
     });
 

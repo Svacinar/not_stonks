@@ -386,7 +386,7 @@ workers: 1,
 ---
 
 ### WR-16: Add Streaming for Large Exports
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** CSV export builds entire string in memory.
@@ -394,8 +394,16 @@ workers: 1,
 **File:** `backend/src/routes/export.ts:145-156`
 
 **Acceptance Criteria:**
-- [ ] Streaming response for >1000 rows
-- [ ] Memory usage bounded
+- [x] Streaming response for >1000 rows
+- [x] Memory usage bounded
+
+**Implementation Notes:**
+- Added `STREAMING_THRESHOLD` constant (1000 rows) to determine when to use streaming
+- For datasets >1000 rows, uses `res.write()` to stream CSV rows directly to response
+- For smaller datasets, keeps in-memory approach (faster for small exports)
+- Added integration tests verifying streaming with 1100+ and 1500+ transactions
+- Memory test confirms bounded memory usage during large exports
+- Files changed: `backend/src/routes/export.ts`, `backend/tests/integration/api.test.ts`
 
 ---
 

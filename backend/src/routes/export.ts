@@ -6,6 +6,9 @@ import { createErrorResponse, ErrorCodes } from '../middleware/errorHandler';
 
 const router = Router();
 
+// Threshold for switching to streaming mode
+export const STREAMING_THRESHOLD = 1000;
+
 interface TransactionWithCategory extends Transaction {
   category_name: string | null;
   category_color: string | null;
@@ -96,23 +99,44 @@ router.get('/transactions', (req: Request<{}, {}, {}, ExportQuery>, res: Respons
 
       // CSV headers
       const headers = ['ID', 'Date', 'Amount', 'Description', 'Bank', 'Category', 'Created At'];
-      let csv = headers.join(',') + '\n';
 
-      // CSV rows
-      for (const tx of transactions) {
-        const row = [
-          escapeCsvValue(tx.id),
-          escapeCsvValue(tx.date),
-          escapeCsvValue(tx.amount),
-          escapeCsvValue(tx.description),
-          escapeCsvValue(tx.bank),
-          escapeCsvValue(tx.category_name),
-          escapeCsvValue(tx.created_at),
-        ];
-        csv += row.join(',') + '\n';
+      if (transactions.length > STREAMING_THRESHOLD) {
+        // Streaming mode for large datasets - write directly to response
+        res.write(headers.join(',') + '\n');
+
+        for (const tx of transactions) {
+          const row = [
+            escapeCsvValue(tx.id),
+            escapeCsvValue(tx.date),
+            escapeCsvValue(tx.amount),
+            escapeCsvValue(tx.description),
+            escapeCsvValue(tx.bank),
+            escapeCsvValue(tx.category_name),
+            escapeCsvValue(tx.created_at),
+          ];
+          res.write(row.join(',') + '\n');
+        }
+
+        res.end();
+      } else {
+        // Small dataset - build in memory (faster for small exports)
+        let csv = headers.join(',') + '\n';
+
+        for (const tx of transactions) {
+          const row = [
+            escapeCsvValue(tx.id),
+            escapeCsvValue(tx.date),
+            escapeCsvValue(tx.amount),
+            escapeCsvValue(tx.description),
+            escapeCsvValue(tx.bank),
+            escapeCsvValue(tx.category_name),
+            escapeCsvValue(tx.created_at),
+          ];
+          csv += row.join(',') + '\n';
+        }
+
+        res.send(csv);
       }
-
-      res.send(csv);
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
