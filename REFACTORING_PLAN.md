@@ -99,7 +99,7 @@ This document outlines findings from a comprehensive codebase analysis identifyi
 ---
 
 ### WR-04: Add Vitest Configuration Files
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** No explicit `vitest.config.ts` files - tests rely on defaults.
@@ -109,9 +109,17 @@ This document outlines findings from a comprehensive codebase analysis identifyi
 - `frontend/vitest.config.ts`
 
 **Acceptance Criteria:**
-- [ ] Backend config: node environment, isolation
-- [ ] Frontend config: jsdom environment, coverage
-- [ ] Coverage thresholds set (70% minimum)
+- [x] Backend config: node environment, isolation
+- [x] Frontend config: jsdom environment, coverage
+- [x] Coverage thresholds set (70% minimum)
+
+**Implementation Notes:**
+- Updated `backend/vitest.config.ts` with `isolate: true` and `pool: 'forks'` for test isolation
+- Added coverage configuration to backend: v8 provider, 70% thresholds, reporter output
+- Frontend config already had jsdom environment, coverage thresholds (80%), and full configuration
+- Installed `@vitest/coverage-v8` in backend for coverage support
+- All 202 backend tests pass with isolation
+- All 156 frontend tests pass with coverage thresholds
 
 ---
 
