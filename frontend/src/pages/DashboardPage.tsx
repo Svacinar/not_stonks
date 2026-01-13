@@ -145,6 +145,9 @@ export function DashboardPage() {
     // Filter out positive sums (income) for expense pie chart
     const expenses = stats.by_category.filter(c => c.sum < 0);
 
+    // Return null if no expenses to show
+    if (expenses.length === 0) return null;
+
     // Gray color for uncategorized items
     const uncategorizedColor = '#6b7280';
 
