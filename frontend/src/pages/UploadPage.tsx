@@ -4,6 +4,9 @@ import { api, ApiRequestError } from '../api/client';
 import { UploadResponse, BankName } from '../../../shared/types';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ErrorMessage } from '../components/ErrorMessage';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface SelectedFile {
   file: File;
@@ -168,61 +171,61 @@ export function UploadPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Upload Bank Statements</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">Upload Bank Statements</h1>
 
       {/* Success State */}
       {uploadState === 'success' && uploadResult && (
-        <div className="mb-6 rounded-md bg-green-50 border border-green-200 p-6">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-6 w-6 text-green-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <div className="ml-3 flex-1">
-              <h3 className="text-lg font-medium text-green-800">Upload Successful</h3>
-              <div className="mt-2 text-sm text-green-700">
-                <p className="font-medium">
-                  Imported {uploadResult.imported} transactions
-                  {Object.keys(uploadResult.byBank).length > 0 && (
-                    <span> from {getBankSummary(uploadResult.byBank)}</span>
-                  )}
-                </p>
-                {uploadResult.duplicates > 0 && (
-                  <p className="mt-1">
-                    {uploadResult.duplicates} duplicate{uploadResult.duplicates !== 1 ? 's' : ''} skipped
+        <Card className="mb-6 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+          <CardContent className="p-6">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-6 w-6 text-green-500 dark:text-green-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3 flex-1">
+                <h3 className="text-lg font-medium text-green-800 dark:text-green-200">Upload Successful</h3>
+                <div className="mt-2 text-sm text-green-700 dark:text-green-300">
+                  <p className="font-medium">
+                    Imported {uploadResult.imported} transactions
+                    {Object.keys(uploadResult.byBank).length > 0 && (
+                      <span> from {getBankSummary(uploadResult.byBank)}</span>
+                    )}
                   </p>
-                )}
-              </div>
-              <div className="mt-4 flex gap-3">
-                <button
-                  type="button"
-                  onClick={handleGoToTransactions}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  View Transactions
-                </button>
-                <button
-                  type="button"
-                  onClick={clearAllFiles}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Upload More
-                </button>
+                  {uploadResult.duplicates > 0 && (
+                    <p className="mt-1">
+                      {uploadResult.duplicates} duplicate{uploadResult.duplicates !== 1 ? 's' : ''} skipped
+                    </p>
+                  )}
+                </div>
+                <div className="mt-4 flex gap-3">
+                  <Button
+                    onClick={handleGoToTransactions}
+                    className="bg-green-600 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700"
+                  >
+                    View Transactions
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={clearAllFiles}
+                  >
+                    Upload More
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Error Message */}
@@ -241,11 +244,13 @@ export function UploadPage() {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            className={cn(
+              'relative rounded-xl border-2 border-dashed p-8 text-center transition-colors',
               isDragOver
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-300 hover:border-gray-400'
-            } ${uploadState === 'uploading' ? 'pointer-events-none opacity-60' : ''}`}
+                ? 'border-primary bg-primary/5'
+                : 'border-muted-foreground/25 hover:border-muted-foreground/50',
+              uploadState === 'uploading' && 'pointer-events-none opacity-60'
+            )}
           >
             <label htmlFor="file-upload" className="sr-only">
               Choose bank statement files to upload
@@ -262,7 +267,7 @@ export function UploadPage() {
             />
 
             <svg
-              className="mx-auto h-12 w-12 text-gray-400"
+              className="mx-auto h-12 w-12 text-muted-foreground"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -276,21 +281,20 @@ export function UploadPage() {
             </svg>
 
             <div className="mt-4">
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-muted-foreground">
                 Drag and drop your bank statements here
               </p>
-              <p className="mt-1 text-sm text-gray-500">or</p>
-              <button
-                type="button"
+              <p className="mt-1 text-sm text-muted-foreground">or</p>
+              <Button
                 onClick={handleBrowseClick}
                 disabled={uploadState === 'uploading'}
-                className="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-2"
               >
                 Browse Files
-              </button>
+              </Button>
             </div>
 
-            <p className="mt-4 text-xs text-gray-500">
+            <p className="mt-4 text-xs text-muted-foreground">
               Supported formats: CSV, TXT, XLSX, XLS (max 5MB each, up to 10 files)
             </p>
           </div>
@@ -299,78 +303,82 @@ export function UploadPage() {
           {selectedFiles.length > 0 && (
             <div className="mt-6">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-medium text-gray-900">
+                <h2 className="text-sm font-medium text-foreground">
                   Selected Files ({selectedFiles.length})
                 </h2>
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={clearAllFiles}
                   disabled={uploadState === 'uploading'}
-                  className="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   Clear all
-                </button>
+                </Button>
               </div>
 
-              <ul className="divide-y divide-gray-200 border border-gray-200 rounded-md">
-                {selectedFiles.map((sf) => (
-                  <li
-                    key={sf.id}
-                    className="flex items-center justify-between py-3 px-4"
-                  >
-                    <div className="flex items-center min-w-0">
-                      <svg
-                        className="h-5 w-5 text-gray-400 flex-shrink-0"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      <span className="ml-2 truncate text-sm text-gray-900">
-                        {sf.file.name}
-                      </span>
-                      <span className="ml-2 flex-shrink-0 text-xs text-gray-500">
-                        {formatFileSize(sf.file.size)}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeFile(sf.id)}
-                      disabled={uploadState === 'uploading'}
-                      className="ml-4 text-gray-400 hover:text-red-500 disabled:opacity-50"
-                      aria-label={`Remove ${sf.file.name}`}
+              <Card>
+                <ul className="divide-y divide-border">
+                  {selectedFiles.map((sf) => (
+                    <li
+                      key={sf.id}
+                      className="flex items-center justify-between py-3 px-4"
                     >
-                      <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
+                      <div className="flex items-center min-w-0">
+                        <svg
+                          className="h-5 w-5 text-muted-foreground flex-shrink-0"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                        <span className="ml-2 truncate text-sm text-foreground">
+                          {sf.file.name}
+                        </span>
+                        <span className="ml-2 flex-shrink-0 text-xs text-muted-foreground">
+                          {formatFileSize(sf.file.size)}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeFile(sf.id)}
+                        disabled={uploadState === 'uploading'}
+                        className="ml-4 h-8 w-8 text-muted-foreground hover:text-destructive"
+                        aria-label={`Remove ${sf.file.name}`}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                        <svg
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
 
               {/* Upload Button */}
               <div className="mt-4">
-                <button
-                  type="button"
+                <Button
                   onClick={handleUpload}
                   disabled={uploadState === 'uploading' || selectedFiles.length === 0}
-                  className="w-full flex justify-center items-center px-4 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full"
+                  size="lg"
                 >
                   {uploadState === 'uploading' ? (
                     <>
@@ -382,7 +390,7 @@ export function UploadPage() {
                       Upload {selectedFiles.length} file{selectedFiles.length !== 1 ? 's' : ''}
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           )}

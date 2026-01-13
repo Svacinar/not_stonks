@@ -583,7 +583,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-17: Refactor UploadPage to Use Design System
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Drag-drop zone and file list need modernization. Success message styling inconsistent.
@@ -601,10 +601,18 @@ This document contains work items to modernize the spending dashboard UI from a 
 5. Replace buttons with Button component
 
 **Acceptance Criteria:**
-- [ ] Drag-drop zone has modern dashed border with hover state
-- [ ] File list items have clean appearance
-- [ ] Success/error states use consistent Card styling
-- [ ] Buttons use Button component
+- [x] Drag-drop zone has modern dashed border with hover state
+- [x] File list items have clean appearance
+- [x] Success/error states use consistent Card styling
+- [x] Buttons use Button component
+
+**Implementation Notes:**
+- Imported `Button`, `Card`, `CardContent` from `@/components/ui/*` and `cn` from `@/lib/utils`
+- Updated drag-drop zone to use `cn()` for conditional classes with `rounded-xl`, `border-primary` on drag-over, design system colors (`text-muted-foreground`, `border-muted-foreground/25`)
+- Updated success state to use `Card` component with green border/background and dark mode support (`dark:border-green-800 dark:bg-green-950`)
+- Replaced file list container with `Card` component, dividers use `divide-border` design token
+- Replaced all buttons: "Browse Files" (default), "View Transactions" (custom green), "Upload More" (outline), "Clear all" (ghost), file remove (ghost icon), "Upload X files" (lg default)
+- Files changed: `frontend/src/pages/UploadPage.tsx`
 
 ---
 
