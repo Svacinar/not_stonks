@@ -598,6 +598,12 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 
 **Note:** Blocked until sample files provided
 
+**Blocking issues:**
+- No sample CSOB CSV files exist in the repository
+- Cannot implement real parsing logic without actual file format examples
+- Cannot write unit tests without sample data to test against
+- Acceptance criteria "Parses real CSOB statements correctly" and "Unit tests with sample file" require real files
+
 ---
 
 ### WI-16: Raiffeisen Parser Implementation
