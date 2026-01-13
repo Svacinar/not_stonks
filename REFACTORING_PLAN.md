@@ -155,15 +155,23 @@ workers: 1,
 ---
 
 ### WR-06: Add Integration Tests for API Endpoints
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Backend routes tested via SQL queries, not HTTP endpoint tests.
 
 **Acceptance Criteria:**
-- [ ] supertest library installed
-- [ ] HTTP endpoint tests for all routes
-- [ ] Request/response validation
+- [x] supertest library installed
+- [x] HTTP endpoint tests for all routes
+- [x] Request/response validation
+
+**Implementation Notes:**
+- Installed `supertest` and `@types/supertest` in backend devDependencies
+- Created `backend/src/app.ts` to export Express app without starting server (for testability)
+- Refactored `backend/src/index.ts` to import app and start server
+- Created comprehensive integration test file: `backend/tests/integration/api.test.ts`
+- Tests cover all API endpoints: health, transactions, categories, rules, export
+- Includes request validation tests (missing fields, invalid values, 404s, etc.)
 
 ---
 
