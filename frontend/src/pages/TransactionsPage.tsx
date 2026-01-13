@@ -337,8 +337,12 @@ export function TransactionsPage() {
 
           {/* Search */}
           <div className="flex-1 min-w-48">
+            <label htmlFor="search-transactions" className="sr-only">
+              Search descriptions
+            </label>
             <input
               type="text"
+              id="search-transactions"
               placeholder="Search descriptions..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
@@ -492,7 +496,11 @@ export function TransactionsPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           {editingTransactionId === tx.id ? (
                             <div className="flex items-center gap-2">
+                              <label htmlFor={`category-select-${tx.id}`} className="sr-only">
+                                Select category for transaction
+                              </label>
                               <select
+                                id={`category-select-${tx.id}`}
                                 value={tx.category_id ?? ''}
                                 onChange={(e) =>
                                   handleCategoryChange(

@@ -474,14 +474,22 @@ workers: 1,
 ## Work Items - Accessibility
 
 ### WR-20: Add Proper Form Labels
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Input fields missing `<label>` associations.
 
 **Acceptance Criteria:**
-- [ ] All inputs have associated labels
-- [ ] Labels use htmlFor attribute
+- [x] All inputs have associated labels
+- [x] Labels use htmlFor attribute
+
+**Implementation Notes:**
+- Added `<label>` with `htmlFor` and `id` to search input in TransactionsPage.tsx (line 340-345)
+- Added `<label>` with `htmlFor` and `id` to inline category select in TransactionsPage.tsx (line 499-503)
+- Added `<label>` with `htmlFor` and `id` to edit keyword input in RulesPage.tsx (line 388-393)
+- Added `<label>` with `htmlFor` and `id` to edit category select in RulesPage.tsx (line 408-412)
+- Added `<label>` with `htmlFor` and `id` to hidden file input in UploadPage.tsx (line 250-256)
+- All labels use `sr-only` class to be visually hidden but accessible to screen readers
 
 ---
 

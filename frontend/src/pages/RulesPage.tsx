@@ -384,35 +384,47 @@ export function RulesPage() {
                     <tr key={rule.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {editingRuleId === rule.id ? (
-                          <input
-                            type="text"
-                            value={editKeyword}
-                            onChange={(e) => setEditKeyword(e.target.value)}
-                            className="rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm w-full max-w-xs"
-                            disabled={savingEdit}
-                            autoFocus
-                          />
+                          <>
+                            <label htmlFor={`edit-keyword-${rule.id}`} className="sr-only">
+                              Edit keyword
+                            </label>
+                            <input
+                              type="text"
+                              id={`edit-keyword-${rule.id}`}
+                              value={editKeyword}
+                              onChange={(e) => setEditKeyword(e.target.value)}
+                              className="rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm w-full max-w-xs"
+                              disabled={savingEdit}
+                              autoFocus
+                            />
+                          </>
                         ) : (
                           <span className="font-mono text-gray-900">{rule.keyword}</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {editingRuleId === rule.id ? (
-                          <select
-                            value={editCategoryId}
-                            onChange={(e) =>
-                              setEditCategoryId(e.target.value ? parseInt(e.target.value, 10) : '')
-                            }
-                            className="rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                            disabled={savingEdit}
-                          >
-                            <option value="">Select category...</option>
-                            {categories.map((cat) => (
-                              <option key={cat.id} value={cat.id}>
-                                {cat.name}
-                              </option>
-                            ))}
-                          </select>
+                          <>
+                            <label htmlFor={`edit-category-${rule.id}`} className="sr-only">
+                              Edit category
+                            </label>
+                            <select
+                              id={`edit-category-${rule.id}`}
+                              value={editCategoryId}
+                              onChange={(e) =>
+                                setEditCategoryId(e.target.value ? parseInt(e.target.value, 10) : '')
+                              }
+                              className="rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                              disabled={savingEdit}
+                            >
+                              <option value="">Select category...</option>
+                              {categories.map((cat) => (
+                                <option key={cat.id} value={cat.id}>
+                                  {cat.name}
+                                </option>
+                              ))}
+                            </select>
+                          </>
                         ) : (
                           <span className="flex items-center gap-2">
                             <span

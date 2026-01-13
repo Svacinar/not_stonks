@@ -247,9 +247,13 @@ export function UploadPage() {
                 : 'border-gray-300 hover:border-gray-400'
             } ${uploadState === 'uploading' ? 'pointer-events-none opacity-60' : ''}`}
           >
+            <label htmlFor="file-upload" className="sr-only">
+              Choose bank statement files to upload
+            </label>
             <input
               ref={fileInputRef}
               type="file"
+              id="file-upload"
               accept={acceptedExtensions}
               multiple
               onChange={handleFileInputChange}
