@@ -3,6 +3,28 @@ import { api, ApiRequestError } from '../api/client';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ErrorMessage } from '../components/ErrorMessage';
 import type { Category, CategoryRule } from '../../../shared/types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface RuleWithCategory extends CategoryRule {
   category_name: string;
@@ -219,17 +241,15 @@ export function RulesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Categorization Rules</h1>
+        <h1 className="text-2xl font-bold text-foreground">Categorization Rules</h1>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-muted-foreground">
             <span className="font-medium">{uncategorizedCount}</span> uncategorized transaction
             {uncategorizedCount !== 1 ? 's' : ''}
           </span>
-          <button
-            type="button"
+          <Button
             onClick={handleApplyRules}
             disabled={applyingRules || rules.length === 0 || uncategorizedCount === 0}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {applyingRules ? (
               <>
@@ -239,13 +259,13 @@ export function RulesPage() {
             ) : (
               'Apply Rules'
             )}
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Apply Result */}
       {applyResult && (
-        <div className="rounded-md bg-green-50 border border-green-200 p-4" role="status">
+        <div className="rounded-md bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-4" role="status">
           <div className="flex items-center">
             <svg
               className="h-5 w-5 text-green-400 mr-2"
@@ -258,19 +278,20 @@ export function RulesPage() {
                 clipRule="evenodd"
               />
             </svg>
-            <p className="text-sm text-green-700">
+            <p className="text-sm text-green-700 dark:text-green-300">
               Categorized <span className="font-medium">{applyResult.categorized}</span> of{' '}
               <span className="font-medium">{applyResult.total}</span> uncategorized transactions
             </p>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setApplyResult(null)}
-              className="ml-auto text-green-600 hover:text-green-800"
+              className="ml-auto h-6 w-6 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -279,58 +300,57 @@ export function RulesPage() {
       {error && <ErrorMessage message={error} onRetry={fetchData} />}
 
       {/* Add New Rule Form */}
-      <div className="bg-white shadow rounded-lg p-4">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Add New Rule</h2>
-        <form onSubmit={handleAddRule} className="flex flex-wrap gap-4 items-end">
-          <div className="flex-1 min-w-48">
-            <label htmlFor="newKeyword" className="block text-sm font-medium text-gray-700 mb-1">
-              Keyword
-            </label>
-            <input
-              type="text"
-              id="newKeyword"
-              value={newKeyword}
-              onChange={(e) => setNewKeyword(e.target.value)}
-              placeholder="Enter keyword..."
-              className="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-              disabled={addingRule}
-            />
-          </div>
-          <div className="flex-1 min-w-48">
-            <label htmlFor="newCategory" className="block text-sm font-medium text-gray-700 mb-1">
-              Category
-            </label>
-            <select
-              id="newCategory"
-              value={newCategoryId}
-              onChange={(e) => setNewCategoryId(e.target.value ? parseInt(e.target.value, 10) : '')}
-              className="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-              disabled={addingRule}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg">Add New Rule</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleAddRule} className="flex flex-wrap gap-4 items-end">
+            <div className="flex-1 min-w-48 space-y-2">
+              <Label htmlFor="newKeyword">Keyword</Label>
+              <Input
+                type="text"
+                id="newKeyword"
+                value={newKeyword}
+                onChange={(e) => setNewKeyword(e.target.value)}
+                placeholder="Enter keyword..."
+                disabled={addingRule}
+              />
+            </div>
+            <div className="flex-1 min-w-48 space-y-2">
+              <Label htmlFor="newCategory">Category</Label>
+              <select
+                id="newCategory"
+                value={newCategoryId}
+                onChange={(e) => setNewCategoryId(e.target.value ? parseInt(e.target.value, 10) : '')}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={addingRule}
+              >
+                <option value="">Select category...</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <Button
+              type="submit"
+              disabled={addingRule || !newKeyword.trim() || newCategoryId === ''}
+              className="bg-green-600 hover:bg-green-700 text-white"
             >
-              <option value="">Select category...</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            type="submit"
-            disabled={addingRule || !newKeyword.trim() || newCategoryId === ''}
-            className="px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {addingRule ? (
-              <>
-                <LoadingSpinner size="sm" className="mr-2 inline-block" />
-                Adding...
-              </>
-            ) : (
-              'Add Rule'
-            )}
-          </button>
-        </form>
-      </div>
+              {addingRule ? (
+                <>
+                  <LoadingSpinner size="sm" className="mr-2" />
+                  Adding...
+                </>
+              ) : (
+                'Add Rule'
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
       {/* Loading */}
       {loading && (
@@ -341,180 +361,139 @@ export function RulesPage() {
 
       {/* Rules Table */}
       {!loading && (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Keyword
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Category
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Created
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {rules.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
-                      No rules defined yet. Add a rule above to auto-categorize transactions.
-                    </td>
-                  </tr>
-                ) : (
-                  rules.map((rule) => (
-                    <tr key={rule.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {editingRuleId === rule.id ? (
-                          <>
-                            <label htmlFor={`edit-keyword-${rule.id}`} className="sr-only">
-                              Edit keyword
-                            </label>
-                            <input
-                              type="text"
-                              id={`edit-keyword-${rule.id}`}
-                              value={editKeyword}
-                              onChange={(e) => setEditKeyword(e.target.value)}
-                              className="rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm w-full max-w-xs"
-                              disabled={savingEdit}
-                              autoFocus
-                            />
-                          </>
-                        ) : (
-                          <span className="font-mono text-gray-900">{rule.keyword}</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {editingRuleId === rule.id ? (
-                          <>
-                            <label htmlFor={`edit-category-${rule.id}`} className="sr-only">
-                              Edit category
-                            </label>
-                            <select
-                              id={`edit-category-${rule.id}`}
-                              value={editCategoryId}
-                              onChange={(e) =>
-                                setEditCategoryId(e.target.value ? parseInt(e.target.value, 10) : '')
-                              }
-                              className="rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                              disabled={savingEdit}
-                            >
-                              <option value="">Select category...</option>
-                              {categories.map((cat) => (
-                                <option key={cat.id} value={cat.id}>
-                                  {cat.name}
-                                </option>
-                              ))}
-                            </select>
-                          </>
-                        ) : (
-                          <span className="flex items-center gap-2">
-                            <span
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: getCategoryColor(rule.category_id) }}
-                            />
-                            <span className="text-gray-900">{rule.category_name}</span>
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(rule.created_at)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                        {editingRuleId === rule.id ? (
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={handleSaveEdit}
-                              disabled={savingEdit || !editKeyword.trim() || editCategoryId === ''}
-                              className="text-green-600 hover:text-green-800 disabled:opacity-50"
-                            >
-                              {savingEdit ? (
-                                <LoadingSpinner size="sm" />
-                              ) : (
-                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                              )}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleCancelEdit}
-                              disabled={savingEdit}
-                              className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
-                            >
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Keyword</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rules.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="py-12 text-center text-muted-foreground">
+                    No rules defined yet. Add a rule above to auto-categorize transactions.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                rules.map((rule) => (
+                  <TableRow key={rule.id}>
+                    <TableCell className="whitespace-nowrap">
+                      {editingRuleId === rule.id ? (
+                        <>
+                          <label htmlFor={`edit-keyword-${rule.id}`} className="sr-only">
+                            Edit keyword
+                          </label>
+                          <Input
+                            type="text"
+                            id={`edit-keyword-${rule.id}`}
+                            value={editKeyword}
+                            onChange={(e) => setEditKeyword(e.target.value)}
+                            className="max-w-xs"
+                            disabled={savingEdit}
+                            autoFocus
+                          />
+                        </>
+                      ) : (
+                        <span className="font-mono text-foreground">{rule.keyword}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {editingRuleId === rule.id ? (
+                        <>
+                          <label htmlFor={`edit-category-${rule.id}`} className="sr-only">
+                            Edit category
+                          </label>
+                          <select
+                            id={`edit-category-${rule.id}`}
+                            value={editCategoryId}
+                            onChange={(e) =>
+                              setEditCategoryId(e.target.value ? parseInt(e.target.value, 10) : '')
+                            }
+                            className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={savingEdit}
+                          >
+                            <option value="">Select category...</option>
+                            {categories.map((cat) => (
+                              <option key={cat.id} value={cat.id}>
+                                {cat.name}
+                              </option>
+                            ))}
+                          </select>
+                        </>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <span
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: getCategoryColor(rule.category_id) }}
+                          />
+                          <span className="text-foreground">{rule.category_name}</span>
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
+                      {formatDate(rule.created_at)}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-right">
+                      {editingRuleId === rule.id ? (
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleSaveEdit}
+                            disabled={savingEdit || !editKeyword.trim() || editCategoryId === ''}
+                            className="h-8 w-8 text-green-600 hover:text-green-800 hover:bg-green-100 dark:hover:bg-green-900"
+                          >
+                            {savingEdit ? (
+                              <LoadingSpinner size="sm" />
+                            ) : (
                               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                               </svg>
-                            </button>
-                          </div>
-                        ) : showDeleteConfirm === rule.id ? (
-                          <div className="flex items-center justify-end gap-2">
-                            <span className="text-sm text-gray-600 mr-2">Delete?</span>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteRule(rule.id)}
-                              disabled={deletingRuleId === rule.id}
-                              className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                            >
-                              {deletingRuleId === rule.id ? (
-                                <LoadingSpinner size="sm" />
-                              ) : (
-                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                              )}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setShowDeleteConfirm(null)}
-                              disabled={deletingRuleId === rule.id}
-                              className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
-                            >
-                              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleStartEdit(rule)}
-                              className="text-blue-600 hover:text-blue-800"
-                              title="Edit rule"
-                            >
-                              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                />
-                              </svg>
-                            </button>
-                            <button
-                              type="button"
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleCancelEdit}
+                            disabled={savingEdit}
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                          >
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleStartEdit(rule)}
+                            className="h-8 w-8 text-primary hover:text-primary/80"
+                            title="Edit rule"
+                          >
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                          </Button>
+                          <AlertDialog
+                            open={showDeleteConfirm === rule.id}
+                            onOpenChange={(open) => setShowDeleteConfirm(open ? rule.id : null)}
+                          >
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               onClick={() => setShowDeleteConfirm(rule.id)}
-                              className="text-red-600 hover:text-red-800"
+                              className="h-8 w-8 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
                               title="Delete rule"
                             >
                               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -525,22 +504,50 @@ export function RulesPage() {
                                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                                 />
                               </svg>
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                            </Button>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Rule</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete the rule for keyword "{rule.keyword}"?
+                                  This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel disabled={deletingRuleId === rule.id}>
+                                  Cancel
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteRule(rule.id)}
+                                  disabled={deletingRuleId === rule.id}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  {deletingRuleId === rule.id ? (
+                                    <>
+                                      <LoadingSpinner size="sm" className="mr-2" />
+                                      Deleting...
+                                    </>
+                                  ) : (
+                                    'Delete'
+                                  )}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Card>
       )}
 
       {/* Rules count */}
       {!loading && rules.length > 0 && (
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-muted-foreground">
           <span className="font-medium">{rules.length}</span> rule{rules.length !== 1 ? 's' : ''} defined
         </div>
       )}

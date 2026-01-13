@@ -547,7 +547,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-16: Refactor RulesPage to Use Design System
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** Delete confirmation is confusing inline pattern. Form needs component updates.
@@ -565,11 +565,20 @@ This document contains work items to modernize the spending dashboard UI from a 
 5. Replace action buttons with Button component
 
 **Acceptance Criteria:**
-- [ ] Add rule form uses Card with Input/Select components
-- [ ] Rules table uses Table component
-- [ ] Delete confirmation uses AlertDialog with clear messaging
-- [ ] Delete action styled as destructive
-- [ ] Action buttons use Button component
+- [x] Add rule form uses Card with Input/Select components
+- [x] Rules table uses Table component
+- [x] Delete confirmation uses AlertDialog with clear messaging
+- [x] Delete action styled as destructive
+- [x] Action buttons use Button component
+
+**Implementation Notes:**
+- Imported Button, Card, CardHeader, CardTitle, CardContent, Input, Label, Table (all subcomponents), and AlertDialog (all subcomponents) from `@/components/ui/*`
+- Replaced add rule form container with Card/CardHeader/CardContent, form inputs with Input component, labels with Label component
+- Replaced rules table with Table/TableHeader/TableBody/TableRow/TableHead/TableCell components
+- Replaced inline "Delete?" confirmation with AlertDialog featuring clear title "Delete Rule", descriptive message with keyword, and Cancel/Delete buttons
+- Delete action styled with `bg-destructive text-destructive-foreground` classes
+- All action buttons (Apply Rules, Add Rule, edit save/cancel, delete) now use Button component with appropriate variants
+- Updated tests in `frontend/tests/pages/RulesPage.test.tsx` to work with AlertDialog (expects `alertdialog` role instead of "Delete?" text)
 
 ---
 

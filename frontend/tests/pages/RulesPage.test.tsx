@@ -275,16 +275,15 @@ describe('RulesPage', () => {
     const deleteButtons = screen.getAllByTitle('Delete rule');
     fireEvent.click(deleteButtons[0]);
 
-    // Should show confirmation
-    expect(screen.getByText('Delete?')).toBeInTheDocument();
+    // Should show AlertDialog with title
+    await waitFor(() => {
+      expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Delete Rule')).toBeInTheDocument();
+    expect(screen.getByText(/Are you sure you want to delete the rule for keyword "TESCO"\?/)).toBeInTheDocument();
 
     // Confirm delete
-    const confirmButtons = screen.getAllByRole('button');
-    const confirmButton = confirmButtons.find(btn => {
-      const svg = btn.querySelector('svg');
-      return svg?.querySelector('path[d="M5 13l4 4L19 7"]') && btn.classList.contains('text-red-600');
-    });
-    fireEvent.click(confirmButton!);
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
 
     await waitFor(() => {
       expect(apiClient.api.delete).toHaveBeenCalledWith('/api/rules/1');
@@ -307,18 +306,18 @@ describe('RulesPage', () => {
     const deleteButtons = screen.getAllByTitle('Delete rule');
     fireEvent.click(deleteButtons[0]);
 
-    // Should show confirmation
-    expect(screen.getByText('Delete?')).toBeInTheDocument();
+    // Should show AlertDialog
+    await waitFor(() => {
+      expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    });
 
     // Cancel
-    const cancelButtons = screen.getAllByRole('button');
-    const cancelButton = cancelButtons.find(btn =>
-      btn.querySelector('path[d="M6 18L18 6M6 6l12 12"]') && btn.closest('div')?.textContent?.includes('Delete')
-    );
-    fireEvent.click(cancelButton!);
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
-    // Confirmation should be gone
-    expect(screen.queryByText('Delete?')).not.toBeInTheDocument();
+    // AlertDialog should be gone
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    });
   });
 
   it('applies rules to uncategorized transactions', async () => {
