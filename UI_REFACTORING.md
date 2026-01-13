@@ -617,7 +617,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-18: Update Sidebar Component
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Sidebar uses hardcoded colors. Could use cn() utility and transitions.
@@ -634,10 +634,18 @@ This document contains work items to modernize the spending dashboard UI from a 
 4. Update mobile overlay to use backdrop-blur-sm
 
 **Acceptance Criteria:**
-- [ ] Sidebar uses cn() utility for conditional classes
-- [ ] Transitions are smooth (150-300ms)
-- [ ] Mobile overlay has backdrop blur
-- [ ] Active nav item has clear visual distinction
+- [x] Sidebar uses cn() utility for conditional classes
+- [x] Transitions are smooth (150-300ms)
+- [x] Mobile overlay has backdrop blur
+- [x] Active nav item has clear visual distinction
+
+**Implementation Notes:**
+- Imported `cn` utility from `@/lib/utils` for conditional class combinations
+- Replaced template literal class concatenation with `cn()` calls for sidebar aside and nav link classes
+- Added `transition-colors duration-150` to close button for smooth hover transition
+- Added `duration-150` to nav links (already had `transition-colors`) for explicit timing
+- Updated mobile overlay to use `bg-black/50 backdrop-blur-sm transition-opacity duration-200` for blur effect
+- Changed active nav item styling from `bg-gray-800 text-white` to `bg-primary text-primary-foreground` for clearer visual distinction using design system tokens
 
 ---
 

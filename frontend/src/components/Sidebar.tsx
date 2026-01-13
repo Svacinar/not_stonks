@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -76,7 +77,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden"
+          className="fixed inset-0 z-20 bg-black/50 backdrop-blur-sm transition-opacity duration-200 lg:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -84,18 +85,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       {/* Sidebar */}
       <aside
-        className={`
-          fixed inset-y-0 left-0 z-30 w-64 bg-gray-900 transform transition-transform duration-300 ease-in-out
-          lg:translate-x-0 lg:static lg:inset-auto
-          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        `}
+        className={cn(
+          'fixed inset-y-0 left-0 z-30 w-64 bg-gray-900 transform transition-transform duration-300 ease-in-out',
+          'lg:translate-x-0 lg:static lg:inset-auto',
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
       >
         {/* Logo/Title */}
         <div className="flex items-center justify-between h-16 px-4 bg-gray-800">
           <span className="text-xl font-semibold text-white">Spending</span>
           <button
             type="button"
-            className="p-2 text-gray-400 hover:text-white lg:hidden"
+            className="p-2 text-gray-400 transition-colors duration-150 hover:text-white lg:hidden"
             onClick={onClose}
             aria-label="Close sidebar"
           >
@@ -119,11 +120,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   to={item.path}
                   onClick={onClose}
                   className={({ isActive }) =>
-                    `flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                    cn(
+                      'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-150',
                       isActive
-                        ? 'bg-gray-800 text-white'
+                        ? 'bg-primary text-primary-foreground'
                         : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                    }`
+                    )
                   }
                   end={item.path === '/'}
                 >
