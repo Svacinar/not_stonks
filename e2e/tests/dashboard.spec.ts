@@ -202,8 +202,8 @@ test.describe('Dashboard Page', () => {
       // Click View all link
       await page.getByRole('link', { name: 'View all' }).click();
 
-      // Should navigate to transactions page
-      await expect(page).toHaveURL('/transactions');
+      // Should navigate to transactions page (may include date range params)
+      await expect(page).toHaveURL(/\/transactions/);
       await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
     } finally {
       fs.unlinkSync(csobFile);
@@ -289,13 +289,8 @@ test.describe('Dashboard Page', () => {
       await page.goto('/');
       await waitForLoad(page);
 
-      // Expand date range to include dummy data from 2024 using the new DateRangePicker
-      // Click the date picker button to open dropdown
-      await page.getByRole('button', { name: /Last 3 months|All time/ }).click();
-      // Select "All time" preset to include all data
-      await page.getByRole('button', { name: 'All time' }).click();
-      await page.waitForTimeout(300);
-      await waitForLoad(page);
+      // Select "All time" to include dummy data from 2024
+      await selectAllTimeRange(page);
 
       // Wait for stats API response to be captured
       await page.waitForTimeout(500);
