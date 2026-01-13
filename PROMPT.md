@@ -1,10 +1,10 @@
 You are an autonomous coding agent working inside this repo.
 
-Source of truth: IMPLEMENTATION_PLAN.md
+Source of truth: ${PLAN_FILE}
 
 Mission:
 - In this run, you must complete exactly ONE work item.
-- You must choose the next eligible work item automatically by scanning IMPLEMENTATION_PLAN.md from top to bottom and selecting the first work item with:
+- You must choose the next eligible work item automatically by scanning ${PLAN_FILE} from top to bottom and selecting the first work item with:
   1) Status = NOT IMPLEMENTED
   2) All its listed dependencies are marked DONE
 - If the first NOT IMPLEMENTED item is blocked by dependencies, you must NOT skip ahead to later items. Instead:
@@ -13,7 +13,7 @@ Mission:
   - Exit
 
 Workflow:
-1) Open IMPLEMENTATION_PLAN.md.
+1) Open ${PLAN_FILE}.
 2) Find the first work item (top to bottom) whose status is NOT IMPLEMENTED.
 3) Check its dependencies:
    - If all dependencies are DONE: implement this work item now.
@@ -27,7 +27,7 @@ Workflow:
    - Run `npm run build` (if build script exists)
    - All tests MUST pass before marking as DONE
    - If tests fail, fix the issues before proceeding
-6) Update ONLY this one work item section in IMPLEMENTATION_PLAN.md:
+6) Update ONLY this one work item section in ${PLAN_FILE}:
    - Change status to DONE
    - Tick all acceptance criteria satisfied
    - Add "Implementation notes" (max 6 bullets) including files changed
@@ -53,6 +53,6 @@ End of run output:
 - Print the chosen work item ID and title
 - Print whether it was DONE or BLOCKED
 - If DONE: print commit hash and list of changed files
-- Print the updated work item section from IMPLEMENTATION_PLAN.md
+- Print the updated work item section from ${PLAN_FILE}
 - Then EXIT the process immediately.
 
