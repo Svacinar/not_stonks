@@ -397,7 +397,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-12: Create Skeleton Component
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Loading states only show spinner. No content preview during loading.
@@ -415,10 +415,18 @@ This document contains work items to modernize the spending dashboard UI from a 
 3. Create TableRowSkeleton using TableRow, TableCell, and Skeleton components
 
 **Acceptance Criteria:**
-- [ ] Skeleton component exists with pulse animation
-- [ ] CardSkeleton matches card dimensions roughly
-- [ ] TableRowSkeleton accepts configurable column count
-- [ ] Skeletons use muted background color
+- [x] Skeleton component exists with pulse animation
+- [x] CardSkeleton matches card dimensions roughly
+- [x] TableRowSkeleton accepts configurable column count
+- [x] Skeletons use muted background color
+
+**Implementation Notes:**
+- Ran `npx shadcn@latest add skeleton` to create base component with `animate-pulse` animation
+- Skeleton component uses `bg-muted` for muted background color per design system
+- Created `CardSkeleton` with optional `showHeader` and `showDescription` props for flexible card layouts
+- Created `TableRowSkeleton` with `columnCount` prop and optional `columnWidths` array for configurable columns
+- Both skeleton compositions use Card/Table components from UI-06/UI-11 for consistent styling
+- Files created: `frontend/src/components/ui/skeleton.tsx`, `frontend/src/components/skeletons/CardSkeleton.tsx`, `frontend/src/components/skeletons/TableRowSkeleton.tsx`
 
 ---
 
