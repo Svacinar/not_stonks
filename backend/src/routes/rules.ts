@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { getDatabase } from '../db/database';
 import type { CategoryRule, Category } from 'shared/types';
 import { createErrorResponse, ErrorCodes } from '../middleware/errorHandler';
+import { validateIdParam } from '../middleware/validation';
 
 const router = Router();
 
@@ -117,7 +118,7 @@ router.post('/', (req: Request<{}, {}, CreateRuleBody>, res: Response): void => 
  * PATCH /api/rules/:id
  * Update a rule
  */
-router.patch('/:id', (req: Request<{ id: string }, {}, UpdateRuleBody>, res: Response): void => {
+router.patch('/:id', validateIdParam, (req: Request<{ id: string }, {}, UpdateRuleBody>, res: Response): void => {
   try {
     const db = getDatabase();
     const { id } = req.params;
@@ -207,7 +208,7 @@ router.patch('/:id', (req: Request<{ id: string }, {}, UpdateRuleBody>, res: Res
  * DELETE /api/rules/:id
  * Delete a rule
  */
-router.delete('/:id', (req: Request<{ id: string }>, res: Response): void => {
+router.delete('/:id', validateIdParam, (req: Request<{ id: string }>, res: Response): void => {
   try {
     const db = getDatabase();
     const { id } = req.params;

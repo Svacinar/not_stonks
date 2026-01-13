@@ -3,6 +3,7 @@ import { getDatabase } from '../db/database';
 import type { Transaction, TransactionStats, BankName } from 'shared/types';
 import { buildTransactionWhereClause } from '../utils/queryBuilder';
 import { createErrorResponse, ErrorCodes } from '../middleware/errorHandler';
+import { validateIdParam } from '../middleware/validation';
 
 const router = Router();
 
@@ -219,7 +220,7 @@ router.get('/stats', (req: Request<{}, {}, {}, TransactionListQuery>, res: Respo
  * GET /api/transactions/:id
  * Get a single transaction
  */
-router.get('/:id', (req: Request<{ id: string }>, res: Response): void => {
+router.get('/:id', validateIdParam, (req: Request<{ id: string }>, res: Response): void => {
   try {
     const db = getDatabase();
     const { id } = req.params;
@@ -260,6 +261,7 @@ router.get('/:id', (req: Request<{ id: string }>, res: Response): void => {
  */
 router.patch(
   '/:id',
+  validateIdParam,
   (req: Request<{ id: string }, {}, { category_id: number | null }>, res: Response): void => {
     try {
       const db = getDatabase();
@@ -339,7 +341,7 @@ router.patch(
  * DELETE /api/transactions/:id
  * Delete a transaction
  */
-router.delete('/:id', (req: Request<{ id: string }>, res: Response): void => {
+router.delete('/:id', validateIdParam, (req: Request<{ id: string }>, res: Response): void => {
   try {
     const db = getDatabase();
     const { id } = req.params;

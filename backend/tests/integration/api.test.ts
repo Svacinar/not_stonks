@@ -203,6 +203,32 @@ describe('API Integration Tests', () => {
         expect(response.body.error).toHaveProperty('code', 'NOT_FOUND');
         expect(response.body.error).toHaveProperty('message', 'Transaction not found');
       });
+
+      it('should return 400 for invalid ID (non-numeric)', async () => {
+        const response = await request(app).get('/api/transactions/abc');
+
+        expect(response.status).toBe(400);
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'VALIDATION_ERROR');
+        expect(response.body.error).toHaveProperty('message');
+        expect(response.body.error).toHaveProperty('details');
+      });
+
+      it('should return 400 for invalid ID (negative)', async () => {
+        const response = await request(app).get('/api/transactions/-1');
+
+        expect(response.status).toBe(400);
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'VALIDATION_ERROR');
+      });
+
+      it('should return 400 for invalid ID (zero)', async () => {
+        const response = await request(app).get('/api/transactions/0');
+
+        expect(response.status).toBe(400);
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'VALIDATION_ERROR');
+      });
     });
 
     describe('PATCH /api/transactions/:id', () => {
@@ -344,6 +370,14 @@ describe('API Integration Tests', () => {
         expect(response.body).toHaveProperty('success', false);
         expect(response.body.error).toHaveProperty('code', 'NOT_FOUND');
         expect(response.body.error).toHaveProperty('message', 'Category not found');
+      });
+
+      it('should return 400 for invalid ID (non-numeric)', async () => {
+        const response = await request(app).get('/api/categories/abc');
+
+        expect(response.status).toBe(400);
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'VALIDATION_ERROR');
       });
     });
 
@@ -643,6 +677,16 @@ describe('API Integration Tests', () => {
         expect(response.body).toHaveProperty('success', false);
         expect(response.body.error).toHaveProperty('code', 'NOT_FOUND');
         expect(response.body.error).toHaveProperty('message', 'Rule not found');
+      });
+
+      it('should return 400 for invalid ID (non-numeric)', async () => {
+        const response = await request(app)
+          .patch('/api/rules/abc')
+          .send({ keyword: 'updated' });
+
+        expect(response.status).toBe(400);
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'VALIDATION_ERROR');
       });
     });
 

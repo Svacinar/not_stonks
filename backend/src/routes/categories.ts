@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { getDatabase } from '../db/database';
 import type { Category } from 'shared/types';
 import { createErrorResponse, ErrorCodes } from '../middleware/errorHandler';
+import { validateIdParam } from '../middleware/validation';
 
 const router = Router();
 
@@ -57,7 +58,7 @@ router.get('/', (_req: Request, res: Response): void => {
  * GET /api/categories/:id
  * Get a single category with stats
  */
-router.get('/:id', (req: Request<{ id: string }>, res: Response): void => {
+router.get('/:id', validateIdParam, (req: Request<{ id: string }>, res: Response): void => {
   try {
     const db = getDatabase();
     const { id } = req.params;
@@ -144,7 +145,7 @@ router.post('/', (req: Request<{}, {}, CreateCategoryBody>, res: Response): void
  * PATCH /api/categories/:id
  * Update a category
  */
-router.patch('/:id', (req: Request<{ id: string }, {}, UpdateCategoryBody>, res: Response): void => {
+router.patch('/:id', validateIdParam, (req: Request<{ id: string }, {}, UpdateCategoryBody>, res: Response): void => {
   try {
     const db = getDatabase();
     const { id } = req.params;
@@ -220,7 +221,7 @@ router.patch('/:id', (req: Request<{ id: string }, {}, UpdateCategoryBody>, res:
  * DELETE /api/categories/:id
  * Delete a category (transactions with this category_id will be set to null)
  */
-router.delete('/:id', (req: Request<{ id: string }>, res: Response): void => {
+router.delete('/:id', validateIdParam, (req: Request<{ id: string }>, res: Response): void => {
   try {
     const db = getDatabase();
     const { id } = req.params;

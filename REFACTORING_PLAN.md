@@ -248,7 +248,7 @@ workers: 1,
 ---
 
 ### WR-10: Add Input Validation Middleware
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** ID parameters and query filters cast directly without validation.
@@ -259,9 +259,17 @@ workers: 1,
 - `backend/src/routes/rules.ts:119`
 
 **Acceptance Criteria:**
-- [ ] Centralized validation using Zod or express-validator
-- [ ] All ID parameters validated as positive integers
-- [ ] Validation errors return 400 with details
+- [x] Centralized validation using Zod or express-validator
+- [x] All ID parameters validated as positive integers
+- [x] Validation errors return 400 with details
+
+**Implementation Notes:**
+- Installed Zod validation library in backend
+- Created `backend/src/middleware/validation.ts` with centralized validation schemas and middleware
+- Added `validateIdParam` middleware to all routes with `:id` parameter (transactions, categories, rules)
+- Validation returns 400 with `{ success: false, error: { code: 'VALIDATION_ERROR', message, details } }` format
+- Created comprehensive unit tests in `backend/tests/validation.test.ts` (30 tests)
+- Added integration tests for invalid ID validation in `backend/tests/integration/api.test.ts`
 
 ---
 
