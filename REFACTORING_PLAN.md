@@ -226,15 +226,24 @@ workers: 1,
 ---
 
 ### WR-09: Standardize Error Response Format
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Inconsistent error response formats across endpoints.
 
 **Acceptance Criteria:**
-- [ ] Standard format: `{ success: false, error: { code, message, details? } }`
-- [ ] All endpoints use consistent format
-- [ ] Frontend handles standard format
+- [x] Standard format: `{ success: false, error: { code, message, details? } }`
+- [x] All endpoints use consistent format
+- [x] Frontend handles standard format
+
+**Implementation Notes:**
+- Created `StandardErrorResponse` interface and `ErrorCodes` constants in `backend/src/middleware/errorHandler.ts`
+- Added `createErrorResponse()` utility function for consistent error formatting
+- Updated `AppError` class to include error code, added `ConflictError` class
+- Updated all routes (transactions, categories, rules, export) to use `createErrorResponse()`
+- Updated frontend `api/client.ts` to parse both standard and legacy error formats
+- Updated integration tests to expect new standard error response format
+- Files changed: `backend/src/middleware/errorHandler.ts`, `backend/src/routes/*.ts`, `frontend/src/api/client.ts`, `backend/tests/integration/api.test.ts`
 
 ---
 

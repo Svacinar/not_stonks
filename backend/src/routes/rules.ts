@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { getDatabase } from '../db/database';
 import type { CategoryRule, Category } from 'shared/types';
+import { createErrorResponse, ErrorCodes } from '../middleware/errorHandler';
 
 const router = Router();
 
@@ -43,7 +44,7 @@ router.get('/', (_req: Request, res: Response): void => {
     res.json({ rules });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 
@@ -58,12 +59,12 @@ router.post('/', (req: Request<{}, {}, CreateRuleBody>, res: Response): void => 
 
     // Validate required fields
     if (!keyword || typeof keyword !== 'string' || keyword.trim() === '') {
-      res.status(400).json({ error: 'Keyword is required' });
+      res.status(400).json(createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Keyword is required'));
       return;
     }
 
     if (category_id === undefined || category_id === null || typeof category_id !== 'number') {
-      res.status(400).json({ error: 'Category ID is required' });
+      res.status(400).json(createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Category ID is required'));
       return;
     }
 
@@ -71,7 +72,7 @@ router.post('/', (req: Request<{}, {}, CreateRuleBody>, res: Response): void => 
     const category = db.prepare('SELECT id FROM categories WHERE id = ?').get(category_id) as Category | undefined;
 
     if (!category) {
-      res.status(404).json({ error: 'Category not found' });
+      res.status(404).json(createErrorResponse(ErrorCodes.NOT_FOUND, 'Category not found'));
       return;
     }
 
@@ -81,7 +82,7 @@ router.post('/', (req: Request<{}, {}, CreateRuleBody>, res: Response): void => 
       .get(keyword.trim());
 
     if (existing) {
-      res.status(409).json({ error: 'A rule with this keyword already exists' });
+      res.status(409).json(createErrorResponse(ErrorCodes.CONFLICT, 'A rule with this keyword already exists'));
       return;
     }
 
@@ -108,7 +109,7 @@ router.post('/', (req: Request<{}, {}, CreateRuleBody>, res: Response): void => 
     res.status(201).json(newRule);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 
@@ -126,7 +127,7 @@ router.patch('/:id', (req: Request<{ id: string }, {}, UpdateRuleBody>, res: Res
     const existing = db.prepare('SELECT * FROM category_rules WHERE id = ?').get(id) as CategoryRule | undefined;
 
     if (!existing) {
-      res.status(404).json({ error: 'Rule not found' });
+      res.status(404).json(createErrorResponse(ErrorCodes.NOT_FOUND, 'Rule not found'));
       return;
     }
 
@@ -136,7 +137,7 @@ router.patch('/:id', (req: Request<{ id: string }, {}, UpdateRuleBody>, res: Res
 
     if (keyword !== undefined) {
       if (typeof keyword !== 'string' || keyword.trim() === '') {
-        res.status(400).json({ error: 'Keyword cannot be empty' });
+        res.status(400).json(createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Keyword cannot be empty'));
         return;
       }
 
@@ -146,7 +147,7 @@ router.patch('/:id', (req: Request<{ id: string }, {}, UpdateRuleBody>, res: Res
         .get(keyword.trim(), id);
 
       if (duplicate) {
-        res.status(409).json({ error: 'A rule with this keyword already exists' });
+        res.status(409).json(createErrorResponse(ErrorCodes.CONFLICT, 'A rule with this keyword already exists'));
         return;
       }
 
@@ -156,7 +157,7 @@ router.patch('/:id', (req: Request<{ id: string }, {}, UpdateRuleBody>, res: Res
 
     if (category_id !== undefined) {
       if (typeof category_id !== 'number') {
-        res.status(400).json({ error: 'Category ID must be a number' });
+        res.status(400).json(createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Category ID must be a number'));
         return;
       }
 
@@ -164,7 +165,7 @@ router.patch('/:id', (req: Request<{ id: string }, {}, UpdateRuleBody>, res: Res
       const category = db.prepare('SELECT id FROM categories WHERE id = ?').get(category_id) as Category | undefined;
 
       if (!category) {
-        res.status(404).json({ error: 'Category not found' });
+        res.status(404).json(createErrorResponse(ErrorCodes.NOT_FOUND, 'Category not found'));
         return;
       }
 
@@ -173,7 +174,7 @@ router.patch('/:id', (req: Request<{ id: string }, {}, UpdateRuleBody>, res: Res
     }
 
     if (updates.length === 0) {
-      res.status(400).json({ error: 'No valid fields to update' });
+      res.status(400).json(createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'No valid fields to update'));
       return;
     }
 
@@ -198,7 +199,7 @@ router.patch('/:id', (req: Request<{ id: string }, {}, UpdateRuleBody>, res: Res
     res.json(updated);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 
@@ -215,7 +216,7 @@ router.delete('/:id', (req: Request<{ id: string }>, res: Response): void => {
     const existing = db.prepare('SELECT * FROM category_rules WHERE id = ?').get(id) as CategoryRule | undefined;
 
     if (!existing) {
-      res.status(404).json({ error: 'Rule not found' });
+      res.status(404).json(createErrorResponse(ErrorCodes.NOT_FOUND, 'Rule not found'));
       return;
     }
 
@@ -228,7 +229,7 @@ router.delete('/:id', (req: Request<{ id: string }>, res: Response): void => {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 
@@ -294,7 +295,7 @@ router.post('/apply', (_req: Request, res: Response): void => {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 

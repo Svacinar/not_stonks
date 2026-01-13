@@ -199,7 +199,9 @@ describe('API Integration Tests', () => {
         const response = await request(app).get('/api/transactions/99999');
 
         expect(response.status).toBe(404);
-        expect(response.body).toHaveProperty('error', 'Transaction not found');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'NOT_FOUND');
+        expect(response.body.error).toHaveProperty('message', 'Transaction not found');
       });
     });
 
@@ -230,7 +232,9 @@ describe('API Integration Tests', () => {
           .send({ category_id: 1 });
 
         expect(response.status).toBe(404);
-        expect(response.body).toHaveProperty('error', 'Transaction not found');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'NOT_FOUND');
+        expect(response.body.error).toHaveProperty('message', 'Transaction not found');
       });
 
       it('should return 400 for invalid category_id', async () => {
@@ -244,7 +248,9 @@ describe('API Integration Tests', () => {
           .send({ category_id: 99999 });
 
         expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty('error', 'Invalid category_id');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'BAD_REQUEST');
+        expect(response.body.error).toHaveProperty('message', 'Invalid category_id');
       });
 
       it('should allow setting category to null', async () => {
@@ -282,7 +288,9 @@ describe('API Integration Tests', () => {
         const response = await request(app).delete('/api/transactions/99999');
 
         expect(response.status).toBe(404);
-        expect(response.body).toHaveProperty('error', 'Transaction not found');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'NOT_FOUND');
+        expect(response.body.error).toHaveProperty('message', 'Transaction not found');
       });
     });
   });
@@ -333,7 +341,9 @@ describe('API Integration Tests', () => {
         const response = await request(app).get('/api/categories/99999');
 
         expect(response.status).toBe(404);
-        expect(response.body).toHaveProperty('error', 'Category not found');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'NOT_FOUND');
+        expect(response.body.error).toHaveProperty('message', 'Category not found');
       });
     });
 
@@ -355,7 +365,9 @@ describe('API Integration Tests', () => {
           .send({ color: '#ff0000' });
 
         expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty('error', 'Name is required');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'VALIDATION_ERROR');
+        expect(response.body.error).toHaveProperty('message', 'Name is required');
       });
 
       it('should return 400 if color is missing', async () => {
@@ -364,7 +376,9 @@ describe('API Integration Tests', () => {
           .send({ name: 'Test Category' });
 
         expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty('error', 'Color is required');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'VALIDATION_ERROR');
+        expect(response.body.error).toHaveProperty('message', 'Color is required');
       });
 
       it('should return 400 for invalid color format', async () => {
@@ -373,8 +387,9 @@ describe('API Integration Tests', () => {
           .send({ name: 'Test Category', color: 'invalid' });
 
         expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty('error');
-        expect(response.body.error).toContain('valid hex color');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'VALIDATION_ERROR');
+        expect(response.body.error.message).toContain('valid hex color');
       });
 
       it('should return 409 for duplicate category name', async () => {
@@ -383,8 +398,9 @@ describe('API Integration Tests', () => {
           .send({ name: 'Food', color: '#ff0000' });
 
         expect(response.status).toBe(409);
-        expect(response.body).toHaveProperty('error');
-        expect(response.body.error).toContain('already exists');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'CONFLICT');
+        expect(response.body.error.message).toContain('already exists');
       });
     });
 
@@ -423,7 +439,9 @@ describe('API Integration Tests', () => {
           .send({ name: 'Updated' });
 
         expect(response.status).toBe(404);
-        expect(response.body).toHaveProperty('error', 'Category not found');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'NOT_FOUND');
+        expect(response.body.error).toHaveProperty('message', 'Category not found');
       });
 
       it('should return 400 for empty name', async () => {
@@ -460,7 +478,9 @@ describe('API Integration Tests', () => {
         const response = await request(app).delete('/api/categories/99999');
 
         expect(response.status).toBe(404);
-        expect(response.body).toHaveProperty('error', 'Category not found');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'NOT_FOUND');
+        expect(response.body.error).toHaveProperty('message', 'Category not found');
       });
     });
   });
@@ -521,7 +541,9 @@ describe('API Integration Tests', () => {
           .send({ category_id: 1 });
 
         expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty('error', 'Keyword is required');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'VALIDATION_ERROR');
+        expect(response.body.error).toHaveProperty('message', 'Keyword is required');
       });
 
       it('should return 400 if category_id is missing', async () => {
@@ -530,7 +552,9 @@ describe('API Integration Tests', () => {
           .send({ keyword: 'test' });
 
         expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty('error', 'Category ID is required');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'VALIDATION_ERROR');
+        expect(response.body.error).toHaveProperty('message', 'Category ID is required');
       });
 
       it('should return 404 for non-existent category', async () => {
@@ -539,7 +563,9 @@ describe('API Integration Tests', () => {
           .send({ keyword: 'test', category_id: 99999 });
 
         expect(response.status).toBe(404);
-        expect(response.body).toHaveProperty('error', 'Category not found');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'NOT_FOUND');
+        expect(response.body.error).toHaveProperty('message', 'Category not found');
       });
 
       it('should return 409 for duplicate keyword', async () => {
@@ -559,8 +585,9 @@ describe('API Integration Tests', () => {
           .send({ keyword: 'duplicate', category_id: foodCat.id });
 
         expect(response.status).toBe(409);
-        expect(response.body).toHaveProperty('error');
-        expect(response.body.error).toContain('already exists');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'CONFLICT');
+        expect(response.body.error.message).toContain('already exists');
       });
     });
 
@@ -613,7 +640,9 @@ describe('API Integration Tests', () => {
           .send({ keyword: 'updated' });
 
         expect(response.status).toBe(404);
-        expect(response.body).toHaveProperty('error', 'Rule not found');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'NOT_FOUND');
+        expect(response.body.error).toHaveProperty('message', 'Rule not found');
       });
     });
 
@@ -641,7 +670,9 @@ describe('API Integration Tests', () => {
         const response = await request(app).delete('/api/rules/99999');
 
         expect(response.status).toBe(404);
-        expect(response.body).toHaveProperty('error', 'Rule not found');
+        expect(response.body).toHaveProperty('success', false);
+        expect(response.body.error).toHaveProperty('code', 'NOT_FOUND');
+        expect(response.body.error).toHaveProperty('message', 'Rule not found');
       });
     });
 

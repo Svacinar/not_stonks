@@ -9,16 +9,48 @@ export interface ApiError {
   status: number;
 }
 
+/**
+ * Standard error response format from the backend
+ * Format: { success: false, error: { code, message, details? } }
+ */
+export interface StandardErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: Record<string, string>;
+  };
+}
+
 export class ApiRequestError extends Error {
   status: number;
   isNetworkError: boolean;
+  code?: string;
+  details?: Record<string, string>;
 
-  constructor(message: string, status: number, isNetworkError = false) {
+  constructor(message: string, status: number, isNetworkError = false, code?: string, details?: Record<string, string>) {
     super(message);
     this.name = 'ApiRequestError';
     this.status = status;
     this.isNetworkError = isNetworkError;
+    this.code = code;
+    this.details = details;
   }
+}
+
+/**
+ * Checks if error response is in standard format
+ */
+function isStandardErrorResponse(data: unknown): data is StandardErrorResponse {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'success' in data &&
+    data.success === false &&
+    'error' in data &&
+    typeof (data as StandardErrorResponse).error === 'object' &&
+    typeof (data as StandardErrorResponse).error.message === 'string'
+  );
 }
 
 interface RequestOptions extends Omit<RequestInit, 'body'> {
@@ -52,15 +84,24 @@ function isRetryableError(error: unknown): boolean {
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let message = `Request failed with status ${response.status}`;
+    let code: string | undefined;
+    let details: Record<string, string> | undefined;
+
     try {
       const errorData = await response.json();
-      if (errorData.error) {
-        message = errorData.error;
+      // Handle standard error format: { success: false, error: { code, message, details? } }
+      if (isStandardErrorResponse(errorData)) {
+        message = errorData.error.message;
+        code = errorData.error.code;
+        details = errorData.error.details;
+      } else if (errorData.error) {
+        // Handle legacy format: { error: string }
+        message = typeof errorData.error === 'string' ? errorData.error : message;
       }
     } catch {
       // Use default message if parsing fails
     }
-    throw new ApiRequestError(message, response.status, false);
+    throw new ApiRequestError(message, response.status, false, code, details);
   }
 
   // Handle empty responses (204 No Content)
@@ -197,15 +238,23 @@ export const api = {
 
         if (!response.ok) {
           let message = `Download failed with status ${response.status}`;
+          let code: string | undefined;
+          let details: Record<string, string> | undefined;
           try {
             const errorData = await response.json();
-            if (errorData.error) {
-              message = errorData.error;
+            // Handle standard error format: { success: false, error: { code, message, details? } }
+            if (isStandardErrorResponse(errorData)) {
+              message = errorData.error.message;
+              code = errorData.error.code;
+              details = errorData.error.details;
+            } else if (errorData.error) {
+              // Handle legacy format: { error: string }
+              message = typeof errorData.error === 'string' ? errorData.error : message;
             }
           } catch {
             // Use default message
           }
-          throw new ApiRequestError(message, response.status, false);
+          throw new ApiRequestError(message, response.status, false, code, details);
         }
 
         const blob = await response.blob();

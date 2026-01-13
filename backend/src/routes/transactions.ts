@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { getDatabase } from '../db/database';
 import type { Transaction, TransactionStats, BankName } from 'shared/types';
 import { buildTransactionWhereClause } from '../utils/queryBuilder';
+import { createErrorResponse, ErrorCodes } from '../middleware/errorHandler';
 
 const router = Router();
 
@@ -96,7 +97,7 @@ router.get('/', (req: Request<{}, {}, {}, TransactionListQuery>, res: Response):
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 
@@ -210,7 +211,7 @@ router.get('/stats', (req: Request<{}, {}, {}, TransactionListQuery>, res: Respo
     res.json(stats);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 
@@ -242,14 +243,14 @@ router.get('/:id', (req: Request<{ id: string }>, res: Response): void => {
     const transaction = db.prepare(query).get(id) as TransactionWithCategory | undefined;
 
     if (!transaction) {
-      res.status(404).json({ error: 'Transaction not found' });
+      res.status(404).json(createErrorResponse(ErrorCodes.NOT_FOUND, 'Transaction not found'));
       return;
     }
 
     res.json(transaction);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 
@@ -271,7 +272,7 @@ router.patch(
         | undefined;
 
       if (!existing) {
-        res.status(404).json({ error: 'Transaction not found' });
+        res.status(404).json(createErrorResponse(ErrorCodes.NOT_FOUND, 'Transaction not found'));
         return;
       }
 
@@ -279,7 +280,7 @@ router.patch(
       if (category_id !== null && category_id !== undefined) {
         const categoryExists = db.prepare('SELECT id FROM categories WHERE id = ?').get(category_id);
         if (!categoryExists) {
-          res.status(400).json({ error: 'Invalid category_id' });
+          res.status(400).json(createErrorResponse(ErrorCodes.BAD_REQUEST, 'Invalid category_id'));
           return;
         }
       }
@@ -329,7 +330,7 @@ router.patch(
       res.json(updated);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error occurred';
-      res.status(500).json({ error: message });
+      res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
     }
   }
 );
@@ -346,14 +347,14 @@ router.delete('/:id', (req: Request<{ id: string }>, res: Response): void => {
     const result = db.prepare('DELETE FROM transactions WHERE id = ?').run(id);
 
     if (result.changes === 0) {
-      res.status(404).json({ error: 'Transaction not found' });
+      res.status(404).json(createErrorResponse(ErrorCodes.NOT_FOUND, 'Transaction not found'));
       return;
     }
 
     res.json({ success: true, deleted: 1 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 

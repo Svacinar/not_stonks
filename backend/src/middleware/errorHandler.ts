@@ -1,16 +1,68 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 
 /**
+ * Standard error response format
+ * All API errors should return: { success: false, error: { code, message, details? } }
+ */
+export interface StandardErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: Record<string, string>;
+  };
+}
+
+/**
+ * Error codes for different error types
+ */
+export const ErrorCodes = {
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  NOT_FOUND: 'NOT_FOUND',
+  BAD_REQUEST: 'BAD_REQUEST',
+  CONFLICT: 'CONFLICT',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+  DATABASE_ERROR: 'DATABASE_ERROR',
+} as const;
+
+export type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes];
+
+/**
+ * Creates a standard error response
+ */
+export function createErrorResponse(
+  code: ErrorCode,
+  message: string,
+  details?: Record<string, string>
+): StandardErrorResponse {
+  const response: StandardErrorResponse = {
+    success: false,
+    error: {
+      code,
+      message,
+    },
+  };
+
+  if (details) {
+    response.error.details = details;
+  }
+
+  return response;
+}
+
+/**
  * Custom error classes for different HTTP error types
  */
 export class AppError extends Error {
   statusCode: number;
   isOperational: boolean;
+  code: ErrorCode;
 
-  constructor(message: string, statusCode: number) {
+  constructor(message: string, statusCode: number, code: ErrorCode = ErrorCodes.INTERNAL_ERROR) {
     super(message);
     this.statusCode = statusCode;
     this.isOperational = true;
+    this.code = code;
 
     Error.captureStackTrace(this, this.constructor);
   }
@@ -20,7 +72,7 @@ export class ValidationError extends AppError {
   details?: Record<string, string>;
 
   constructor(message: string, details?: Record<string, string>) {
-    super(message, 400);
+    super(message, 400, ErrorCodes.VALIDATION_ERROR);
     this.name = 'ValidationError';
     this.details = details;
   }
@@ -28,15 +80,22 @@ export class ValidationError extends AppError {
 
 export class NotFoundError extends AppError {
   constructor(message: string = 'Resource not found') {
-    super(message, 404);
+    super(message, 404, ErrorCodes.NOT_FOUND);
     this.name = 'NotFoundError';
   }
 }
 
 export class BadRequestError extends AppError {
   constructor(message: string = 'Bad request') {
-    super(message, 400);
+    super(message, 400, ErrorCodes.BAD_REQUEST);
     this.name = 'BadRequestError';
+  }
+}
+
+export class ConflictError extends AppError {
+  constructor(message: string = 'Resource already exists') {
+    super(message, 409, ErrorCodes.CONFLICT);
+    this.name = 'ConflictError';
   }
 }
 
@@ -101,7 +160,8 @@ export const notFoundHandler = (req: Request, _res: Response, next: NextFunction
 
 /**
  * Global error handler middleware
- * Handles all errors and returns consistent JSON responses
+ * Handles all errors and returns consistent JSON responses in standard format:
+ * { success: false, error: { code, message, details? } }
  */
 export const errorHandler: ErrorRequestHandler = (
   err: Error,
@@ -112,12 +172,14 @@ export const errorHandler: ErrorRequestHandler = (
   // Default values
   let statusCode = 500;
   let message = 'Internal server error';
+  let code: ErrorCode = ErrorCodes.INTERNAL_ERROR;
   let details: Record<string, string> | undefined;
 
   // Handle known error types
   if (err instanceof AppError) {
     statusCode = err.statusCode;
     message = err.message;
+    code = err.code;
 
     if (err instanceof ValidationError) {
       details = err.details;
@@ -126,9 +188,11 @@ export const errorHandler: ErrorRequestHandler = (
     // JSON parsing error
     statusCode = 400;
     message = 'Invalid JSON in request body';
+    code = ErrorCodes.BAD_REQUEST;
   } else if (err.message?.includes('SQLITE')) {
     // SQLite errors
     statusCode = 500;
+    code = ErrorCodes.DATABASE_ERROR;
     message = process.env.NODE_ENV === 'production'
       ? 'Database error'
       : err.message;
@@ -137,31 +201,15 @@ export const errorHandler: ErrorRequestHandler = (
   // Log the error
   logger.error(message, {
     statusCode,
+    code,
     path: req.path,
     method: req.method,
     stack: process.env.NODE_ENV === 'production' ? undefined : err.stack,
     originalError: err.message,
   });
 
-  // Build response
-  const response: {
-    error: string;
-    details?: Record<string, string>;
-    path?: string;
-    timestamp?: string;
-  } = {
-    error: message,
-  };
-
-  if (details) {
-    response.details = details;
-  }
-
-  // Include additional debug info in development
-  if (process.env.NODE_ENV !== 'production') {
-    response.path = req.path;
-    response.timestamp = new Date().toISOString();
-  }
+  // Build standardized error response
+  const response = createErrorResponse(code, message, details);
 
   res.status(statusCode).json(response);
 };

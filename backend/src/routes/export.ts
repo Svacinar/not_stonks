@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { getDatabase } from '../db/database';
 import type { Transaction, BankName } from 'shared/types';
 import { buildTransactionWhereClause } from '../utils/queryBuilder';
+import { createErrorResponse, ErrorCodes } from '../middleware/errorHandler';
 
 const router = Router();
 
@@ -51,7 +52,7 @@ router.get('/transactions', (req: Request<{}, {}, {}, ExportQuery>, res: Respons
 
     // Validate format
     if (format !== 'csv' && format !== 'json') {
-      res.status(400).json({ error: 'Invalid format. Use "csv" or "json"' });
+      res.status(400).json(createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Invalid format. Use "csv" or "json"'));
       return;
     }
 
@@ -115,7 +116,7 @@ router.get('/transactions', (req: Request<{}, {}, {}, ExportQuery>, res: Respons
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 
@@ -131,7 +132,7 @@ router.get('/summary', (req: Request<{}, {}, {}, ExportQuery>, res: Response): v
 
     // Validate format
     if (format !== 'csv' && format !== 'json') {
-      res.status(400).json({ error: 'Invalid format. Use "csv" or "json"' });
+      res.status(400).json(createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Invalid format. Use "csv" or "json"'));
       return;
     }
 
@@ -280,7 +281,7 @@ router.get('/summary', (req: Request<{}, {}, {}, ExportQuery>, res: Response): v
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 

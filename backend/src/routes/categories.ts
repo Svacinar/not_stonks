@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { getDatabase } from '../db/database';
 import type { Category } from 'shared/types';
+import { createErrorResponse, ErrorCodes } from '../middleware/errorHandler';
 
 const router = Router();
 
@@ -48,7 +49,7 @@ router.get('/', (_req: Request, res: Response): void => {
     res.json({ categories });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 
@@ -77,14 +78,14 @@ router.get('/:id', (req: Request<{ id: string }>, res: Response): void => {
     const category = db.prepare(query).get(id) as CategoryStats | undefined;
 
     if (!category) {
-      res.status(404).json({ error: 'Category not found' });
+      res.status(404).json(createErrorResponse(ErrorCodes.NOT_FOUND, 'Category not found'));
       return;
     }
 
     res.json(category);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 
@@ -99,19 +100,19 @@ router.post('/', (req: Request<{}, {}, CreateCategoryBody>, res: Response): void
 
     // Validate required fields
     if (!name || typeof name !== 'string' || name.trim() === '') {
-      res.status(400).json({ error: 'Name is required' });
+      res.status(400).json(createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Name is required'));
       return;
     }
 
     if (!color || typeof color !== 'string' || color.trim() === '') {
-      res.status(400).json({ error: 'Color is required' });
+      res.status(400).json(createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Color is required'));
       return;
     }
 
     // Validate color format (hex color)
     const hexColorRegex = /^#[0-9A-Fa-f]{6}$/;
     if (!hexColorRegex.test(color)) {
-      res.status(400).json({ error: 'Color must be a valid hex color (e.g., #ff0000)' });
+      res.status(400).json(createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Color must be a valid hex color (e.g., #ff0000)'));
       return;
     }
 
@@ -121,7 +122,7 @@ router.post('/', (req: Request<{}, {}, CreateCategoryBody>, res: Response): void
       .get(name.trim());
 
     if (existing) {
-      res.status(409).json({ error: 'A category with this name already exists' });
+      res.status(409).json(createErrorResponse(ErrorCodes.CONFLICT, 'A category with this name already exists'));
       return;
     }
 
@@ -135,7 +136,7 @@ router.post('/', (req: Request<{}, {}, CreateCategoryBody>, res: Response): void
     res.status(201).json(newCategory);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 
@@ -153,7 +154,7 @@ router.patch('/:id', (req: Request<{ id: string }, {}, UpdateCategoryBody>, res:
     const existing = db.prepare('SELECT * FROM categories WHERE id = ?').get(id) as Category | undefined;
 
     if (!existing) {
-      res.status(404).json({ error: 'Category not found' });
+      res.status(404).json(createErrorResponse(ErrorCodes.NOT_FOUND, 'Category not found'));
       return;
     }
 
@@ -163,7 +164,7 @@ router.patch('/:id', (req: Request<{ id: string }, {}, UpdateCategoryBody>, res:
 
     if (name !== undefined) {
       if (typeof name !== 'string' || name.trim() === '') {
-        res.status(400).json({ error: 'Name cannot be empty' });
+        res.status(400).json(createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Name cannot be empty'));
         return;
       }
 
@@ -173,7 +174,7 @@ router.patch('/:id', (req: Request<{ id: string }, {}, UpdateCategoryBody>, res:
         .get(name.trim(), id);
 
       if (duplicate) {
-        res.status(409).json({ error: 'A category with this name already exists' });
+        res.status(409).json(createErrorResponse(ErrorCodes.CONFLICT, 'A category with this name already exists'));
         return;
       }
 
@@ -183,14 +184,14 @@ router.patch('/:id', (req: Request<{ id: string }, {}, UpdateCategoryBody>, res:
 
     if (color !== undefined) {
       if (typeof color !== 'string' || color.trim() === '') {
-        res.status(400).json({ error: 'Color cannot be empty' });
+        res.status(400).json(createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Color cannot be empty'));
         return;
       }
 
       // Validate color format
       const hexColorRegex = /^#[0-9A-Fa-f]{6}$/;
       if (!hexColorRegex.test(color)) {
-        res.status(400).json({ error: 'Color must be a valid hex color (e.g., #ff0000)' });
+        res.status(400).json(createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'Color must be a valid hex color (e.g., #ff0000)'));
         return;
       }
 
@@ -199,7 +200,7 @@ router.patch('/:id', (req: Request<{ id: string }, {}, UpdateCategoryBody>, res:
     }
 
     if (updates.length === 0) {
-      res.status(400).json({ error: 'No valid fields to update' });
+      res.status(400).json(createErrorResponse(ErrorCodes.VALIDATION_ERROR, 'No valid fields to update'));
       return;
     }
 
@@ -211,7 +212,7 @@ router.patch('/:id', (req: Request<{ id: string }, {}, UpdateCategoryBody>, res:
     res.json(updated);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 
@@ -228,7 +229,7 @@ router.delete('/:id', (req: Request<{ id: string }>, res: Response): void => {
     const existing = db.prepare('SELECT * FROM categories WHERE id = ?').get(id) as Category | undefined;
 
     if (!existing) {
-      res.status(404).json({ error: 'Category not found' });
+      res.status(404).json(createErrorResponse(ErrorCodes.NOT_FOUND, 'Category not found'));
       return;
     }
 
@@ -247,7 +248,7 @@ router.delete('/:id', (req: Request<{ id: string }>, res: Response): void => {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    res.status(500).json({ error: message });
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
   }
 });
 
