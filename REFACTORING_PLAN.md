@@ -613,12 +613,20 @@ workers: 1,
 ---
 
 ### WR-27: Add API Documentation
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Acceptance Criteria:**
-- [ ] OpenAPI 3.0 specification
-- [ ] Swagger UI at /api-docs
+- [x] OpenAPI 3.0 specification
+- [x] Swagger UI at /api-docs
+
+**Implementation Notes:**
+- Installed `swagger-ui-express` and `@types/swagger-ui-express` packages
+- Created `backend/src/openapi.ts` with comprehensive OpenAPI 3.0 specification
+- Specification includes all endpoints: health, transactions, categories, rules, upload, export
+- Added Swagger UI route at `/api-docs` in `backend/src/app.ts`
+- Added 2 integration tests for API documentation endpoint
+- Files changed: `backend/src/openapi.ts`, `backend/src/app.ts`, `backend/tests/integration/api.test.ts`, `backend/package.json`
 
 ---
 

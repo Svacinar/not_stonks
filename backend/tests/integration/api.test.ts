@@ -54,6 +54,28 @@ describe('API Integration Tests', () => {
   });
 
   // =========================================
+  // API Documentation Endpoint
+  // =========================================
+  describe('GET /api-docs', () => {
+    it('should serve Swagger UI', async () => {
+      const response = await request(app).get('/api-docs/');
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toMatch(/text\/html/);
+      expect(response.text).toContain('swagger-ui');
+    });
+
+    it('should serve OpenAPI specification', async () => {
+      // Swagger UI sets up a route for the JSON spec
+      const response = await request(app).get('/api-docs/');
+
+      expect(response.status).toBe(200);
+      // The Swagger UI HTML includes the API spec
+      expect(response.text).toContain('Spending Dashboard API');
+    });
+  });
+
+  // =========================================
   // Transactions Endpoints
   // =========================================
   describe('Transactions API', () => {

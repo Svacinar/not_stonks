@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
 import uploadRouter from './routes/upload';
 import transactionsRouter from './routes/transactions';
 import categoriesRouter from './routes/categories';
@@ -10,6 +11,7 @@ import { apiLimiter, uploadLimiter } from './middleware/rateLimit';
 import { getDatabase } from './db/database';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { openApiSpec } from './openapi';
 
 const app = express();
 
@@ -84,6 +86,12 @@ app.get('/api/health', (_req, res) => {
   const statusCode = dbHealth.connected ? 200 : 503;
   res.status(statusCode).json(healthResponse);
 });
+
+// API Documentation - Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Spending Dashboard API Documentation',
+}));
 
 // Routes with rate limiting
 // Upload has stricter limit (10/min) due to resource intensity
