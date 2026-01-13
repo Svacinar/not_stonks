@@ -200,7 +200,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-06: Create Card Component
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** Card pattern `bg-white rounded-lg shadow p-6` repeated 11+ times across pages.
@@ -216,11 +216,19 @@ This document contains work items to modernize the spending dashboard UI from a 
 3. Verify styling uses rounded-xl (12px) and shadow-sm
 
 **Acceptance Criteria:**
-- [ ] Card component exists at `src/components/ui/card.tsx`
-- [ ] Card has soft shadow
-- [ ] Card uses rounded corners (rounded-xl)
-- [ ] All subcomponents work correctly
-- [ ] Supports dark mode
+- [x] Card component exists at `src/components/ui/card.tsx`
+- [x] Card has soft shadow
+- [x] Card uses rounded corners (rounded-xl)
+- [x] All subcomponents work correctly
+- [x] Supports dark mode
+
+**Implementation Notes:**
+- Ran `npx shadcn@latest add card` to create the component
+- Component includes all 6 subcomponents: Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter
+- Updated `rounded-lg` to `rounded-xl` to match CLAUDE.md design conventions (12px border radius)
+- Uses `shadow-sm` for soft shadow effect
+- Dark mode supported via `bg-card text-card-foreground` CSS variables
+- Files created: `frontend/src/components/ui/card.tsx`
 
 ---
 
