@@ -241,16 +241,17 @@ export function RulesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-foreground">Categorization Rules</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <span className="text-sm text-muted-foreground text-center sm:text-left">
             <span className="font-medium">{uncategorizedCount}</span> uncategorized transaction
             {uncategorizedCount !== 1 ? 's' : ''}
           </span>
           <Button
             onClick={handleApplyRules}
             disabled={applyingRules || rules.length === 0 || uncategorizedCount === 0}
+            className="w-full sm:w-auto"
           >
             {applyingRules ? (
               <>
@@ -306,8 +307,8 @@ export function RulesPage() {
           <CardTitle className="text-lg">Add New Rule</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleAddRule} className="flex flex-wrap gap-4 items-end">
-            <div className="flex-1 min-w-48 space-y-2">
+          <form onSubmit={handleAddRule} className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
+            <div className="flex-1 min-w-0 sm:min-w-48 space-y-2">
               <Label htmlFor="newKeyword">Keyword</Label>
               <Input
                 type="text"
@@ -318,7 +319,7 @@ export function RulesPage() {
                 disabled={addingRule}
               />
             </div>
-            <div className="flex-1 min-w-48 space-y-2">
+            <div className="flex-1 min-w-0 sm:min-w-48 space-y-2">
               <Label htmlFor="newCategory">Category</Label>
               <select
                 id="newCategory"
@@ -338,7 +339,7 @@ export function RulesPage() {
             <Button
               type="submit"
               disabled={addingRule || !newKeyword.trim() || newCategoryId === ''}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
             >
               {addingRule ? (
                 <>
@@ -359,6 +360,7 @@ export function RulesPage() {
       {/* Rules Table */}
       {!loading && (
         <Card>
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -539,6 +541,7 @@ export function RulesPage() {
               )}
             </TableBody>
           </Table>
+          </div>
         </Card>
       )}
 

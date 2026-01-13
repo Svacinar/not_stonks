@@ -505,6 +505,7 @@ export function DashboardPage() {
               </Button>
             </CardHeader>
             <CardContent className="p-0">
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -553,6 +554,7 @@ export function DashboardPage() {
                   )}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
         </>

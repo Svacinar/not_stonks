@@ -825,7 +825,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-24: Responsive Improvements
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Problem:** Mobile experience could be improved in several areas.
@@ -844,10 +844,19 @@ This document contains work items to modernize the spending dashboard UI from a 
 5. Verify touch targets are at least 44px
 
 **Acceptance Criteria:**
-- [ ] All pages usable at 320px width
-- [ ] No horizontal scroll on page body
-- [ ] Touch targets at least 44px
-- [ ] Modals don't overflow on mobile
+- [x] All pages usable at 320px width
+- [x] No horizontal scroll on page body
+- [x] Touch targets at least 44px
+- [x] Modals don't overflow on mobile
+
+**Implementation Notes:**
+- Updated header sections in TransactionsPage and RulesPage to use `flex-col gap-3 sm:flex-row` for proper mobile stacking
+- Improved filter panel in TransactionsPage with `flex-col sm:flex-row` layout and `min-w-0` for search input overflow prevention
+- Added `min-h-[44px] sm:min-h-0` to checkbox labels, pagination buttons, and Clear filters link for touch targets on mobile
+- Wrapped all tables in `overflow-x-auto` container: TransactionsPage, DashboardPage (Recent Transactions), RulesPage
+- Updated Dialog component base to use `max-w-[calc(100%-2rem)]` with `sm:max-w-lg` breakpoint for mobile-friendly modals
+- Updated AlertDialog component to use `max-w-[calc(100%-2rem)]` with `sm:max-w-md` breakpoint for consistent mobile display
+- Files changed: `frontend/src/pages/TransactionsPage.tsx`, `frontend/src/pages/DashboardPage.tsx`, `frontend/src/pages/RulesPage.tsx`, `frontend/src/components/ui/dialog.tsx`, `frontend/src/components/ui/alert-dialog.tsx`
 
 ---
 

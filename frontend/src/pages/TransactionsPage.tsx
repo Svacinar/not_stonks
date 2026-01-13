@@ -327,9 +327,9 @@ export function TransactionsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
-        <Button variant="outline" onClick={() => setShowExportModal(true)}>
+        <Button variant="outline" onClick={() => setShowExportModal(true)} className="w-full sm:w-auto">
           <svg
             className="h-4 w-4 mr-2"
             fill="none"
@@ -350,12 +350,12 @@ export function TransactionsPage() {
       {/* Filter Panel */}
       <Card>
         <CardContent className="p-4 space-y-4">
-          <div className="flex flex-wrap gap-4 items-center">
+          <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
             {/* Date Range */}
             <DateRangePicker value={dateRange} onChange={handleDateRangeChange} />
 
             {/* Search */}
-            <div className="flex-1 min-w-48">
+            <div className="flex-1 min-w-0 sm:min-w-48">
               <Label htmlFor="search-transactions" className="sr-only">
                 Search descriptions
               </Label>
@@ -369,17 +369,17 @@ export function TransactionsPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
             {/* Bank Checkboxes */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <span className="text-sm font-medium text-muted-foreground">Banks:</span>
               {BANKS.map((bank) => (
-                <label key={bank} className="flex items-center gap-1 text-sm">
+                <label key={bank} className="flex items-center gap-1.5 text-sm min-h-[44px] sm:min-h-0">
                   <input
                     type="checkbox"
                     checked={selectedBanks.includes(bank)}
                     onChange={() => handleBankToggle(bank)}
-                    className="rounded border-input text-primary focus:ring-ring"
+                    className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
                   />
                   {bank}
                 </label>
@@ -387,16 +387,16 @@ export function TransactionsPage() {
             </div>
 
             {/* Category Checkboxes */}
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex flex-wrap items-center gap-3">
               <span className="text-sm font-medium text-muted-foreground">Categories:</span>
               {categories.map((cat) => (
-                <label key={cat.id} className="flex items-center gap-1 text-sm">
+                <label key={cat.id} className="flex items-center gap-1.5 text-sm min-h-[44px] sm:min-h-0">
                   <input
                     type="checkbox"
                     checked={selectedCategories.includes(String(cat.id))}
                     onChange={() => handleCategoryToggle(cat.id)}
                     disabled={uncategorizedOnly}
-                    className="rounded border-input text-primary focus:ring-ring disabled:opacity-50"
+                    className="h-4 w-4 rounded border-input text-primary focus:ring-ring disabled:opacity-50"
                   />
                   <span
                     className="w-3 h-3 rounded-full inline-block"
@@ -408,19 +408,19 @@ export function TransactionsPage() {
             </div>
 
             {/* Uncategorized Toggle */}
-            <label className="flex items-center gap-1 text-sm">
+            <label className="flex items-center gap-1.5 text-sm min-h-[44px] sm:min-h-0">
               <input
                 type="checkbox"
                 checked={uncategorizedOnly}
                 onChange={handleUncategorizedToggle}
-                className="rounded border-input text-primary focus:ring-ring"
+                className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
               />
               Uncategorized only
             </label>
 
             {/* Clear Filters */}
             {hasFilters && (
-              <Button variant="link" size="sm" onClick={clearFilters}>
+              <Button variant="link" size="sm" onClick={clearFilters} className="min-h-[44px] sm:min-h-0">
                 Clear filters
               </Button>
             )}
@@ -438,6 +438,7 @@ export function TransactionsPage() {
       {!loading && !error && (
         <>
           <Card>
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
@@ -571,13 +572,14 @@ export function TransactionsPage() {
                 )}
               </TableBody>
             </Table>
+            </div>
           </Card>
 
           {/* Pagination */}
           {totalPages > 1 && (
             <Card>
-              <CardContent className="flex items-center justify-between px-4 py-3">
-                <div className="text-sm text-muted-foreground">
+              <CardContent className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm text-muted-foreground text-center sm:text-left">
                   Showing{' '}
                   <span className="font-medium text-foreground">{(page - 1) * PAGE_SIZE + 1}</span> to{' '}
                   <span className="font-medium text-foreground">
@@ -585,16 +587,17 @@ export function TransactionsPage() {
                   </span>{' '}
                   of <span className="font-medium text-foreground">{total}</span> transactions
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handlePageChange(page - 1)}
                     disabled={page <= 1}
+                    className="min-h-[44px] sm:min-h-0"
                   >
                     Previous
                   </Button>
-                  <span className="px-3 py-1 text-sm text-muted-foreground">
+                  <span className="px-3 py-1 text-sm text-muted-foreground whitespace-nowrap">
                     Page {page} of {totalPages}
                   </span>
                   <Button
@@ -602,6 +605,7 @@ export function TransactionsPage() {
                     size="sm"
                     onClick={() => handlePageChange(page + 1)}
                     disabled={page >= totalPages}
+                    className="min-h-[44px] sm:min-h-0"
                   >
                     Next
                   </Button>
