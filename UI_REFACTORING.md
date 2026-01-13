@@ -334,7 +334,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-10: Create Badge Component
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Category indicators use inline styles for color dots. No reusable badge component.
@@ -349,10 +349,18 @@ This document contains work items to modernize the spending dashboard UI from a 
 2. Verify variants: default, secondary, outline, destructive
 
 **Acceptance Criteria:**
-- [ ] Badge component exists at `src/components/ui/badge.tsx`
-- [ ] All 4 variants render correctly
-- [ ] Proper padding and rounded corners
-- [ ] Supports dark mode
+- [x] Badge component exists at `src/components/ui/badge.tsx`
+- [x] All 4 variants render correctly
+- [x] Proper padding and rounded corners
+- [x] Supports dark mode
+
+**Implementation Notes:**
+- Ran `npx shadcn@latest add badge` to create the component
+- Component includes all 4 variants: default, secondary, destructive, outline
+- Uses `rounded-full` for pill-shaped badges with `px-2.5 py-0.5` padding
+- Dark mode supported via CSS variable-based colors (bg-primary, bg-secondary, bg-destructive)
+- Uses class-variance-authority (cva) for variant management
+- Files created: `frontend/src/components/ui/badge.tsx`
 
 ---
 
