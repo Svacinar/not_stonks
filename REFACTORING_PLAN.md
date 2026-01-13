@@ -322,7 +322,7 @@ workers: 1,
 ---
 
 ### WR-13: Secure Database File Permissions
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Database directory created with default permissions.
@@ -330,7 +330,14 @@ workers: 1,
 **File:** `backend/src/db/database.ts:25-27`
 
 **Acceptance Criteria:**
-- [ ] Directory created with 700 permissions
+- [x] Directory created with 700 permissions
+
+**Implementation Notes:**
+- Updated `ensureDataDir()` function in `backend/src/db/database.ts`
+- Added `mode: 0o700` option to `fs.mkdirSync()` call
+- 700 permissions = owner read/write/execute only (rwx------), no access for group or others
+- All 465 tests pass (309 backend + 156 frontend)
+- Files changed: `backend/src/db/database.ts`
 
 ---
 

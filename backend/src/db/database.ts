@@ -23,7 +23,8 @@ const DEFAULT_CATEGORIES = [
 function ensureDataDir(dbPath: string): void {
   const dataDir = path.dirname(dbPath);
   if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+    // Create with 700 permissions (owner read/write/execute only) for security
+    fs.mkdirSync(dataDir, { recursive: true, mode: 0o700 });
   }
 }
 
