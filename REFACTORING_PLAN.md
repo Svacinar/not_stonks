@@ -430,7 +430,7 @@ workers: 1,
 ## Work Items - Database
 
 ### WR-18: Add Case-Insensitive Unique Constraint
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Problem:** Category name uniqueness is case-sensitive at DB level but case-insensitive in app.
@@ -438,7 +438,15 @@ workers: 1,
 **File:** `backend/src/db/database.ts:35`
 
 **Acceptance Criteria:**
-- [ ] UNIQUE constraint uses COLLATE NOCASE
+- [x] UNIQUE constraint uses COLLATE NOCASE
+
+**Implementation Notes:**
+- Updated CREATE TABLE statement for categories table in `backend/src/db/database.ts`
+- Added `COLLATE NOCASE` to the name column definition: `name TEXT NOT NULL UNIQUE COLLATE NOCASE`
+- This enforces case-insensitive uniqueness at the database level for new databases
+- Existing application-level checks using `LOWER()` remain as defense-in-depth
+- All 468 tests pass (312 backend + 156 frontend)
+- Files changed: `backend/src/db/database.ts`
 
 ---
 

@@ -33,7 +33,7 @@ function createTables(database: Database.Database): void {
     -- Categories table
     CREATE TABLE IF NOT EXISTS categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL UNIQUE COLLATE NOCASE,
       color TEXT NOT NULL
     );
 
