@@ -4,6 +4,10 @@ import { MemoryRouter } from 'react-router-dom';
 import { TransactionsPage } from '../../src/pages/TransactionsPage';
 import { ToastProvider } from '../../src/components/Toast';
 import * as apiClient from '../../src/api/client';
+import {
+  standardTransactionsResponse,
+  standardCategoriesResponse,
+} from '../fixtures';
 
 // Mock the API client
 vi.mock('../../src/api/client', () => ({
@@ -33,50 +37,9 @@ function renderTransactionsPage(initialRoute = '/transactions') {
   );
 }
 
-const mockTransactions = {
-  transactions: [
-    {
-      id: 1,
-      date: '2024-06-15',
-      description: 'TESCO STORES',
-      amount: -500,
-      bank: 'CSOB',
-      category_id: 1,
-      category_name: 'Groceries',
-      category_color: '#22c55e',
-    },
-    {
-      id: 2,
-      date: '2024-06-14',
-      description: 'UBER TRIP',
-      amount: -200,
-      bank: 'Raiffeisen',
-      category_id: 2,
-      category_name: 'Transport',
-      category_color: '#3b82f6',
-    },
-    {
-      id: 3,
-      date: '2024-06-13',
-      description: 'SALARY',
-      amount: 50000,
-      bank: 'CSOB',
-      category_id: null,
-      category_name: null,
-      category_color: null,
-    },
-  ],
-  total: 3,
-  limit: 50,
-  offset: 0,
-};
-
-const mockCategories = {
-  categories: [
-    { id: 1, name: 'Groceries', color: '#22c55e', transaction_count: 10 },
-    { id: 2, name: 'Transport', color: '#3b82f6', transaction_count: 5 },
-  ],
-};
+// Use fixtures for mock data
+const mockTransactions = standardTransactionsResponse;
+const mockCategories = standardCategoriesResponse;
 
 describe('TransactionsPage', () => {
   beforeEach(() => {

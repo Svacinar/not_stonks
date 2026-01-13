@@ -2,31 +2,23 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { getDatabase, resetDatabase, closeDatabase } from '../src/db/database';
 import path from 'path';
 import os from 'os';
+import { seedStandardTestData, getCategoryId, seedTransactions } from './fixtures';
 
 // Use a unique test database for this test file
 const testDbPath = path.join(os.tmpdir(), `categories-test-${Date.now()}.db`);
 process.env.DB_PATH = testDbPath;
 
-// Helper function to seed test transactions
-function seedTestTransactions(db: ReturnType<typeof getDatabase>) {
-  const insert = db.prepare(`
-    INSERT INTO transactions (date, amount, description, bank, category_id)
-    VALUES (?, ?, ?, ?, ?)
-  `);
+// Seed a subset of transactions for category-specific tests
+function seedCategoryTestTransactions(db: ReturnType<typeof getDatabase>) {
+  const foodId = getCategoryId(db, 'Food');
+  const transportId = getCategoryId(db, 'Transport');
 
-  // Get category IDs
-  const foodCat = db
-    .prepare("SELECT id FROM categories WHERE name = 'Food'")
-    .get() as { id: number };
-  const transportCat = db
-    .prepare("SELECT id FROM categories WHERE name = 'Transport'")
-    .get() as { id: number };
-
-  // Insert test transactions
-  insert.run('2024-01-15', -50.0, 'ALBERT Store Purchase', 'CSOB', foodCat.id);
-  insert.run('2024-01-16', -30.0, 'LIDL Groceries', 'CSOB', foodCat.id);
-  insert.run('2024-01-17', -25.0, 'SHELL Gas Station', 'Raiffeisen', transportCat.id);
-  insert.run('2024-01-18', -100.0, 'AMAZON Purchase', 'Revolut', null);
+  seedTransactions(db, [
+    { date: '2024-01-15', amount: -50.0, description: 'ALBERT Store Purchase', bank: 'CSOB', category_id: foodId },
+    { date: '2024-01-16', amount: -30.0, description: 'LIDL Groceries', bank: 'CSOB', category_id: foodId },
+    { date: '2024-01-17', amount: -25.0, description: 'SHELL Gas Station', bank: 'Raiffeisen', category_id: transportId },
+    { date: '2024-01-18', amount: -100.0, description: 'AMAZON Purchase', bank: 'Revolut', category_id: null },
+  ]);
 }
 
 describe('Categories Route Logic', () => {
@@ -42,7 +34,7 @@ describe('Categories Route Logic', () => {
   describe('GET /api/categories - List all categories', () => {
     it('should return all default categories with transaction counts', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedCategoryTestTransactions(db);
 
       const query = `
         SELECT
@@ -94,7 +86,7 @@ describe('Categories Route Logic', () => {
   describe('GET /api/categories/:id - Single category', () => {
     it('should return a single category with stats', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedCategoryTestTransactions(db);
 
       const foodCat = db
         .prepare("SELECT id FROM categories WHERE name = 'Food'")
@@ -296,7 +288,7 @@ describe('Categories Route Logic', () => {
 
     it('should set transaction category_id to null when category is deleted', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedCategoryTestTransactions(db);
 
       const foodCat = db
         .prepare("SELECT id FROM categories WHERE name = 'Food'")
@@ -331,7 +323,7 @@ describe('Categories Route Logic', () => {
 
     it('should return count of affected transactions', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedCategoryTestTransactions(db);
 
       const foodCat = db
         .prepare("SELECT id FROM categories WHERE name = 'Food'")

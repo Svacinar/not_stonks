@@ -4,35 +4,11 @@ import app from '../../src/app';
 import { getDatabase, resetDatabase, closeDatabase } from '../../src/db/database';
 import path from 'path';
 import os from 'os';
+import { seedStandardTestData, getCategoryId } from '../fixtures';
 
 // Use a unique test database for integration tests
 const testDbPath = path.join(os.tmpdir(), `integration-test-${Date.now()}.db`);
 process.env.DB_PATH = testDbPath;
-
-// Helper function to seed test transactions
-function seedTestTransactions(db: ReturnType<typeof getDatabase>) {
-  const insert = db.prepare(`
-    INSERT INTO transactions (date, amount, description, bank, category_id)
-    VALUES (?, ?, ?, ?, ?)
-  `);
-
-  // Get category IDs
-  const foodCat = db
-    .prepare("SELECT id FROM categories WHERE name = 'Food'")
-    .get() as { id: number };
-  const transportCat = db
-    .prepare("SELECT id FROM categories WHERE name = 'Transport'")
-    .get() as { id: number };
-
-  // Insert test transactions
-  insert.run('2024-01-15', -50.0, 'ALBERT Store Purchase', 'CSOB', foodCat.id);
-  insert.run('2024-01-16', -30.0, 'LIDL Groceries', 'CSOB', foodCat.id);
-  insert.run('2024-01-17', -25.0, 'SHELL Gas Station', 'Raiffeisen', transportCat.id);
-  insert.run('2024-01-18', -100.0, 'AMAZON Purchase', 'Revolut', null);
-  insert.run('2024-02-01', -75.0, 'NETFLIX Subscription', 'Revolut', null);
-  insert.run('2024-02-15', -45.0, 'UBER Trip', 'Revolut', transportCat.id);
-  insert.run('2024-03-01', -200.0, 'Unknown Transaction', 'CSOB', null);
-}
 
 describe('API Integration Tests', () => {
   beforeEach(() => {
@@ -73,7 +49,7 @@ describe('API Integration Tests', () => {
 
       it('should return all transactions', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app).get('/api/transactions');
 
@@ -84,7 +60,7 @@ describe('API Integration Tests', () => {
 
       it('should filter by date range', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app)
           .get('/api/transactions')
@@ -96,7 +72,7 @@ describe('API Integration Tests', () => {
 
       it('should filter by bank', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app)
           .get('/api/transactions')
@@ -109,7 +85,7 @@ describe('API Integration Tests', () => {
 
       it('should filter by multiple banks', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app)
           .get('/api/transactions')
@@ -121,7 +97,7 @@ describe('API Integration Tests', () => {
 
       it('should filter uncategorized transactions', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app)
           .get('/api/transactions')
@@ -134,7 +110,7 @@ describe('API Integration Tests', () => {
 
       it('should search by description', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app)
           .get('/api/transactions')
@@ -147,7 +123,7 @@ describe('API Integration Tests', () => {
 
       it('should paginate results', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app)
           .get('/api/transactions')
@@ -162,7 +138,7 @@ describe('API Integration Tests', () => {
 
       it('should sort by amount ascending', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app)
           .get('/api/transactions')
@@ -177,7 +153,7 @@ describe('API Integration Tests', () => {
     describe('GET /api/transactions/stats', () => {
       it('should return stats', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app).get('/api/transactions/stats');
 
@@ -192,7 +168,7 @@ describe('API Integration Tests', () => {
 
       it('should filter stats by date range', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app)
           .get('/api/transactions/stats')
@@ -206,7 +182,7 @@ describe('API Integration Tests', () => {
     describe('GET /api/transactions/:id', () => {
       it('should return a single transaction', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const first = db.prepare('SELECT id FROM transactions LIMIT 1').get() as { id: number };
 
@@ -230,7 +206,7 @@ describe('API Integration Tests', () => {
     describe('PATCH /api/transactions/:id', () => {
       it('should update transaction category', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const uncategorized = db
           .prepare('SELECT id FROM transactions WHERE category_id IS NULL LIMIT 1')
@@ -259,7 +235,7 @@ describe('API Integration Tests', () => {
 
       it('should return 400 for invalid category_id', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const tx = db.prepare('SELECT id FROM transactions LIMIT 1').get() as { id: number };
 
@@ -273,7 +249,7 @@ describe('API Integration Tests', () => {
 
       it('should allow setting category to null', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const categorized = db
           .prepare('SELECT id FROM transactions WHERE category_id IS NOT NULL LIMIT 1')
@@ -291,7 +267,7 @@ describe('API Integration Tests', () => {
     describe('DELETE /api/transactions/:id', () => {
       it('should delete a transaction', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const tx = db.prepare('SELECT id FROM transactions LIMIT 1').get() as { id: number };
 
@@ -327,7 +303,7 @@ describe('API Integration Tests', () => {
 
       it('should include transaction counts', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app).get('/api/categories');
 
@@ -672,7 +648,7 @@ describe('API Integration Tests', () => {
     describe('POST /api/rules/apply', () => {
       it('should apply rules to uncategorized transactions', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const foodCat = db
           .prepare("SELECT id FROM categories WHERE name = 'Food'")
@@ -693,7 +669,7 @@ describe('API Integration Tests', () => {
 
       it('should return 0 categorized when no rules exist', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app).post('/api/rules/apply');
 
@@ -712,7 +688,7 @@ describe('API Integration Tests', () => {
     describe('GET /api/export/transactions', () => {
       it('should export transactions as CSV', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app)
           .get('/api/export/transactions')
@@ -726,7 +702,7 @@ describe('API Integration Tests', () => {
 
       it('should export transactions as JSON', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app)
           .get('/api/export/transactions')
@@ -741,7 +717,7 @@ describe('API Integration Tests', () => {
 
       it('should filter exports by date range', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app)
           .get('/api/export/transactions')
@@ -764,7 +740,7 @@ describe('API Integration Tests', () => {
     describe('GET /api/export/summary', () => {
       it('should export summary as CSV', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app)
           .get('/api/export/summary')
@@ -779,7 +755,7 @@ describe('API Integration Tests', () => {
 
       it('should export summary as JSON', async () => {
         const db = getDatabase();
-        seedTestTransactions(db);
+        seedStandardTestData(db);
 
         const response = await request(app)
           .get('/api/export/summary')

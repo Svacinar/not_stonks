@@ -2,36 +2,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { getDatabase, resetDatabase, closeDatabase } from '../src/db/database';
 import path from 'path';
 import os from 'os';
+import { seedUncategorizedTransactions, seedRuleForCategory, getCategoryId } from './fixtures';
 
 // Use a unique test database for this test file
 const testDbPath = path.join(os.tmpdir(), `rules-test-${Date.now()}.db`);
 process.env.DB_PATH = testDbPath;
-
-// Helper function to seed test transactions
-function seedTestTransactions(db: ReturnType<typeof getDatabase>) {
-  const insert = db.prepare(`
-    INSERT INTO transactions (date, amount, description, bank, category_id)
-    VALUES (?, ?, ?, ?, ?)
-  `);
-
-  // Insert test transactions (all uncategorized)
-  insert.run('2024-01-15', -50.0, 'ALBERT Store Purchase', 'CSOB', null);
-  insert.run('2024-01-16', -30.0, 'LIDL Groceries', 'CSOB', null);
-  insert.run('2024-01-17', -25.0, 'SHELL Gas Station', 'Raiffeisen', null);
-  insert.run('2024-01-18', -100.0, 'AMAZON Shopping', 'Revolut', null);
-  insert.run('2024-01-19', -15.0, 'STARBUCKS Coffee', 'Revolut', null);
-}
-
-// Helper to seed a rule
-function seedRule(db: ReturnType<typeof getDatabase>, keyword: string, categoryName: string) {
-  const category = db
-    .prepare('SELECT id FROM categories WHERE name = ?')
-    .get(categoryName) as { id: number };
-
-  return db
-    .prepare('INSERT INTO category_rules (keyword, category_id) VALUES (?, ?)')
-    .run(keyword, category.id);
-}
 
 describe('Rules Route Logic', () => {
   beforeEach(() => {
@@ -68,9 +43,9 @@ describe('Rules Route Logic', () => {
       const db = getDatabase();
 
       // Create some rules
-      seedRule(db, 'albert', 'Food');
-      seedRule(db, 'shell', 'Transport');
-      seedRule(db, 'amazon', 'Shopping');
+      seedRuleForCategory(db, 'albert', 'Food');
+      seedRuleForCategory(db, 'shell', 'Transport');
+      seedRuleForCategory(db, 'amazon', 'Shopping');
 
       const query = `
         SELECT
@@ -98,9 +73,9 @@ describe('Rules Route Logic', () => {
     it('should return rules ordered by keyword', () => {
       const db = getDatabase();
 
-      seedRule(db, 'zebra', 'Other');
-      seedRule(db, 'apple', 'Food');
-      seedRule(db, 'metro', 'Transport');
+      seedRuleForCategory(db, 'zebra', 'Other');
+      seedRuleForCategory(db, 'apple', 'Food');
+      seedRuleForCategory(db, 'metro', 'Transport');
 
       const query = `
         SELECT keyword FROM category_rules ORDER BY keyword ASC
@@ -190,16 +165,16 @@ describe('Rules Route Logic', () => {
     it('should update rule keyword', () => {
       const db = getDatabase();
 
-      const result = seedRule(db, 'oldkeyword', 'Food');
+      const ruleId = seedRuleForCategory(db, 'oldkeyword', 'Food');
 
       db.prepare('UPDATE category_rules SET keyword = ? WHERE id = ?').run(
         'newkeyword',
-        result.lastInsertRowid
+        ruleId
       );
 
       const updated = db
         .prepare('SELECT keyword FROM category_rules WHERE id = ?')
-        .get(result.lastInsertRowid) as { keyword: string };
+        .get(ruleId) as { keyword: string };
 
       expect(updated.keyword).toBe('newkeyword');
     });
@@ -207,7 +182,7 @@ describe('Rules Route Logic', () => {
     it('should update rule category_id', () => {
       const db = getDatabase();
 
-      const result = seedRule(db, 'testkeyword', 'Food');
+      const ruleId = seedRuleForCategory(db, 'testkeyword', 'Food');
 
       const transportCat = db
         .prepare("SELECT id FROM categories WHERE name = 'Transport'")
@@ -215,12 +190,12 @@ describe('Rules Route Logic', () => {
 
       db.prepare('UPDATE category_rules SET category_id = ? WHERE id = ?').run(
         transportCat.id,
-        result.lastInsertRowid
+        ruleId
       );
 
       const updated = db
         .prepare('SELECT category_id FROM category_rules WHERE id = ?')
-        .get(result.lastInsertRowid) as { category_id: number };
+        .get(ruleId) as { category_id: number };
 
       expect(updated.category_id).toBe(transportCat.id);
     });
@@ -228,13 +203,13 @@ describe('Rules Route Logic', () => {
     it('should not allow update to duplicate keyword', () => {
       const db = getDatabase();
 
-      seedRule(db, 'keyword1', 'Food');
-      const result2 = seedRule(db, 'keyword2', 'Transport');
+      seedRuleForCategory(db, 'keyword1', 'Food');
+      const ruleId2 = seedRuleForCategory(db, 'keyword2', 'Transport');
 
       // Check if keyword1 already exists (excluding current rule)
       const duplicate = db
         .prepare('SELECT id FROM category_rules WHERE LOWER(keyword) = LOWER(?) AND id != ?')
-        .get('keyword1', result2.lastInsertRowid);
+        .get('keyword1', ruleId2);
 
       expect(duplicate).toBeDefined();
     });
@@ -252,13 +227,13 @@ describe('Rules Route Logic', () => {
     it('should delete a rule', () => {
       const db = getDatabase();
 
-      const result = seedRule(db, 'tobedeleted', 'Food');
+      const ruleId = seedRuleForCategory(db, 'tobedeleted', 'Food');
 
-      const deleteResult = db.prepare('DELETE FROM category_rules WHERE id = ?').run(result.lastInsertRowid);
+      const deleteResult = db.prepare('DELETE FROM category_rules WHERE id = ?').run(ruleId);
 
       expect(deleteResult.changes).toBe(1);
 
-      const deleted = db.prepare('SELECT * FROM category_rules WHERE id = ?').get(result.lastInsertRowid);
+      const deleted = db.prepare('SELECT * FROM category_rules WHERE id = ?').get(ruleId);
       expect(deleted).toBeUndefined();
     });
 
@@ -274,12 +249,12 @@ describe('Rules Route Logic', () => {
   describe('POST /api/rules/apply - Apply rules to uncategorized transactions', () => {
     it('should categorize transactions based on matching rules', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedUncategorizedTransactions(db);
 
       // Create rules
-      seedRule(db, 'albert', 'Food');
-      seedRule(db, 'lidl', 'Food');
-      seedRule(db, 'shell', 'Transport');
+      seedRuleForCategory(db, 'albert', 'Food');
+      seedRuleForCategory(db, 'lidl', 'Food');
+      seedRuleForCategory(db, 'shell', 'Transport');
 
       // Get uncategorized count before
       const beforeCount = db
@@ -324,7 +299,7 @@ describe('Rules Route Logic', () => {
 
     it('should do nothing when no rules exist', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedUncategorizedTransactions(db);
 
       const rules = db.prepare('SELECT id, keyword, category_id FROM category_rules').all();
 
@@ -359,7 +334,7 @@ describe('Rules Route Logic', () => {
       ).run('2024-01-15', -50.0, 'ALBERT Store Purchase', 'CSOB', null);
 
       // Create a rule with lowercase keyword
-      seedRule(db, 'albert', 'Food');
+      seedRuleForCategory(db, 'albert', 'Food');
 
       // Apply rule
       const rules = db.prepare('SELECT id, keyword, category_id FROM category_rules').all() as {
@@ -444,7 +419,7 @@ describe('Rules Route Logic', () => {
       const db = getDatabase();
 
       // Create rules with various cases
-      seedRule(db, 'albert', 'Food');
+      seedRuleForCategory(db, 'albert', 'Food');
 
       // Check case-insensitive lookup
       const foundLower = db

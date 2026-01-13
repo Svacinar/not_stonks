@@ -176,15 +176,25 @@ workers: 1,
 ---
 
 ### WR-07: Add Test Fixtures and Factories
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Tests create data inline with duplication.
 
 **Acceptance Criteria:**
-- [ ] Transaction, Category, Rule factories
-- [ ] Database seeding utilities
-- [ ] Consistent test data across suites
+- [x] Transaction, Category, Rule factories
+- [x] Database seeding utilities
+- [x] Consistent test data across suites
+
+**Implementation Notes:**
+- Created `backend/tests/fixtures/` with factories.ts and seeders.ts
+- Backend factories: createTransaction, createCategory, createRule, preset helpers (groceryTransaction, transportTransaction, etc.)
+- Backend seeders: seedStandardTestData, seedUncategorizedTransactions, seedRuleForCategory, getCategoryId, and query helpers
+- Created `frontend/tests/fixtures/` with factories.ts and mockData.ts
+- Frontend factories: createMockTransaction, createMockCategory, createMockRule with preset helpers
+- Frontend mockData: standardTransactionsResponse, standardCategoriesResponse, standardRulesResponse for consistent mock data
+- Updated transactions.test.ts, categories.test.ts, rules.test.ts, api.test.ts to use new fixtures
+- Updated TransactionsPage.test.tsx and RulesPage.test.tsx to use new fixtures
 
 ---
 

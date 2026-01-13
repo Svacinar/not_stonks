@@ -2,35 +2,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { getDatabase, resetDatabase, closeDatabase } from '../src/db/database';
 import path from 'path';
 import os from 'os';
+import { seedStandardTestData, getCategoryId } from './fixtures';
 
 // Use a unique test database for this test file
 const testDbPath = path.join(os.tmpdir(), `transactions-test-${Date.now()}.db`);
 process.env.DB_PATH = testDbPath;
-
-// Helper function to seed test transactions
-function seedTestTransactions(db: ReturnType<typeof getDatabase>) {
-  const insert = db.prepare(`
-    INSERT INTO transactions (date, amount, description, bank, category_id)
-    VALUES (?, ?, ?, ?, ?)
-  `);
-
-  // Get category IDs
-  const foodCat = db
-    .prepare("SELECT id FROM categories WHERE name = 'Food'")
-    .get() as { id: number };
-  const transportCat = db
-    .prepare("SELECT id FROM categories WHERE name = 'Transport'")
-    .get() as { id: number };
-
-  // Insert test transactions
-  insert.run('2024-01-15', -50.0, 'ALBERT Store Purchase', 'CSOB', foodCat.id);
-  insert.run('2024-01-16', -30.0, 'LIDL Groceries', 'CSOB', foodCat.id);
-  insert.run('2024-01-17', -25.0, 'SHELL Gas Station', 'Raiffeisen', transportCat.id);
-  insert.run('2024-01-18', -100.0, 'AMAZON Purchase', 'Revolut', null);
-  insert.run('2024-02-01', -75.0, 'NETFLIX Subscription', 'Revolut', null);
-  insert.run('2024-02-15', -45.0, 'UBER Trip', 'Revolut', transportCat.id);
-  insert.run('2024-03-01', -200.0, 'Unknown Transaction', 'CSOB', null);
-}
 
 describe('Transactions Route Logic', () => {
   beforeEach(() => {
@@ -45,7 +21,7 @@ describe('Transactions Route Logic', () => {
   describe('GET /api/transactions - List with filters', () => {
     it('should return all transactions when no filters applied', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const result = db
         .prepare(
@@ -64,7 +40,7 @@ describe('Transactions Route Logic', () => {
 
     it('should filter by date range', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const result = db
         .prepare(
@@ -81,7 +57,7 @@ describe('Transactions Route Logic', () => {
 
     it('should filter by bank', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const result = db.prepare(`SELECT * FROM transactions WHERE bank = ?`).all('CSOB');
 
@@ -90,7 +66,7 @@ describe('Transactions Route Logic', () => {
 
     it('should filter by multiple banks', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const result = db
         .prepare(`SELECT * FROM transactions WHERE bank IN (?, ?)`)
@@ -101,7 +77,7 @@ describe('Transactions Route Logic', () => {
 
     it('should filter by category', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const foodCat = db
         .prepare("SELECT id FROM categories WHERE name = 'Food'")
@@ -116,7 +92,7 @@ describe('Transactions Route Logic', () => {
 
     it('should filter uncategorized transactions', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const result = db.prepare(`SELECT * FROM transactions WHERE category_id IS NULL`).all();
 
@@ -125,7 +101,7 @@ describe('Transactions Route Logic', () => {
 
     it('should search by description', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const result = db
         .prepare(`SELECT * FROM transactions WHERE description LIKE ?`)
@@ -136,7 +112,7 @@ describe('Transactions Route Logic', () => {
 
     it('should combine filters correctly (AND logic)', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const transportCat = db
         .prepare("SELECT id FROM categories WHERE name = 'Transport'")
@@ -157,7 +133,7 @@ describe('Transactions Route Logic', () => {
 
     it('should paginate results', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const page1 = db.prepare(`SELECT * FROM transactions ORDER BY date DESC LIMIT 3 OFFSET 0`).all();
       const page2 = db.prepare(`SELECT * FROM transactions ORDER BY date DESC LIMIT 3 OFFSET 3`).all();
@@ -168,7 +144,7 @@ describe('Transactions Route Logic', () => {
 
     it('should return total count with pagination', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const count = db.prepare(`SELECT COUNT(*) as total FROM transactions`).get() as { total: number };
 
@@ -177,7 +153,7 @@ describe('Transactions Route Logic', () => {
 
     it('should sort by date descending by default', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const result = db.prepare(`SELECT date FROM transactions ORDER BY date DESC`).all() as {
         date: string;
@@ -189,7 +165,7 @@ describe('Transactions Route Logic', () => {
 
     it('should sort by amount ascending', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const result = db.prepare(`SELECT amount FROM transactions ORDER BY amount ASC`).all() as {
         amount: number;
@@ -203,7 +179,7 @@ describe('Transactions Route Logic', () => {
   describe('GET /api/transactions/:id - Single transaction', () => {
     it('should return a single transaction by id', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const first = db.prepare(`SELECT id FROM transactions LIMIT 1`).get() as { id: number };
       const result = db.prepare(`SELECT * FROM transactions WHERE id = ?`).get(first.id);
@@ -213,7 +189,7 @@ describe('Transactions Route Logic', () => {
 
     it('should return transaction with category info', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const foodCat = db
         .prepare("SELECT id FROM categories WHERE name = 'Food'")
@@ -250,7 +226,7 @@ describe('Transactions Route Logic', () => {
   describe('PATCH /api/transactions/:id - Update category', () => {
     it('should update transaction category', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const transportCat = db
         .prepare("SELECT id FROM categories WHERE name = 'Transport'")
@@ -274,7 +250,7 @@ describe('Transactions Route Logic', () => {
 
     it('should auto-create rule when category is set', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       // Get an uncategorized AMAZON transaction
       const amazonTx = db
@@ -326,7 +302,7 @@ describe('Transactions Route Logic', () => {
 
     it('should allow setting category to null', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const categorized = db
         .prepare(`SELECT id FROM transactions WHERE category_id IS NOT NULL LIMIT 1`)
@@ -345,7 +321,7 @@ describe('Transactions Route Logic', () => {
   describe('DELETE /api/transactions/:id', () => {
     it('should delete a transaction', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const initial = db.prepare(`SELECT COUNT(*) as count FROM transactions`).get() as { count: number };
       const toDelete = db.prepare(`SELECT id FROM transactions LIMIT 1`).get() as { id: number };
@@ -370,7 +346,7 @@ describe('Transactions Route Logic', () => {
   describe('GET /api/transactions/stats - Aggregate statistics', () => {
     it('should return total count and amount', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const result = db
         .prepare(
@@ -387,7 +363,7 @@ describe('Transactions Route Logic', () => {
 
     it('should return stats by category', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const result = db
         .prepare(
@@ -412,7 +388,7 @@ describe('Transactions Route Logic', () => {
 
     it('should return uncategorized expenses with correct sum for pie chart', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const result = db
         .prepare(
@@ -441,7 +417,7 @@ describe('Transactions Route Logic', () => {
 
     it('should return stats by bank', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const result = db
         .prepare(
@@ -462,7 +438,7 @@ describe('Transactions Route Logic', () => {
 
     it('should return stats by month', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const result = db
         .prepare(
@@ -486,7 +462,7 @@ describe('Transactions Route Logic', () => {
 
     it('should return date range', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const result = db
         .prepare(
@@ -503,7 +479,7 @@ describe('Transactions Route Logic', () => {
 
     it('should respect filters for stats', () => {
       const db = getDatabase();
-      seedTestTransactions(db);
+      seedStandardTestData(db);
 
       const result = db
         .prepare(

@@ -3,6 +3,11 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { RulesPage } from '../../src/pages/RulesPage';
 import * as apiClient from '../../src/api/client';
+import {
+  standardRulesResponse,
+  standardCategoriesResponse,
+  standardUncategorizedResponse,
+} from '../fixtures';
 
 // Mock the API client
 vi.mock('../../src/api/client', () => ({
@@ -31,36 +36,10 @@ function renderRulesPage() {
   );
 }
 
-const mockRules = {
-  rules: [
-    {
-      id: 1,
-      keyword: 'TESCO',
-      category_id: 1,
-      category_name: 'Groceries',
-      created_at: '2024-01-01T00:00:00Z',
-    },
-    {
-      id: 2,
-      keyword: 'UBER',
-      category_id: 2,
-      category_name: 'Transport',
-      created_at: '2024-01-02T00:00:00Z',
-    },
-  ],
-};
-
-const mockCategories = {
-  categories: [
-    { id: 1, name: 'Groceries', color: '#22c55e', transaction_count: 10 },
-    { id: 2, name: 'Transport', color: '#3b82f6', transaction_count: 5 },
-  ],
-};
-
-const mockUncategorized = {
-  transactions: [],
-  total: 25,
-};
+// Use fixtures for mock data
+const mockRules = standardRulesResponse;
+const mockCategories = standardCategoriesResponse;
+const mockUncategorized = standardUncategorizedResponse;
 
 describe('RulesPage', () => {
   beforeEach(() => {
