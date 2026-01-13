@@ -793,7 +793,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-23: Improve Chart Styling for Dark Mode
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Problem:** Charts use hardcoded colors and don't adapt to dark mode.
@@ -809,10 +809,18 @@ This document contains work items to modernize the spending dashboard UI from a 
 3. Ensure legends and axis labels are readable in both themes
 
 **Acceptance Criteria:**
-- [ ] Chart text colors adapt to theme
-- [ ] Tooltips styled consistently with design system
-- [ ] Legends readable in both themes
-- [ ] Grid lines visible but subtle in both themes
+- [x] Chart text colors adapt to theme
+- [x] Tooltips styled consistently with design system
+- [x] Legends readable in both themes
+- [x] Grid lines visible but subtle in both themes
+
+**Implementation Notes:**
+- Created `frontend/src/hooks/useChartTheme.ts` with `useChartTheme` hook that provides theme-aware colors for Chart.js
+- Hook uses `useTheme` from ThemeContext to detect current theme and returns colors for text, grid, tooltips
+- Updated `frontend/src/pages/DashboardPage.tsx` to import and use `useChartTheme` hook
+- Updated pie, bar, and line chart options to spread `getDefaultOptions` from hook for theme-aware text, grid, and tooltip styling
+- Updated chart datasets with theme-aware border colors for pie slices, bar borders, and line chart points
+- Updated `frontend/tests/pages/DashboardPage.test.tsx` to wrap render with ThemeProvider and reset matchMedia mock in beforeEach
 
 ---
 

@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/table';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { BANK_COLORS, CHART_COLORS_HEX } from '@/constants/colors';
+import { useChartTheme } from '@/hooks/useChartTheme';
 import {
   getDefaultDateRange,
   formatDateForDisplay,
@@ -134,6 +135,9 @@ export function DashboardPage() {
     };
   }, [stats, recentTransactions]);
 
+  // Theme-aware chart options
+  const { colors: chartColors, getDefaultOptions } = useChartTheme();
+
   // Pie chart data for spending by category
   const categoryPieData = useMemo(() => {
     if (!stats || stats.by_category.length === 0) return null;
@@ -158,10 +162,11 @@ export function DashboardPage() {
       datasets: [{
         data: expenses.map(c => Math.abs(c.sum)),
         backgroundColor: colors,
-        borderWidth: 1,
+        borderColor: chartColors.tooltipBackground,
+        borderWidth: 2,
       }],
     };
-  }, [stats]);
+  }, [stats, chartColors.tooltipBackground]);
 
   // Bar chart data for spending by bank
   const bankBarData = useMemo(() => {
@@ -173,10 +178,12 @@ export function DashboardPage() {
         label: 'Spending',
         data: stats.by_bank.map(b => Math.abs(b.sum)),
         backgroundColor: stats.by_bank.map(b => BANK_COLORS[b.name as BankName] || '#6b7280'),
+        borderColor: chartColors.tooltipBackground,
         borderWidth: 1,
+        borderRadius: 4,
       }],
     };
-  }, [stats]);
+  }, [stats, chartColors.tooltipBackground]);
 
   // Line chart data for spending over time
   const timeLineData = useMemo(() => {
@@ -197,19 +204,31 @@ export function DashboardPage() {
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         fill: true,
         tension: 0.3,
+        pointBackgroundColor: CHART_COLORS_HEX[1],
+        pointBorderColor: chartColors.tooltipBackground,
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
       }],
     };
-  }, [stats]);
+  }, [stats, chartColors.tooltipBackground]);
 
-  // Chart options - memoized to prevent recreation on every render
+  // Chart options - memoized and theme-aware
   const pieOptions = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
+    ...getDefaultOptions,
     plugins: {
+      ...getDefaultOptions.plugins,
       legend: {
         position: 'right' as const,
+        labels: {
+          ...getDefaultOptions.plugins.legend.labels,
+          padding: 16,
+          usePointStyle: true,
+          pointStyle: 'circle',
+        },
       },
       tooltip: {
+        ...getDefaultOptions.plugins.tooltip,
         callbacks: {
           label: (context: { label: string; parsed: number }) => {
             return `${context.label}: ${formatCurrency(context.parsed)}`;
@@ -217,16 +236,19 @@ export function DashboardPage() {
         },
       },
     },
-  }), []);
+    // Pie charts don't have scales, remove them
+    scales: undefined,
+  }), [getDefaultOptions]);
 
   const barOptions = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
+    ...getDefaultOptions,
     plugins: {
+      ...getDefaultOptions.plugins,
       legend: {
         display: false,
       },
       tooltip: {
+        ...getDefaultOptions.plugins.tooltip,
         callbacks: {
           label: (context: { parsed: { y: number | null } }) => {
             return formatCurrency(context.parsed.y ?? 0);
@@ -235,23 +257,29 @@ export function DashboardPage() {
       },
     },
     scales: {
+      x: {
+        ...getDefaultOptions.scales.x,
+      },
       y: {
+        ...getDefaultOptions.scales.y,
         beginAtZero: true,
         ticks: {
+          ...getDefaultOptions.scales.y.ticks,
           callback: (value: number | string) => formatCurrency(Number(value)),
         },
       },
     },
-  }), []);
+  }), [getDefaultOptions]);
 
   const lineOptions = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
+    ...getDefaultOptions,
     plugins: {
+      ...getDefaultOptions.plugins,
       legend: {
         display: false,
       },
       tooltip: {
+        ...getDefaultOptions.plugins.tooltip,
         callbacks: {
           label: (context: { parsed: { y: number | null } }) => {
             return formatCurrency(context.parsed.y ?? 0);
@@ -260,14 +288,19 @@ export function DashboardPage() {
       },
     },
     scales: {
+      x: {
+        ...getDefaultOptions.scales.x,
+      },
       y: {
+        ...getDefaultOptions.scales.y,
         beginAtZero: true,
         ticks: {
+          ...getDefaultOptions.scales.y.ticks,
           callback: (value: number | string) => formatCurrency(Number(value)),
         },
       },
     },
-  }), []);
+  }), [getDefaultOptions]);
 
   // Check if we have any data
   const hasData = stats && stats.total_count > 0;

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { DashboardPage } from '../../src/pages/DashboardPage';
+import { ThemeProvider } from '../../src/contexts/ThemeContext';
 import * as apiClient from '../../src/api/client';
 
 // Mock the API client
@@ -30,7 +31,9 @@ vi.mock('react-chartjs-2', () => ({
 function renderDashboard() {
   return render(
     <BrowserRouter>
-      <DashboardPage />
+      <ThemeProvider>
+        <DashboardPage />
+      </ThemeProvider>
     </BrowserRouter>
   );
 }
@@ -84,11 +87,23 @@ const mockTransactions = {
 
 describe('DashboardPage', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-  });
+    // Only clear API mocks, not global mocks like matchMedia
+    vi.mocked(apiClient.api.get).mockReset();
 
-  afterEach(() => {
-    vi.restoreAllMocks();
+    // Ensure matchMedia is available for ThemeProvider
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: vi.fn().mockImplementation((query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    });
   });
 
   it('renders page title', async () => {
