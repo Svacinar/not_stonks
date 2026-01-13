@@ -233,7 +233,7 @@ This document contains work items to modernize the spending dashboard UI from a 
 ---
 
 ### UI-07: Create Input and Label Components
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** Input styling repeated with inconsistent focus states across forms.
@@ -251,11 +251,19 @@ This document contains work items to modernize the spending dashboard UI from a 
 4. Verify Label associates correctly with inputs
 
 **Acceptance Criteria:**
-- [ ] Input component exists at `src/components/ui/input.tsx`
-- [ ] Label component exists at `src/components/ui/label.tsx`
-- [ ] Input has visible border by default
-- [ ] Focus state shows ring (not just border color)
-- [ ] Disabled input is visually distinct
+- [x] Input component exists at `src/components/ui/input.tsx`
+- [x] Label component exists at `src/components/ui/label.tsx`
+- [x] Input has visible border by default
+- [x] Focus state shows ring (not just border color)
+- [x] Disabled input is visually distinct
+
+**Implementation Notes:**
+- Ran `npx shadcn@latest add input` to create Input component
+- Ran `npx shadcn@latest add label` to create Label component (installed @radix-ui/react-label dependency)
+- Input uses `border border-input` for visible border by default
+- Input focus state uses `focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`
+- Input disabled state uses `disabled:cursor-not-allowed disabled:opacity-50`
+- Label uses Radix UI's LabelPrimitive.Root with `peer-disabled:cursor-not-allowed peer-disabled:opacity-70` for disabled pairing
 
 ---
 
