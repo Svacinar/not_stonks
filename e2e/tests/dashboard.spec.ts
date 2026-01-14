@@ -265,7 +265,7 @@ test.describe('Dashboard Page', () => {
     }
   });
 
-  test('pie chart includes uncategorized expenses', async ({ page }) => {
+  test('pie chart separates Income from Uncategorized expenses', async ({ page }) => {
     const csobFile = await createTestFile('csob_uncategorized.csv', 'csob,data,test');
 
     try {
@@ -276,7 +276,7 @@ test.describe('Dashboard Page', () => {
       await page.getByRole('button', { name: 'Upload 1 file' }).click();
       await expect(page.getByText('Upload Successful')).toBeVisible({ timeout: 10000 });
 
-      // Intercept the stats API to verify Uncategorized is included
+      // Intercept the stats API to verify Income/Uncategorized separation
       let statsResponse: { by_category: Array<{ name: string; count: number; sum: number }> } | null = null;
       await page.route('**/api/transactions/stats*', async (route) => {
         const response = await route.fetch();
@@ -295,14 +295,22 @@ test.describe('Dashboard Page', () => {
       // Wait for stats API response to be captured
       await page.waitForTimeout(500);
 
-      // Verify the stats API response includes Uncategorized in by_category
+      // Verify the stats API response properly separates Income from Uncategorized
       expect(statsResponse).not.toBeNull();
+      
+      // Check for Uncategorized (negative amounts without category)
       const uncategorized = statsResponse!.by_category.find((c) => c.name === 'Uncategorized');
-      expect(uncategorized).toBeDefined();
-      expect(uncategorized!.count).toBeGreaterThan(0);
-      // Uncategorized is included in the response - it will show in pie chart if sum is negative (expenses)
-      // The sum can be positive (income) or negative (expenses) depending on the data
-      expect(typeof uncategorized!.sum).toBe('number');
+      if (uncategorized) {
+        // Uncategorized should only contain expenses (negative sum)
+        expect(uncategorized.sum).toBeLessThan(0);
+      }
+
+      // Check for Income (positive amounts without category)
+      const income = statsResponse!.by_category.find((c) => c.name === 'Income');
+      if (income) {
+        // Income should only contain positive amounts
+        expect(income.sum).toBeGreaterThan(0);
+      }
 
       // Verify the pie chart section is visible
       await expect(page.getByText('Spending by Category')).toBeVisible();

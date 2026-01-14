@@ -230,8 +230,12 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - `GET /api/transactions/stats` - aggregate stats:
   - Total count, total amount
   - By category (name, count, sum)
+    - **Income handling:** Uncategorized transactions with positive amounts appear as "Income" category
+    - **Expense handling:** Uncategorized transactions with negative amounts appear as "Uncategorized" category
+    - Categorized transactions (with category_id) keep their assigned category regardless of amount sign
   - By bank (name, count, sum)
-  - By month (month, count, sum)
+  - By month (month, count, sum) - expenses only (negative amounts)
+  - Income by month (month, count, sum) - income only (positive amounts)
   - Date range (min, max)
 
 **Acceptance Criteria:**
@@ -240,7 +244,8 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - [x] Pagination returns correct totals
 - [x] Category update creates keyword rule
 - [x] Stats endpoint returns all aggregates
-- [x] Unit tests for all endpoints
+- [x] Stats endpoint separates uncategorized income ("Income") from uncategorized expenses ("Uncategorized")
+- [x] Unit tests for all endpoints including income/expense separation
 
 **Dependencies:** WI-02
 
@@ -249,7 +254,9 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - GET list supports all filters: date range, bank, category, uncategorized, search, pagination, sorting
 - PATCH endpoint auto-creates category_rules using keyword extraction from description
 - Stats endpoint returns totals, by_category, by_bank, by_month, and date_range aggregates
-- 30 unit tests in `backend/tests/transactions.test.ts` covering all endpoints and edge cases
+- **Income/Expense handling:** The `by_category` query uses CASE expression to label uncategorized positive amounts as "Income" and uncategorized negative amounts as "Uncategorized"
+- Test fixtures include `seedMixedIncomeExpenseData()` for testing income vs expense scenarios
+- 31 unit tests in `backend/tests/transactions.test.ts` covering all endpoints and edge cases
 
 ---
 
@@ -471,13 +478,18 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 
 **Requirements:**
 - Quick stats cards:
-  - Total spending (in period)
+  - Total spending (in period) - calculated from expenses only
   - Transaction count
   - Average transaction
-  - Largest expense
-- Spending by category pie chart
+  - Largest expense category - from expenses only, not income
+- Spending by category pie chart (expenses only)
+  - Shows only expense categories (negative amounts)
+  - "Uncategorized" category (gray color) for uncategorized expenses
+  - Excludes Income from pie chart
+  - Regular categories use chart color palette
 - Spending by bank bar chart
-- Spending over time line chart (by month)
+- Spending over time line chart (by month) - expenses only
+- Income over time line chart (by month) - income only
 - Recent transactions list (last 10)
 - Date range selector (affects all charts)
 - Default to last 3 months
@@ -488,18 +500,26 @@ Building a personal finance dashboard that consolidates bank statements from CSO
 - [x] Date range filter updates all components
 - [x] Empty state when no data
 - [x] Responsive on tablet/mobile
+- [x] Pie chart shows only expenses, excludes Income
+- [x] Pie chart shows "Uncategorized" category for uncategorized expenses (gray color)
+- [x] "Largest Category" stat card uses expenses only
+- [x] "Total Spending" stat card uses expenses only
+- [x] Income over Time chart shows monthly income (emerald color)
 - [x] E2E test: verify charts appear with data
 
 **Dependencies:** WI-05, WI-09
 
 **Implementation Notes:**
 - Created `frontend/src/pages/DashboardPage.tsx` with complete dashboard implementation using Chart.js/react-chartjs-2
-- Quick stats cards show total spending, transaction count, average transaction, and largest category expense
-- Three charts: Pie (by category), Bar (by bank), Line (spending over time by month)
+- Quick stats cards show total spending, transaction count, average transaction, and largest category expense (all from expenses only)
+- Four charts: Pie (spending by category), Bar (spending by bank), Line (spending over time), Line (income over time)
+- **Pie chart:** Only shows expenses (negative amounts), excludes Income category; Uncategorized uses gray (#6b7280)
+- **Income chart:** Uses emerald color (#10b981) for income line
 - Recent transactions table showing last 10 transactions with "View all" link to Transactions page
 - Date range selector defaults to last 3 months; filters update all components via parallel API calls
 - Empty state with chart icon and "Upload Statements" button when no data available
-- 7 E2E tests in `e2e/tests/dashboard.spec.ts` covering all acceptance criteria
+- Stats API returns separate `by_month` (expenses) and `income_by_month` (income) arrays
+- 8 E2E tests in `e2e/tests/dashboard.spec.ts` covering all acceptance criteria
 
 ---
 

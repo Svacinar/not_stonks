@@ -113,19 +113,16 @@ export function DashboardPage() {
   const derivedStats = useMemo(() => {
     if (!stats) return null;
 
-    const totalSpending = Math.abs(stats.total_amount);
+    // Calculate total spending from expenses only (negative amounts)
+    const expenseCategories = stats.by_category.filter(c => c.sum < 0);
+    const totalSpending = expenseCategories.reduce((sum, c) => sum + Math.abs(c.sum), 0);
+    
     const transactionCount = stats.total_count;
     const averageTransaction = transactionCount > 0 ? totalSpending / transactionCount : 0;
 
-    // Find largest expense (most negative amount in original transactions list)
-    let largestExpense = 0;
-    if (recentTransactions.length > 0) {
-      // Note: We need to get this from transactions list, not stats
-      // For now, calculate from by_category which has the sums
-      // We'll use the largest single category sum as proxy
-      const categoryAmounts = stats.by_category.map(c => Math.abs(c.sum));
-      largestExpense = categoryAmounts.length > 0 ? Math.max(...categoryAmounts) : 0;
-    }
+    // Find largest expense category (only from expenses, not income)
+    const expenseAmounts = expenseCategories.map(c => Math.abs(c.sum));
+    const largestExpense = expenseAmounts.length > 0 ? Math.max(...expenseAmounts) : 0;
 
     return {
       totalSpending,
@@ -133,17 +130,17 @@ export function DashboardPage() {
       averageTransaction,
       largestExpense,
     };
-  }, [stats, recentTransactions]);
+  }, [stats]);
 
   // Theme-aware chart options
   const { colors: chartColors, getDefaultOptions } = useChartTheme();
 
-  // Pie chart data for spending by category
+  // Pie chart data for spending by category (expenses only, ignore income)
   const categoryPieData = useMemo(() => {
     if (!stats || stats.by_category.length === 0) return null;
 
-    // Filter out positive sums (income) for expense pie chart
-    const expenses = stats.by_category.filter(c => c.sum < 0);
+    // Filter to only show expenses (negative sums), excluding Income
+    const expenses = stats.by_category.filter(c => c.sum < 0 && c.name !== 'Income');
 
     // Return null if no expenses to show
     if (expenses.length === 0) return null;
@@ -208,6 +205,34 @@ export function DashboardPage() {
         fill: true,
         tension: 0.3,
         pointBackgroundColor: CHART_COLORS_HEX[1],
+        pointBorderColor: chartColors.tooltipBackground,
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+      }],
+    };
+  }, [stats, chartColors.tooltipBackground]);
+
+  // Line chart data for income over time
+  const incomeLineData = useMemo(() => {
+    if (!stats || !stats.income_by_month || stats.income_by_month.length === 0) return null;
+
+    return {
+      labels: stats.income_by_month.map(m => {
+        const [year, month] = m.month.split('-');
+        return new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('cs-CZ', {
+          month: 'short',
+          year: '2-digit',
+        });
+      }),
+      datasets: [{
+        label: 'Monthly Income',
+        data: stats.income_by_month.map(m => m.sum),
+        borderColor: '#10b981', // emerald-500 for income
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        fill: true,
+        tension: 0.3,
+        pointBackgroundColor: '#10b981',
         pointBorderColor: chartColors.tooltipBackground,
         pointBorderWidth: 2,
         pointRadius: 4,
@@ -481,23 +506,44 @@ export function DashboardPage() {
             </Card>
           </div>
 
-          {/* Spending Over Time Line Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Spending Over Time</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {timeLineData ? (
-                <div className="h-64">
-                  <Line data={timeLineData} options={lineOptions} />
-                </div>
-              ) : (
-                <div className="h-64 flex items-center justify-center text-muted-foreground">
-                  No monthly data available
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Spending and Income Over Time Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Spending Over Time Line Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Spending Over Time</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {timeLineData ? (
+                  <div className="h-64">
+                    <Line data={timeLineData} options={lineOptions} />
+                  </div>
+                ) : (
+                  <div className="h-64 flex items-center justify-center text-muted-foreground">
+                    No spending data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Income Over Time Line Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Income Over Time</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {incomeLineData ? (
+                  <div className="h-64">
+                    <Line data={incomeLineData} options={lineOptions} />
+                  </div>
+                ) : (
+                  <div className="h-64 flex items-center justify-center text-muted-foreground">
+                    No income data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Recent Transactions */}
           <Card>

@@ -71,5 +71,6 @@ export interface TransactionStats {
   by_category: { name: string; count: number; sum: number }[];
   by_bank: { name: BankName; count: number; sum: number }[];
   by_month: { month: string; count: number; sum: number }[];
+  income_by_month: { month: string; count: number; sum: number }[];
   date_range: { min: string; max: string };
 }

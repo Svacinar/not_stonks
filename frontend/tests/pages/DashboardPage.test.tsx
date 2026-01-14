@@ -44,7 +44,8 @@ const mockStats = {
   by_category: [
     { name: 'Groceries', sum: -15000, count: 40 },
     { name: 'Transport', sum: -10000, count: 20 },
-    { name: 'Uncategorized', sum: -25000, count: 40 },
+    { name: 'Uncategorized', sum: -15000, count: 30 },
+    { name: 'Income', sum: 10000, count: 10 }, // Uncategorized income appears as "Income"
   ],
   by_bank: [
     { name: 'CSOB', sum: -30000, count: 60 },
@@ -54,6 +55,10 @@ const mockStats = {
     { month: '2024-04', sum: -15000, count: 30 },
     { month: '2024-05', sum: -20000, count: 40 },
     { month: '2024-06', sum: -15000, count: 30 },
+  ],
+  income_by_month: [
+    { month: '2024-04', sum: 5000, count: 2 },
+    { month: '2024-05', sum: 5000, count: 2 },
   ],
 };
 
@@ -190,9 +195,11 @@ describe('DashboardPage', () => {
 
     expect(screen.getByText('Spending by Bank')).toBeInTheDocument();
     expect(screen.getByText('Spending Over Time')).toBeInTheDocument();
+    expect(screen.getByText('Income Over Time')).toBeInTheDocument();
     expect(screen.getByTestId('pie-chart')).toBeInTheDocument();
     expect(screen.getByTestId('bar-chart')).toBeInTheDocument();
-    expect(screen.getByTestId('line-chart')).toBeInTheDocument();
+    // Two line charts: Spending Over Time and Income Over Time
+    expect(screen.getAllByTestId('line-chart')).toHaveLength(2);
   });
 
   it('renders recent transactions table', async () => {
@@ -236,6 +243,24 @@ describe('DashboardPage', () => {
     await waitFor(() => {
       expect(screen.getAllByText('Uncategorized').length).toBeGreaterThanOrEqual(1);
     });
+  });
+
+  it('renders Income over Time chart when income data exists', async () => {
+    // Stats include income_by_month for the Income over Time chart
+    vi.mocked(apiClient.api.get).mockImplementation((url: string) => {
+      if (url.includes('/stats')) return Promise.resolve(mockStats);
+      return Promise.resolve(mockTransactions);
+    });
+
+    renderDashboard();
+
+    await waitFor(() => {
+      // Verify Income over Time chart title is rendered
+      expect(screen.getByText('Income Over Time')).toBeInTheDocument();
+    });
+
+    // Verify Spending over Time chart is also rendered
+    expect(screen.getByText('Spending Over Time')).toBeInTheDocument();
   });
 
   it('renders "View all" link to transactions', async () => {

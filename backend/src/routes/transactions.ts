@@ -132,16 +132,23 @@ router.get('/stats', (req: Request<{}, {}, {}, TransactionListQuery>, res: Respo
       total_amount: number;
     };
 
-    // By category
+    // By category - treat uncategorized income as "Income", uncategorized expenses as "Uncategorized"
     const byCategoryQuery = `
       SELECT
-        COALESCE(c.name, 'Uncategorized') as name,
+        CASE
+          WHEN t.category_id IS NULL AND t.amount > 0 THEN 'Income'
+          ELSE COALESCE(c.name, 'Uncategorized')
+        END as name,
         COUNT(*) as count,
         SUM(t.amount) as sum
       FROM transactions t
       LEFT JOIN categories c ON t.category_id = c.id
       ${whereClause}
-      GROUP BY t.category_id
+      GROUP BY
+        CASE
+          WHEN t.category_id IS NULL AND t.amount > 0 THEN 'Income'
+          ELSE COALESCE(c.name, 'Uncategorized')
+        END
       ORDER BY sum ASC
     `;
     const byCategory = db.prepare(byCategoryQuery).all(...params) as {
@@ -167,18 +174,37 @@ router.get('/stats', (req: Request<{}, {}, {}, TransactionListQuery>, res: Respo
       sum: number;
     }[];
 
-    // By month
+    // By month (expenses - negative amounts)
     const byMonthQuery = `
       SELECT
         strftime('%Y-%m', t.date) as month,
-        COUNT(*) as count,
-        SUM(t.amount) as sum
+        SUM(CASE WHEN t.amount < 0 THEN 1 ELSE 0 END) as count,
+        SUM(CASE WHEN t.amount < 0 THEN t.amount ELSE 0 END) as sum
       FROM transactions t
       ${whereClause}
       GROUP BY strftime('%Y-%m', t.date)
+      HAVING SUM(CASE WHEN t.amount < 0 THEN t.amount ELSE 0 END) < 0
       ORDER BY month ASC
     `;
     const byMonth = db.prepare(byMonthQuery).all(...params) as {
+      month: string;
+      count: number;
+      sum: number;
+    }[];
+
+    // Income by month (positive amounts)
+    const incomeByMonthQuery = `
+      SELECT
+        strftime('%Y-%m', t.date) as month,
+        SUM(CASE WHEN t.amount > 0 THEN 1 ELSE 0 END) as count,
+        SUM(CASE WHEN t.amount > 0 THEN t.amount ELSE 0 END) as sum
+      FROM transactions t
+      ${whereClause}
+      GROUP BY strftime('%Y-%m', t.date)
+      HAVING SUM(CASE WHEN t.amount > 0 THEN t.amount ELSE 0 END) > 0
+      ORDER BY month ASC
+    `;
+    const incomeByMonth = db.prepare(incomeByMonthQuery).all(...params) as {
       month: string;
       count: number;
       sum: number;
@@ -203,6 +229,7 @@ router.get('/stats', (req: Request<{}, {}, {}, TransactionListQuery>, res: Respo
       by_category: byCategory,
       by_bank: byBank,
       by_month: byMonth,
+      income_by_month: incomeByMonth,
       date_range: {
         min: dateRange.min || '',
         max: dateRange.max || '',

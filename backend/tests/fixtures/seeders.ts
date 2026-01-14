@@ -239,6 +239,80 @@ export function seedStandardTestData(db: Database.Database): {
 }
 
 /**
+ * Seed mixed transactions with both income and expenses (for stats/chart testing)
+ * 
+ * Creates transactions to test the Income vs Uncategorized distinction:
+ * - Uncategorized income (positive amounts) should appear as "Income"
+ * - Uncategorized expenses (negative amounts) should appear as "Uncategorized"
+ */
+export function seedMixedIncomeExpenseData(db: Database.Database): {
+  transactionIds: number[];
+  categories: Record<string, number>;
+} {
+  const categories = getDefaultCategoryIds(db);
+
+  const transactions: TransactionInput[] = [
+    // Categorized expenses
+    {
+      date: '2024-01-15',
+      amount: -50.0,
+      description: 'ALBERT Store Purchase',
+      bank: 'CSOB',
+      category_id: categories.Food,
+    },
+    {
+      date: '2024-01-16',
+      amount: -30.0,
+      description: 'SHELL Gas Station',
+      bank: 'Raiffeisen',
+      category_id: categories.Transport,
+    },
+    // Uncategorized expenses (should appear as "Uncategorized")
+    {
+      date: '2024-01-17',
+      amount: -100.0,
+      description: 'AMAZON Purchase',
+      bank: 'Revolut',
+      category_id: null,
+    },
+    {
+      date: '2024-01-18',
+      amount: -75.0,
+      description: 'Unknown Store',
+      bank: 'CSOB',
+      category_id: null,
+    },
+    // Uncategorized income (should appear as "Income")
+    {
+      date: '2024-01-20',
+      amount: 5000.0,
+      description: 'Salary Payment',
+      bank: 'CSOB',
+      category_id: null,
+    },
+    {
+      date: '2024-01-25',
+      amount: 1500.0,
+      description: 'Freelance Payment',
+      bank: 'Revolut',
+      category_id: null,
+    },
+    // Categorized income (should keep its category)
+    {
+      date: '2024-01-28',
+      amount: 200.0,
+      description: 'Tax Refund',
+      bank: 'CSOB',
+      category_id: categories.Finance,
+    },
+  ];
+
+  const transactionIds = seedTransactions(db, transactions);
+
+  return { transactionIds, categories };
+}
+
+/**
  * Seed uncategorized transactions only (for rules testing)
  */
 export function seedUncategorizedTransactions(db: Database.Database): number[] {

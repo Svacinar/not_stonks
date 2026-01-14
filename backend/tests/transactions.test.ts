@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { getDatabase, resetDatabase, closeDatabase } from '../src/db/database';
 import path from 'path';
 import os from 'os';
-import { seedStandardTestData, getCategoryId } from './fixtures';
+import { seedStandardTestData, getCategoryId, seedMixedIncomeExpenseData } from './fixtures';
 
 // Use a unique test database for this test file
 const testDbPath = path.join(os.tmpdir(), `transactions-test-${Date.now()}.db`);
@@ -413,6 +413,59 @@ describe('Transactions Route Logic', () => {
       expect(uncategorized?.sum).toBe(-375);
       // Uncategorized should have negative sum (expense) for pie chart display
       expect(uncategorized!.sum).toBeLessThan(0);
+    });
+
+    it('should separate uncategorized income from uncategorized expenses in stats', () => {
+      const db = getDatabase();
+      // Use the new mixed income/expense test data
+      seedMixedIncomeExpenseData(db);
+
+      // This query matches the actual stats endpoint logic
+      const result = db
+        .prepare(
+          `
+        SELECT
+          CASE
+            WHEN t.category_id IS NULL AND t.amount > 0 THEN 'Income'
+            ELSE COALESCE(c.name, 'Uncategorized')
+          END as name,
+          COUNT(*) as count,
+          SUM(t.amount) as sum
+        FROM transactions t
+        LEFT JOIN categories c ON t.category_id = c.id
+        GROUP BY
+          CASE
+            WHEN t.category_id IS NULL AND t.amount > 0 THEN 'Income'
+            ELSE COALESCE(c.name, 'Uncategorized')
+          END
+        ORDER BY sum ASC
+      `
+        )
+        .all() as { name: string; count: number; sum: number }[];
+
+      // Verify Income category exists for uncategorized positive amounts
+      const income = result.find((c) => c.name === 'Income');
+      expect(income).toBeDefined();
+      expect(income?.count).toBe(2); // Salary + Freelance
+      expect(income?.sum).toBe(6500); // 5000 + 1500
+      expect(income!.sum).toBeGreaterThan(0);
+
+      // Verify Uncategorized only contains expenses (negative amounts)
+      const uncategorized = result.find((c) => c.name === 'Uncategorized');
+      expect(uncategorized).toBeDefined();
+      expect(uncategorized?.count).toBe(2); // AMAZON + Unknown Store
+      expect(uncategorized?.sum).toBe(-175); // -100 + -75
+      expect(uncategorized!.sum).toBeLessThan(0);
+
+      // Verify categorized transactions keep their categories
+      const food = result.find((c) => c.name === 'Food');
+      expect(food).toBeDefined();
+      expect(food?.count).toBe(1);
+
+      const finance = result.find((c) => c.name === 'Finance');
+      expect(finance).toBeDefined();
+      expect(finance?.count).toBe(1);
+      expect(finance?.sum).toBe(200); // Categorized income keeps its category
     });
 
     it('should return stats by bank', () => {
