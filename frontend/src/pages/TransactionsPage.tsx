@@ -330,31 +330,31 @@ export function TransactionsPage() {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
-        <Button variant="outline" onClick={() => setShowExportModal(true)} className="w-full sm:w-auto">
-          <svg
-            className="h-4 w-4 mr-2"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-            />
-          </svg>
-          Export
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+          <DateRangePicker value={dateRange} onChange={handleDateRangeChange} />
+          <Button variant="outline" onClick={() => setShowExportModal(true)} className="w-full sm:w-auto">
+            <svg
+              className="h-4 w-4 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
+            </svg>
+            Export
+          </Button>
+        </div>
       </div>
 
       {/* Filter Panel */}
       <Card>
         <CardContent className="p-4 space-y-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
-            {/* Date Range */}
-            <DateRangePicker value={dateRange} onChange={handleDateRangeChange} />
-
             {/* Search */}
             <div className="flex-1 min-w-0 sm:min-w-48">
               <Label htmlFor="search-transactions" className="sr-only">
