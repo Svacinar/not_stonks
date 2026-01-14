@@ -40,17 +40,21 @@ describe('UploadService', () => {
     });
 
     it('should process multiple files from different banks', async () => {
+      // Revolut requires valid CSV content
+      const revolutCsv = `Tipo,Producto,Fecha de inicio,Fecha de finalización,Descripción,Importe,Comisión,Divisa,State,Saldo
+Pago con tarjeta,Actual,2025-12-06 00:31:43,2025-12-06 14:54:21,Test Payment,-100.00,0.00,CZK,COMPLETADO,1000.00`;
+
       const files = [
         { buffer: Buffer.from('csob data'), filename: 'csob_export.csv' },
-        { buffer: Buffer.from('revolut data'), filename: 'revolut_statement.csv' },
+        { buffer: Buffer.from(revolutCsv), filename: 'revolut_statement.csv' },
       ];
 
       const result = await uploadService.processUploads(files);
 
       expect(result.success).toBe(true);
-      expect(result.imported).toBe(20); // 10 from each bank
+      expect(result.imported).toBe(11); // 10 from CSOB + 1 from Revolut
       expect(result.byBank.CSOB).toBe(10);
-      expect(result.byBank.Revolut).toBe(10);
+      expect(result.byBank.Revolut).toBe(1);
     });
 
     it('should detect and skip duplicate transactions', async () => {
@@ -236,13 +240,18 @@ describe('UploadService', () => {
     });
 
     it('should correctly detect Revolut files', async () => {
+      // Revolut requires valid CSV content
+      const revolutCsv = `Tipo,Producto,Fecha de inicio,Fecha de finalización,Descripción,Importe,Comisión,Divisa,State,Saldo
+Pago con tarjeta,Actual,2025-12-06 00:31:43,2025-12-06 14:54:21,Netflix,-15.99,0.00,EUR,COMPLETADO,500.00
+Recargas,Actual,2025-12-11 07:14:19,2025-12-11 07:14:20,Top-up,1000.00,0.00,EUR,COMPLETADO,1500.00`;
+
       const file = {
-        buffer: Buffer.from('revolut statement data'),
+        buffer: Buffer.from(revolutCsv),
         filename: 'revolut_statement.csv',
       };
 
       const result = await uploadService.processUploads([file]);
-      expect(result.byBank.Revolut).toBe(10);
+      expect(result.byBank.Revolut).toBe(2);
     });
   });
 

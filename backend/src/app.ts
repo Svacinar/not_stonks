@@ -10,10 +10,17 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { apiLimiter, uploadLimiter } from './middleware/rateLimit';
 import { getDatabase } from './db/database';
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import path, { join } from 'path';
 import { openApiSpec } from './openapi';
 
 const app = express();
+
+// In production, serve frontend static files BEFORE other middleware
+// Static files don't need CORS, rate limiting, etc.
+if (process.env.NODE_ENV === 'production') {
+  const frontendPath = path.join(__dirname, '../../frontend/dist');
+  app.use(express.static(frontendPath));
+}
 
 // Get version from package.json
 function getVersion(): string {
@@ -43,11 +50,16 @@ function checkDatabaseHealth(): { connected: boolean; error?: string } {
 }
 
 // CORS Configuration
-// Defaults to localhost:3000 (frontend dev server) if ALLOWED_ORIGINS not set
+// Defaults to localhost origins for development, or same-origin in production
 const getAllowedOrigins = (): string[] => {
   const envOrigins = process.env.ALLOWED_ORIGINS;
   if (envOrigins) {
     return envOrigins.split(',').map((origin) => origin.trim());
+  }
+  // In production, frontend is served from same origin - allow it
+  if (process.env.NODE_ENV === 'production') {
+    const port = process.env.PORT || '3001';
+    return [`http://localhost:${port}`, 'http://localhost:3000', 'http://localhost:5173'];
   }
   // Default to localhost origins for development
   return ['http://localhost:3000', 'http://localhost:5173'];
@@ -101,6 +113,17 @@ app.use('/api/transactions', apiLimiter, transactionsRouter);
 app.use('/api/categories', apiLimiter, categoriesRouter);
 app.use('/api/rules', apiLimiter, rulesRouter);
 app.use('/api/export', apiLimiter, exportRouter);
+
+// In production, SPA fallback - serve index.html for non-API routes
+if (process.env.NODE_ENV === 'production') {
+  const frontendPath = path.join(__dirname, '../../frontend/dist');
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
+}
 
 // 404 handler for unmatched API routes
 app.use('/api/*', notFoundHandler);
