@@ -73,6 +73,11 @@ const navItems: NavItem[] = [
   },
 ];
 
+// Stonks man logo
+const LogoIcon = () => (
+  <img src="/stonks.png" alt="Stonks" className="h-10 w-auto" />
+);
+
 // Icons for theme toggle
 const SunIcon = () => (
   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -124,17 +129,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-30 w-64 bg-gray-900 transform transition-transform duration-300 ease-in-out flex flex-col',
+          'fixed inset-y-0 left-0 z-30 w-64 bg-sidebar border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col',
           'lg:translate-x-0 lg:static lg:inset-auto',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* Logo/Title */}
-        <div className="flex items-center justify-between h-16 px-4 bg-gray-800">
-          <span className="text-xl font-semibold text-white">Spending</span>
+        <div className="flex items-center justify-between h-16 px-4 border-b border-border">
+          <div className="flex items-center gap-3">
+            <LogoIcon />
+            <span className="text-xl font-bold text-sidebar-foreground tracking-tight">
+              Not Stonks
+            </span>
+          </div>
           <button
             type="button"
-            className="p-2 text-gray-400 transition-colors duration-150 hover:text-white lg:hidden"
+            className="p-2 text-sidebar-muted transition-colors duration-150 hover:text-sidebar-foreground lg:hidden"
             onClick={onClose}
             aria-label="Close sidebar"
           >
@@ -150,7 +160,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="mt-4 px-2 flex-1">
+        <nav className="mt-4 px-3 flex-1">
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.path}>
@@ -159,10 +169,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   onClick={onClose}
                   className={({ isActive }) =>
                     cn(
-                      'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-150',
+                      'flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-150',
                       isActive
                         ? 'bg-primary text-primary-foreground'
-                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                        : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground'
                     )
                   }
                   end={item.path === '/'}
@@ -176,15 +186,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         {/* Theme toggle */}
-        <div className="p-4 border-t border-gray-800">
-          <div className="flex items-center justify-between gap-1 p-1 bg-gray-800 rounded-lg">
+        <div className="p-4 border-t border-sidebar-border">
+          <div className="flex items-center justify-between gap-1 p-1 bg-sidebar-accent rounded-lg">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setTheme('light')}
               className={cn(
-                'flex-1 h-8 text-gray-400 hover:text-white hover:bg-gray-700',
-                theme === 'light' && 'bg-gray-700 text-white'
+                'flex-1 h-8 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar',
+                theme === 'light' && 'bg-sidebar text-primary shadow-sm'
               )}
               aria-label="Light theme"
             >
@@ -195,8 +205,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               size="sm"
               onClick={() => setTheme('dark')}
               className={cn(
-                'flex-1 h-8 text-gray-400 hover:text-white hover:bg-gray-700',
-                theme === 'dark' && 'bg-gray-700 text-white'
+                'flex-1 h-8 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar',
+                theme === 'dark' && 'bg-sidebar text-primary shadow-sm'
               )}
               aria-label="Dark theme"
             >
@@ -207,8 +217,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               size="sm"
               onClick={() => setTheme('system')}
               className={cn(
-                'flex-1 h-8 text-gray-400 hover:text-white hover:bg-gray-700',
-                theme === 'system' && 'bg-gray-700 text-white'
+                'flex-1 h-8 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar',
+                theme === 'system' && 'bg-sidebar text-primary shadow-sm'
               )}
               aria-label="System theme"
             >

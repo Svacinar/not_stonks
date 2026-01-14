@@ -41,6 +41,14 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          border: "hsl(var(--sidebar-border))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          muted: "hsl(var(--sidebar-muted))",
+        },
         bank: {
           csob: "hsl(var(--bank-csob))",
           raiffeisen: "hsl(var(--bank-raiffeisen))",

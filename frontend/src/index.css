@@ -35,6 +35,14 @@
 
     --radius: 0.5rem;
 
+    /* Sidebar Colors - Light Mode */
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 222 84% 5%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 84% 5%;
+    --sidebar-muted: 215 16% 47%;
+
     /* Bank Colors */
     --bank-csob: 209 100% 34%;
     --bank-raiffeisen: 49 100% 50%;
@@ -84,6 +92,14 @@
     --border: 217 33% 17%;
     --input: 217 33% 17%;
     --ring: 224 76% 48%;
+
+    /* Sidebar Colors - Dark Mode */
+    --sidebar: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-muted: 215 20% 65%;
 
     /* Bank Colors remain the same in dark mode */
     --bank-csob: 209 100% 34%;
