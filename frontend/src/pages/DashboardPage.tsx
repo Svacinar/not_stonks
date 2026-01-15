@@ -136,7 +136,13 @@ export function DashboardPage() {
   }, [stats]);
 
   // Theme-aware chart options
-  const { colors: chartColors, getDefaultOptions } = useChartTheme();
+  const {
+    colors: chartColors,
+    getLineChartOptions,
+    getBarChartOptions,
+    getPieChartOptions,
+    createGradient
+  } = useChartTheme();
 
   // Pie chart data for spending by category (expenses only, ignore income)
   const categoryPieData = useMemo(() => {
@@ -162,11 +168,11 @@ export function DashboardPage() {
       datasets: [{
         data: expenses.map(c => Math.abs(c.sum)),
         backgroundColor: colors,
-        borderColor: chartColors.tooltipBackground,
-        borderWidth: 2,
+        borderWidth: 0,
+        hoverOffset: 8,
       }],
     };
-  }, [stats, chartColors.tooltipBackground]);
+  }, [stats]);
 
   // Bar chart data for spending by bank
   const bankBarData = useMemo(() => {
@@ -178,12 +184,12 @@ export function DashboardPage() {
         label: 'Spending',
         data: stats.by_bank.map(b => Math.abs(b.sum)),
         backgroundColor: stats.by_bank.map(b => BANK_COLORS[b.name as BankName] || UNCATEGORIZED_COLOR),
-        borderColor: chartColors.tooltipBackground,
-        borderWidth: 1,
-        borderRadius: 4,
+        borderWidth: 0,
+        borderRadius: 8,
+        borderSkipped: false,
       }],
     };
-  }, [stats, chartColors.tooltipBackground]);
+  }, [stats]);
 
   // Line chart data for spending over time
   const timeLineData = useMemo(() => {
@@ -201,17 +207,25 @@ export function DashboardPage() {
         label: 'Monthly Spending',
         data: stats.by_month.map(m => Math.abs(m.sum)),
         borderColor: chartColors.spendingLine,
-        backgroundColor: chartColors.spendingFill,
+        backgroundColor: (context: { chart: { ctx: CanvasRenderingContext2D; chartArea?: { top: number; bottom: number; left: number; right: number; width: number; height: number } } }) => {
+          const { ctx, chartArea } = context.chart;
+          if (!chartArea) return chartColors.spendingFill;
+          return createGradient(ctx, chartArea, chartColors.spendingRGB);
+        },
         fill: true,
-        tension: 0.3,
+        tension: 0.4,
+        borderWidth: 3,
+        pointRadius: 5,
         pointBackgroundColor: chartColors.spendingLine,
         pointBorderColor: chartColors.tooltipBackground,
         pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
+        pointHoverRadius: 8,
+        pointHoverBackgroundColor: chartColors.spendingLine,
+        pointHoverBorderColor: chartColors.tooltipBackground,
+        pointHoverBorderWidth: 3,
       }],
     };
-  }, [stats, chartColors]);
+  }, [stats, chartColors, createGradient]);
 
   // Line chart data for income over time
   const incomeLineData = useMemo(() => {
@@ -229,34 +243,33 @@ export function DashboardPage() {
         label: 'Monthly Income',
         data: stats.income_by_month.map(m => m.sum),
         borderColor: chartColors.incomeLine,
-        backgroundColor: chartColors.incomeFill,
+        backgroundColor: (context: { chart: { ctx: CanvasRenderingContext2D; chartArea?: { top: number; bottom: number; left: number; right: number; width: number; height: number } } }) => {
+          const { ctx, chartArea } = context.chart;
+          if (!chartArea) return chartColors.incomeFill;
+          return createGradient(ctx, chartArea, chartColors.incomeRGB);
+        },
         fill: true,
-        tension: 0.3,
+        tension: 0.4,
+        borderWidth: 3,
+        pointRadius: 5,
         pointBackgroundColor: chartColors.incomeLine,
         pointBorderColor: chartColors.tooltipBackground,
         pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
+        pointHoverRadius: 8,
+        pointHoverBackgroundColor: chartColors.incomeLine,
+        pointHoverBorderColor: chartColors.tooltipBackground,
+        pointHoverBorderWidth: 3,
       }],
     };
-  }, [stats, chartColors]);
+  }, [stats, chartColors, createGradient]);
 
-  // Chart options - memoized and theme-aware
+  // Chart options - modern premium styling
   const pieOptions = useMemo(() => ({
-    ...getDefaultOptions,
+    ...getPieChartOptions,
     plugins: {
-      ...getDefaultOptions.plugins,
-      legend: {
-        position: 'right' as const,
-        labels: {
-          ...getDefaultOptions.plugins.legend.labels,
-          padding: 16,
-          usePointStyle: true,
-          pointStyle: 'circle',
-        },
-      },
+      ...getPieChartOptions.plugins,
       tooltip: {
-        ...getDefaultOptions.plugins.tooltip,
+        ...getPieChartOptions.plugins.tooltip,
         callbacks: {
           label: (context: { label: string; parsed: number }) => {
             return `${context.label}: ${formatCurrency(context.parsed)}`;
@@ -264,19 +277,17 @@ export function DashboardPage() {
         },
       },
     },
-    // Pie charts don't have scales, remove them
-    scales: undefined,
-  }), [getDefaultOptions]);
+  }), [getPieChartOptions]);
 
   const barOptions = useMemo(() => ({
-    ...getDefaultOptions,
+    ...getBarChartOptions,
     plugins: {
-      ...getDefaultOptions.plugins,
+      ...getBarChartOptions.plugins,
       legend: {
         display: false,
       },
       tooltip: {
-        ...getDefaultOptions.plugins.tooltip,
+        ...getBarChartOptions.plugins.tooltip,
         callbacks: {
           label: (context: { parsed: { y: number | null } }) => {
             return formatCurrency(context.parsed.y ?? 0);
@@ -285,29 +296,27 @@ export function DashboardPage() {
       },
     },
     scales: {
-      x: {
-        ...getDefaultOptions.scales.x,
-      },
+      ...getBarChartOptions.scales,
       y: {
-        ...getDefaultOptions.scales.y,
+        ...getBarChartOptions.scales.y,
         beginAtZero: true,
         ticks: {
-          ...getDefaultOptions.scales.y.ticks,
+          ...getBarChartOptions.scales.y.ticks,
           callback: (value: number | string) => formatCurrency(Number(value)),
         },
       },
     },
-  }), [getDefaultOptions]);
+  }), [getBarChartOptions]);
 
   const lineOptions = useMemo(() => ({
-    ...getDefaultOptions,
+    ...getLineChartOptions,
     plugins: {
-      ...getDefaultOptions.plugins,
+      ...getLineChartOptions.plugins,
       legend: {
         display: false,
       },
       tooltip: {
-        ...getDefaultOptions.plugins.tooltip,
+        ...getLineChartOptions.plugins.tooltip,
         callbacks: {
           label: (context: { parsed: { y: number | null } }) => {
             return formatCurrency(context.parsed.y ?? 0);
@@ -316,19 +325,17 @@ export function DashboardPage() {
       },
     },
     scales: {
-      x: {
-        ...getDefaultOptions.scales.x,
-      },
+      ...getLineChartOptions.scales,
       y: {
-        ...getDefaultOptions.scales.y,
+        ...getLineChartOptions.scales.y,
         beginAtZero: true,
         ticks: {
-          ...getDefaultOptions.scales.y.ticks,
+          ...getLineChartOptions.scales.y.ticks,
           callback: (value: number | string) => formatCurrency(Number(value)),
         },
       },
     },
-  }), [getDefaultOptions]);
+  }), [getLineChartOptions]);
 
   // Check if we have any data
   const hasData = stats && stats.total_count > 0;
@@ -336,7 +343,7 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header with date selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in-up opacity-0" style={{ animationFillMode: 'forwards' }}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10 animate-fade-in-up opacity-0" style={{ animationFillMode: 'forwards' }}>
         <h1 className="text-2xl font-bold">
           <GradientText>Dashboard</GradientText>
         </h1>
@@ -421,17 +428,20 @@ export function DashboardPage() {
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in-up opacity-0 animation-delay-300" style={{ animationFillMode: 'forwards' }}>
             {/* Spending by Category Pie Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Spending by Category</CardTitle>
+            <Card elevation="md" className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-1 rounded-full bg-gradient-to-b from-primary to-primary/40" />
+                  <CardTitle className="text-lg font-semibold">Spending by Category</CardTitle>
+                </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 {categoryPieData ? (
-                  <div className="h-64">
+                  <div className="h-72">
                     <Pie data={categoryPieData} options={pieOptions} />
                   </div>
                 ) : (
-                  <div className="h-64 flex items-center justify-center text-muted-foreground">
+                  <div className="h-72 flex items-center justify-center text-muted-foreground">
                     No expense data available
                   </div>
                 )}
@@ -439,17 +449,20 @@ export function DashboardPage() {
             </Card>
 
             {/* Spending by Bank Bar Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Spending by Bank</CardTitle>
+            <Card elevation="md" className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-1 rounded-full bg-gradient-to-b from-chart-2 to-chart-2/40" />
+                  <CardTitle className="text-lg font-semibold">Spending by Bank</CardTitle>
+                </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 {bankBarData ? (
-                  <div className="h-64">
+                  <div className="h-72">
                     <Bar data={bankBarData} options={barOptions} />
                   </div>
                 ) : (
-                  <div className="h-64 flex items-center justify-center text-muted-foreground">
+                  <div className="h-72 flex items-center justify-center text-muted-foreground">
                     No bank data available
                   </div>
                 )}
@@ -460,17 +473,20 @@ export function DashboardPage() {
           {/* Spending and Income Over Time Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in-up opacity-0 animation-delay-400" style={{ animationFillMode: 'forwards' }}>
             {/* Spending Over Time Line Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Spending Over Time</CardTitle>
+            <Card elevation="md" className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-1 rounded-full bg-gradient-to-b from-destructive to-destructive/40" />
+                  <CardTitle className="text-lg font-semibold">Spending Over Time</CardTitle>
+                </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 {timeLineData ? (
-                  <div className="h-64">
+                  <div className="h-72">
                     <Line data={timeLineData} options={lineOptions} />
                   </div>
                 ) : (
-                  <div className="h-64 flex items-center justify-center text-muted-foreground">
+                  <div className="h-72 flex items-center justify-center text-muted-foreground">
                     No spending data available
                   </div>
                 )}
@@ -478,17 +494,20 @@ export function DashboardPage() {
             </Card>
 
             {/* Income Over Time Line Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Income Over Time</CardTitle>
+            <Card elevation="md" className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-1 rounded-full bg-gradient-to-b from-success to-success/40" />
+                  <CardTitle className="text-lg font-semibold">Income Over Time</CardTitle>
+                </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 {incomeLineData ? (
-                  <div className="h-64">
+                  <div className="h-72">
                     <Line data={incomeLineData} options={lineOptions} />
                   </div>
                 ) : (
-                  <div className="h-64 flex items-center justify-center text-muted-foreground">
+                  <div className="h-72 flex items-center justify-center text-muted-foreground">
                     No income data available
                   </div>
                 )}
