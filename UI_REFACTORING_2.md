@@ -528,7 +528,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-13: Redesign LoadingSpinner with Gradient
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Loading spinner is a basic gray ring. It lacks personality and doesn't match the premium aesthetic.
@@ -546,10 +546,18 @@ This document contains work items to transform the spending dashboard from a fun
 5. Ensure it works on any background color
 
 **Acceptance Criteria:**
-- [ ] Spinner uses brand gradient colors
-- [ ] Animation is smooth and premium-feeling
-- [ ] Size variants work correctly
-- [ ] Looks good in both light and dark mode
+- [x] Spinner uses brand gradient colors
+- [x] Animation is smooth and premium-feeling
+- [x] Size variants work correctly
+- [x] Looks good in both light and dark mode
+
+**Implementation Notes:**
+- Redesigned spinner to use primary color gradient via border opacity stops (`border-t-primary`, `border-r-primary/60`, `border-b-primary/20`, `border-l-primary/40`)
+- Added smooth cubic-bezier easing for premium rotation feel
+- Added `animate-pulse-subtle` for layered pulse effect
+- Changed size variant from `md` to `default` for consistency with other components (sm/default/lg pattern)
+- Added proportional border widths per size (2px/3px/4px) for visual balance
+- Pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand commit dd98b3b)
 
 ---
 
