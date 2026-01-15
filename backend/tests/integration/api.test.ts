@@ -219,6 +219,32 @@ describe('API Integration Tests', () => {
         expect(response.status).toBe(200);
         expect(response.body.total_count).toBe(4);
       });
+
+      it('should return by_bank with only expenses (not income)', async () => {
+        const db = getDatabase();
+        seedStandardTestData(db);
+
+        const response = await request(app).get('/api/transactions/stats');
+
+        expect(response.status).toBe(200);
+        const byBank = response.body.by_bank;
+
+        // All test data is expenses, verify the sums are negative
+        const csob = byBank.find((b: { name: string }) => b.name === 'CSOB');
+        expect(csob).toBeDefined();
+        expect(csob.sum).toBe(-280); // -50 + -30 + -200
+        expect(csob.count).toBe(3);
+
+        const revolut = byBank.find((b: { name: string }) => b.name === 'Revolut');
+        expect(revolut).toBeDefined();
+        expect(revolut.sum).toBe(-220); // -100 + -75 + -45
+        expect(revolut.count).toBe(3);
+
+        const raiffeisen = byBank.find((b: { name: string }) => b.name === 'Raiffeisen');
+        expect(raiffeisen).toBeDefined();
+        expect(raiffeisen.sum).toBe(-25);
+        expect(raiffeisen.count).toBe(1);
+      });
     });
 
     describe('GET /api/transactions/:id', () => {

@@ -157,15 +157,16 @@ router.get('/stats', (req: Request<{}, {}, {}, TransactionListQuery>, res: Respo
       sum: number;
     }[];
 
-    // By bank
+    // By bank (expenses only - negative amounts)
     const byBankQuery = `
       SELECT
         t.bank as name,
-        COUNT(*) as count,
-        SUM(t.amount) as sum
+        SUM(CASE WHEN t.amount < 0 THEN 1 ELSE 0 END) as count,
+        SUM(CASE WHEN t.amount < 0 THEN t.amount ELSE 0 END) as sum
       FROM transactions t
       ${whereClause}
       GROUP BY t.bank
+      HAVING SUM(CASE WHEN t.amount < 0 THEN t.amount ELSE 0 END) < 0
       ORDER BY sum ASC
     `;
     const byBank = db.prepare(byBankQuery).all(...params) as {

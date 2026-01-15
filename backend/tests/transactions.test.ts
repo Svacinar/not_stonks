@@ -468,25 +468,78 @@ describe('Transactions Route Logic', () => {
       expect(finance?.sum).toBe(200); // Categorized income keeps its category
     });
 
-    it('should return stats by bank', () => {
+    it('should return stats by bank (expenses only)', () => {
       const db = getDatabase();
       seedStandardTestData(db);
 
+      // This query matches the actual stats endpoint logic - only counts expenses
       const result = db
         .prepare(
           `
-        SELECT bank as name, COUNT(*) as count, SUM(amount) as sum
-        FROM transactions
-        GROUP BY bank
+        SELECT
+          t.bank as name,
+          SUM(CASE WHEN t.amount < 0 THEN 1 ELSE 0 END) as count,
+          SUM(CASE WHEN t.amount < 0 THEN t.amount ELSE 0 END) as sum
+        FROM transactions t
+        GROUP BY t.bank
+        HAVING SUM(CASE WHEN t.amount < 0 THEN t.amount ELSE 0 END) < 0
         ORDER BY sum ASC
       `
         )
         .all() as { name: string; count: number; sum: number }[];
 
       expect(result.length).toBe(3);
+      // CSOB: -50 + -30 + -200 = -280
       expect(result.find((b) => b.name === 'CSOB')?.count).toBe(3);
+      expect(result.find((b) => b.name === 'CSOB')?.sum).toBe(-280);
+      // Revolut: -100 + -75 + -45 = -220
       expect(result.find((b) => b.name === 'Revolut')?.count).toBe(3);
+      expect(result.find((b) => b.name === 'Revolut')?.sum).toBe(-220);
+      // Raiffeisen: -25
       expect(result.find((b) => b.name === 'Raiffeisen')?.count).toBe(1);
+      expect(result.find((b) => b.name === 'Raiffeisen')?.sum).toBe(-25);
+    });
+
+    it('should only include expenses in spending by bank (not income)', () => {
+      const db = getDatabase();
+      // Use mixed income/expense data to verify income is excluded
+      seedMixedIncomeExpenseData(db);
+
+      // This query matches the actual stats endpoint logic
+      const result = db
+        .prepare(
+          `
+        SELECT
+          t.bank as name,
+          SUM(CASE WHEN t.amount < 0 THEN 1 ELSE 0 END) as count,
+          SUM(CASE WHEN t.amount < 0 THEN t.amount ELSE 0 END) as sum
+        FROM transactions t
+        GROUP BY t.bank
+        HAVING SUM(CASE WHEN t.amount < 0 THEN t.amount ELSE 0 END) < 0
+        ORDER BY sum ASC
+      `
+        )
+        .all() as { name: string; count: number; sum: number }[];
+
+      // CSOB has: -50 (Food expense) + -75 (uncategorized expense) + 5000 (salary) + 200 (tax refund)
+      // Only expenses should be counted: -50 + -75 = -125
+      const csob = result.find((b) => b.name === 'CSOB');
+      expect(csob).toBeDefined();
+      expect(csob?.count).toBe(2); // Only 2 expense transactions
+      expect(csob?.sum).toBe(-125); // Only expense amounts
+
+      // Revolut has: -100 (uncategorized expense) + 1500 (freelance income)
+      // Only expenses should be counted: -100
+      const revolut = result.find((b) => b.name === 'Revolut');
+      expect(revolut).toBeDefined();
+      expect(revolut?.count).toBe(1); // Only 1 expense transaction
+      expect(revolut?.sum).toBe(-100); // Only expense amount
+
+      // Raiffeisen has: -30 (Transport expense)
+      const raiffeisen = result.find((b) => b.name === 'Raiffeisen');
+      expect(raiffeisen).toBeDefined();
+      expect(raiffeisen?.count).toBe(1);
+      expect(raiffeisen?.sum).toBe(-30);
     });
 
     it('should return stats by month', () => {
