@@ -26,7 +26,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
-import { BANK_COLORS, CHART_COLORS_HEX } from '@/constants/colors';
+import { BANK_COLORS, CHART_COLORS_HEX, UNCATEGORIZED_COLOR } from '@/constants/colors';
 import { useChartTheme } from '@/hooks/useChartTheme';
 import {
   getDefaultDateRange,
@@ -145,14 +145,11 @@ export function DashboardPage() {
     // Return null if no expenses to show
     if (expenses.length === 0) return null;
 
-    // Gray color for uncategorized items
-    const uncategorizedColor = '#6b7280';
-
     // Assign colors: gray for Uncategorized, chart colors for others
     let colorIndex = 0;
     const colors = expenses.map(c => {
       if (c.name === 'Uncategorized') {
-        return uncategorizedColor;
+        return UNCATEGORIZED_COLOR;
       }
       return CHART_COLORS_HEX[colorIndex++ % CHART_COLORS_HEX.length];
     });
@@ -177,7 +174,7 @@ export function DashboardPage() {
       datasets: [{
         label: 'Spending',
         data: stats.by_bank.map(b => Math.abs(b.sum)),
-        backgroundColor: stats.by_bank.map(b => BANK_COLORS[b.name as BankName] || '#6b7280'),
+        backgroundColor: stats.by_bank.map(b => BANK_COLORS[b.name as BankName] || UNCATEGORIZED_COLOR),
         borderColor: chartColors.tooltipBackground,
         borderWidth: 1,
         borderRadius: 4,
@@ -200,18 +197,18 @@ export function DashboardPage() {
       datasets: [{
         label: 'Monthly Spending',
         data: stats.by_month.map(m => Math.abs(m.sum)),
-        borderColor: CHART_COLORS_HEX[1], // blue
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        borderColor: chartColors.spendingLine,
+        backgroundColor: chartColors.spendingFill,
         fill: true,
         tension: 0.3,
-        pointBackgroundColor: CHART_COLORS_HEX[1],
+        pointBackgroundColor: chartColors.spendingLine,
         pointBorderColor: chartColors.tooltipBackground,
         pointBorderWidth: 2,
         pointRadius: 4,
         pointHoverRadius: 6,
       }],
     };
-  }, [stats, chartColors.tooltipBackground]);
+  }, [stats, chartColors]);
 
   // Line chart data for income over time
   const incomeLineData = useMemo(() => {
@@ -228,18 +225,18 @@ export function DashboardPage() {
       datasets: [{
         label: 'Monthly Income',
         data: stats.income_by_month.map(m => m.sum),
-        borderColor: '#10b981', // emerald-500 for income
-        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        borderColor: chartColors.incomeLine,
+        backgroundColor: chartColors.incomeFill,
         fill: true,
         tension: 0.3,
-        pointBackgroundColor: '#10b981',
+        pointBackgroundColor: chartColors.incomeLine,
         pointBorderColor: chartColors.tooltipBackground,
         pointBorderWidth: 2,
         pointRadius: 4,
         pointHoverRadius: 6,
       }],
     };
-  }, [stats, chartColors.tooltipBackground]);
+  }, [stats, chartColors]);
 
   // Chart options - memoized and theme-aware
   const pieOptions = useMemo(() => ({

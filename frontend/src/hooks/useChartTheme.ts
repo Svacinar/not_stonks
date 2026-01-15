@@ -18,6 +18,14 @@ interface ChartThemeColors {
   tooltipText: string;
   /** Tooltip border color */
   tooltipBorder: string;
+  /** Primary/spending chart line color */
+  spendingLine: string;
+  /** Primary/spending chart fill color (with alpha) */
+  spendingFill: string;
+  /** Income/success chart line color */
+  incomeLine: string;
+  /** Income/success chart fill color (with alpha) */
+  incomeFill: string;
 }
 
 /**
@@ -36,6 +44,10 @@ export function useChartTheme() {
         tooltipBackground: 'hsl(222, 84%, 8%)', // slightly lighter than card background
         tooltipText: 'hsl(210, 40%, 98%)', // foreground in dark mode
         tooltipBorder: 'hsl(217, 33%, 17%)', // border in dark mode
+        spendingLine: 'hsl(217, 91%, 65%)', // chart-2 in dark mode
+        spendingFill: 'hsla(217, 91%, 65%, 0.15)', // chart-2 with alpha for dark mode
+        incomeLine: 'hsl(152, 70%, 50%)', // success in dark mode
+        incomeFill: 'hsla(152, 70%, 50%, 0.15)', // success with alpha for dark mode
       };
     }
     return {
@@ -45,6 +57,10 @@ export function useChartTheme() {
       tooltipBackground: 'hsl(0, 0%, 100%)', // white background
       tooltipText: 'hsl(222, 84%, 5%)', // foreground in light mode
       tooltipBorder: 'hsl(214, 32%, 91%)', // border in light mode
+      spendingLine: 'hsl(217, 91%, 60%)', // chart-2 in light mode
+      spendingFill: 'hsla(217, 91%, 60%, 0.1)', // chart-2 with alpha for light mode
+      incomeLine: 'hsl(152, 76%, 45%)', // success in light mode
+      incomeFill: 'hsla(152, 76%, 45%, 0.1)', // success with alpha for light mode
     };
   }, [resolvedTheme]);
 

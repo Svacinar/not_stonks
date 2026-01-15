@@ -67,3 +67,14 @@ export const UNCATEGORIZED_COLOR = '#9ca3af';
  * Uncategorized color using CSS variable for theme-aware styling.
  */
 export const UNCATEGORIZED_COLOR_HSL = 'hsl(var(--uncategorized))';
+
+/**
+ * Income/success color for charts (emerald-500).
+ * Used for income line charts and positive values.
+ */
+export const INCOME_COLOR = '#10b981';
+
+/**
+ * Income/success color using CSS variable for theme-aware styling.
+ */
+export const INCOME_COLOR_HSL = 'hsl(var(--success))';

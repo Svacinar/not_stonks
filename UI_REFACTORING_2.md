@@ -663,7 +663,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-17: Refactor Chart Hardcoded Colors
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Chart code has hardcoded colors:
@@ -685,9 +685,17 @@ This document contains work items to transform the spending dashboard from a fun
 4. Ensure chart colors work in both themes
 
 **Acceptance Criteria:**
-- [ ] No hardcoded hex colors in chart configuration
-- [ ] Colors sourced from design tokens/constants
-- [ ] Charts look good in both light and dark mode
+- [x] No hardcoded hex colors in chart configuration
+- [x] Colors sourced from design tokens/constants
+- [x] Charts look good in both light and dark mode
+
+**Implementation Notes:**
+- Added `INCOME_COLOR` and `INCOME_COLOR_HSL` exports to `frontend/src/constants/colors.ts`
+- Extended `useChartTheme.ts` with theme-aware chart colors: `spendingLine`, `spendingFill`, `incomeLine`, `incomeFill`
+- Replaced `#6b7280` with `UNCATEGORIZED_COLOR` constant for pie chart and bank bar chart fallbacks
+- Replaced `rgba(59, 130, 246, 0.1)` with `chartColors.spendingFill` for spending line chart
+- Replaced `#10b981` and `rgba(16, 185, 129, 0.1)` with `chartColors.incomeLine` and `chartColors.incomeFill` for income chart
+- Pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand commit dd98b3b)
 
 ---
 
