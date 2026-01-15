@@ -146,5 +146,21 @@ export default {
       }, {});
       addUtilities(utilities);
     },
+    // Glass effect utilities plugin
+    function({ addComponents }) {
+      addComponents({
+        ".glass": {
+          backgroundColor: "hsl(var(--background) / 0.8)",
+          backdropFilter: "blur(24px)",
+          "-webkit-backdrop-filter": "blur(24px)",
+          border: "1px solid hsl(var(--border) / 0.5)",
+        },
+        ".glass-subtle": {
+          backgroundColor: "hsl(var(--background) / 0.6)",
+          backdropFilter: "blur(8px)",
+          "-webkit-backdrop-filter": "blur(8px)",
+        },
+      });
+    },
   ],
 }

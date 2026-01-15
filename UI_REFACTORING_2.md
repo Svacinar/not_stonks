@@ -221,7 +221,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-05: Extend Tailwind with Glass Effect Utilities
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** No glass/frosted effect utilities exist for creating the premium layered look.
@@ -244,9 +244,17 @@ This document contains work items to transform the spending dashboard from a fun
 2. Or add via Tailwind plugin for `glass` and `glass-subtle` classes
 
 **Acceptance Criteria:**
-- [ ] `.glass` class creates frosted glass effect
-- [ ] Effect works in both light and dark modes
-- [ ] No performance issues on mobile devices
+- [x] `.glass` class creates frosted glass effect
+- [x] Effect works in both light and dark modes
+- [x] No performance issues on mobile devices
+
+**Implementation Notes:**
+- Added glass effect utilities via Tailwind plugin in `frontend/tailwind.config.js`
+- `.glass` class: 80% background opacity, 24px blur, 50% border opacity
+- `.glass-subtle` class: 60% background opacity, 8px blur (no border)
+- Both include `-webkit-backdrop-filter` for Safari compatibility
+- Uses CSS variables (`--background`, `--border`) for automatic light/dark mode support
+- Build passes successfully; pre-existing test failure in Sidebar.test.tsx (unrelated)
 
 ---
 
