@@ -372,7 +372,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-09: Create StatCard Component
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** Stat cards in `DashboardPage.tsx:386-467` have inconsistent styling and hardcoded colors. Each card's icon container uses different arbitrary colors.
@@ -403,11 +403,19 @@ This document contains work items to transform the spending dashboard from a fun
 5. Use Card component as base
 
 **Acceptance Criteria:**
-- [ ] StatCard renders with consistent styling
-- [ ] Icon containers use gradient backgrounds
-- [ ] Hover effect lifts card with shadow
-- [ ] Trend indicator shows direction and value
-- [ ] All variants work in light and dark mode
+- [x] StatCard renders with consistent styling
+- [x] Icon containers use gradient backgrounds
+- [x] Hover effect lifts card with shadow
+- [x] Trend indicator shows direction and value
+- [x] All variants work in light and dark mode
+
+**Implementation Notes:**
+- Created `frontend/src/components/ui/stat-card.tsx` with StatCard component using CVA for variant management
+- Implemented 4 variants: `default`, `success`, `warning`, `danger` with gradient icon backgrounds
+- Added hover effect with `hover:shadow-lg hover:-translate-y-1 transition-all duration-300`
+- Added trend indicator using TrendingUp/TrendingDown icons from lucide-react with semantic colors
+- Exported `StatCard`, `statCardVariants`, and `iconContainerVariants` for flexibility
+- Build passes successfully; pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand)
 
 ---
 
