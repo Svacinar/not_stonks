@@ -94,24 +94,24 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
 
   const typeStyles: Record<ToastType, { bg: string; icon: string; iconBg: string }> = {
     success: {
-      bg: 'bg-green-50 border-green-200',
-      icon: 'text-green-400',
-      iconBg: 'text-green-600',
+      bg: 'bg-success/10 border-success/30',
+      icon: 'text-success/70',
+      iconBg: 'text-success',
     },
     error: {
-      bg: 'bg-red-50 border-red-200',
-      icon: 'text-red-400',
-      iconBg: 'text-red-600',
+      bg: 'bg-destructive/10 border-destructive/30',
+      icon: 'text-destructive/70',
+      iconBg: 'text-destructive',
     },
     warning: {
-      bg: 'bg-yellow-50 border-yellow-200',
-      icon: 'text-yellow-400',
-      iconBg: 'text-yellow-600',
+      bg: 'bg-warning/10 border-warning/30',
+      icon: 'text-warning/70',
+      iconBg: 'text-warning-foreground',
     },
     info: {
-      bg: 'bg-blue-50 border-blue-200',
-      icon: 'text-blue-400',
-      iconBg: 'text-blue-600',
+      bg: 'bg-primary/10 border-primary/30',
+      icon: 'text-primary/70',
+      iconBg: 'text-primary',
     },
   };
 

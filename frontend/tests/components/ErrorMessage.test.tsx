@@ -42,9 +42,9 @@ describe('ErrorMessage', () => {
     expect(screen.getByRole('alert')).toHaveClass('custom-class');
   });
 
-  it('has red background styling', () => {
+  it('has destructive background styling', () => {
     render(<ErrorMessage message="Error" />);
 
-    expect(screen.getByRole('alert')).toHaveClass('bg-red-50');
+    expect(screen.getByRole('alert')).toHaveClass('bg-destructive/10');
   });
 });

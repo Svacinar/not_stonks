@@ -841,7 +841,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-22: Refactor Toast and ErrorMessage Colors
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Toast and ErrorMessage components use hardcoded Tailwind colors with no dark mode support.
@@ -862,9 +862,17 @@ This document contains work items to transform the spending dashboard from a fun
 3. Ensure dark mode works via CSS variables
 
 **Acceptance Criteria:**
-- [ ] Toast colors use semantic tokens
-- [ ] ErrorMessage uses semantic tokens
-- [ ] Both work correctly in dark mode
+- [x] Toast colors use semantic tokens
+- [x] ErrorMessage uses semantic tokens
+- [x] Both work correctly in dark mode
+
+**Implementation Notes:**
+- Added `--warning` and `--warning-foreground` CSS variables to `:root` and `.dark` in `frontend/src/index.css`
+- Extended Tailwind config with `warning` color mapping in `frontend/tailwind.config.js`
+- Updated Toast typeStyles to use semantic tokens: `bg-success/10`, `bg-destructive/10`, `bg-warning/10`, `bg-primary/10`
+- Updated ErrorMessage to use `bg-destructive/10 border-destructive/30` and `text-destructive`
+- Updated tests in `Toast.test.tsx` and `ErrorMessage.test.tsx` to match new semantic classes
+- Pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand commit dd98b3b)
 
 ---
 
