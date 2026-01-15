@@ -765,7 +765,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-20: Enhance DashboardPage with StatCard Component
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** Dashboard stat cards (`DashboardPage.tsx:386-467`) use inconsistent inline styling with hardcoded colors.
@@ -786,10 +786,18 @@ This document contains work items to transform the spending dashboard from a fun
 4. Add entrance animations with stagger
 
 **Acceptance Criteria:**
-- [ ] All stat cards use StatCard component
-- [ ] Cards have gradient icon backgrounds
-- [ ] Hover effects work (lift + shadow)
-- [ ] Animations stagger on page load
+- [x] All stat cards use StatCard component
+- [x] Cards have gradient icon backgrounds
+- [x] Hover effects work (lift + shadow)
+- [x] Animations stagger on page load
+
+**Implementation Notes:**
+- Replaced 4 inline stat cards with StatCard component in `frontend/src/pages/DashboardPage.tsx`
+- Imported `StatCard` from `@/components/ui/stat-card` and Lucide icons (`DollarSign`, `ClipboardList`, `Calculator`, `TrendingUp`)
+- Mapped variants: Total Spending → `danger`, Transactions → `default`, Average → `default`, Largest Category → `warning`
+- Added `animate-fade-in-up` with staggered delays (100ms, 150ms, 200ms, 250ms) for entrance animations
+- Gradient icon backgrounds and hover effects inherited from StatCard component (UI2-09)
+- Pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand commit dd98b3b)
 
 ---
 
