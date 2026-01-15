@@ -494,7 +494,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-12: Create SortIcon Component
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Problem:** Table sort indicators in `TransactionsPage.tsx:316-317` use ASCII ` ▲` ` ▼` instead of proper icons.
@@ -512,10 +512,18 @@ This document contains work items to transform the spending dashboard from a fun
 5. Include proper `aria-label`
 
 **Acceptance Criteria:**
-- [ ] SortIcon renders appropriate arrow for direction
-- [ ] Null state shows muted indicator
-- [ ] Smooth transition when direction changes
-- [ ] Proper accessibility attributes
+- [x] SortIcon renders appropriate arrow for direction
+- [x] Null state shows muted indicator
+- [x] Smooth transition when direction changes
+- [x] Proper accessibility attributes
+
+**Implementation Notes:**
+- Created `frontend/src/components/ui/sort-icon.tsx` with SortIcon component
+- Uses Lucide icons: `ChevronUp` for asc, `ChevronDown` for desc, `ChevronsUpDown` for null (unsorted)
+- Null state uses muted-foreground/50 for visual distinction from active states
+- Added `transition-all duration-200` for smooth transitions between states
+- Includes proper `aria-label` and `role="img"` for accessibility
+- Exports `SortDirection` type for use in consuming components
 
 ---
 
