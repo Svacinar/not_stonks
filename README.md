@@ -2,6 +2,8 @@
 
 A personal finance dashboard for analyzing bank statements from Czech banks (CSOB, Raiffeisen) and Revolut, with intelligent keyword-based transaction categorization.
 
+![Dashboard Screenshot](docs/dashboard-screenshot.png)
+
 ## Features
 
 - **Multi-Bank Support** - Import statements from CSOB, Raiffeisen, and Revolut (CSV/XLSX formats)
