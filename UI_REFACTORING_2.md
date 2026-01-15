@@ -629,7 +629,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-16: Refactor Status Alerts to Use Alert Component
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** Status messages use inline hardcoded styling:
@@ -648,9 +648,17 @@ This document contains work items to transform the spending dashboard from a fun
 3. Maintain dismiss functionality via `onDismiss` prop
 
 **Acceptance Criteria:**
-- [ ] Success messages use Alert component
-- [ ] No inline green color classes in alert sections
-- [ ] Dismiss behavior preserved
+- [x] Success messages use Alert component
+- [x] No inline green color classes in alert sections
+- [x] Dismiss behavior preserved
+
+**Implementation Notes:**
+- Replaced inline success alert in `RulesPage.tsx:271-279` with `Alert variant="success"` using CheckCircle2 icon and AlertDescription
+- Replaced inline success card in `UploadPage.tsx:180-210` with `Alert variant="success"` using AlertTitle and AlertDescription
+- Both alerts use the onDismiss prop for dismiss functionality
+- Updated `RulesPage.test.tsx` to use `role="alert"` instead of `role="status"` (Alert component uses role="alert")
+- All alert-related green color classes removed from both pages
+- Pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand commit dd98b3b)
 
 ---
 

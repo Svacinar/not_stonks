@@ -5,8 +5,10 @@ import { UploadResponse, BankName } from '../../../shared/types';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
+import { CheckCircle2 } from 'lucide-react';
 
 interface SelectedFile {
   file: File;
@@ -175,57 +177,37 @@ export function UploadPage() {
 
       {/* Success State */}
       {uploadState === 'success' && uploadResult && (
-        <Card className="mb-6 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
-          <CardContent className="p-6">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-6 w-6 text-green-500 dark:text-green-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3 flex-1">
-                <h3 className="text-lg font-medium text-green-800 dark:text-green-200">Upload Successful</h3>
-                <div className="mt-2 text-sm text-green-700 dark:text-green-300">
-                  <p className="font-medium">
-                    Imported {uploadResult.imported} transactions
-                    {Object.keys(uploadResult.byBank).length > 0 && (
-                      <span> from {getBankSummary(uploadResult.byBank)}</span>
-                    )}
-                  </p>
-                  {uploadResult.duplicates > 0 && (
-                    <p className="mt-1">
-                      {uploadResult.duplicates} duplicate{uploadResult.duplicates !== 1 ? 's' : ''} skipped
-                    </p>
-                  )}
-                </div>
-                <div className="mt-4 flex gap-3">
-                  <Button
-                    onClick={handleGoToTransactions}
-                    variant="success"
-                  >
-                    View Transactions
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={clearAllFiles}
-                  >
-                    Upload More
-                  </Button>
-                </div>
-              </div>
+        <Alert variant="success" className="mb-6">
+          <CheckCircle2 className="h-5 w-5" />
+          <AlertTitle className="text-base">Upload Successful</AlertTitle>
+          <AlertDescription>
+            <p className="font-medium">
+              Imported {uploadResult.imported} transactions
+              {Object.keys(uploadResult.byBank).length > 0 && (
+                <span> from {getBankSummary(uploadResult.byBank)}</span>
+              )}
+            </p>
+            {uploadResult.duplicates > 0 && (
+              <p className="mt-1">
+                {uploadResult.duplicates} duplicate{uploadResult.duplicates !== 1 ? 's' : ''} skipped
+              </p>
+            )}
+            <div className="mt-4 flex gap-3">
+              <Button
+                onClick={handleGoToTransactions}
+                variant="success"
+              >
+                View Transactions
+              </Button>
+              <Button
+                variant="outline"
+                onClick={clearAllFiles}
+              >
+                Upload More
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Error Message */}

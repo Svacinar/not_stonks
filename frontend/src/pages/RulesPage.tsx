@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CheckCircle2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -267,35 +269,13 @@ export function RulesPage() {
 
       {/* Apply Result */}
       {applyResult && (
-        <div className="rounded-md bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-4" role="status">
-          <div className="flex items-center">
-            <svg
-              className="h-5 w-5 text-green-400 mr-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <p className="text-sm text-green-700 dark:text-green-300">
-              Categorized <span className="font-medium">{applyResult.categorized}</span> of{' '}
-              <span className="font-medium">{applyResult.total}</span> uncategorized transactions
-            </p>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setApplyResult(null)}
-              className="ml-auto h-6 w-6 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </Button>
-          </div>
-        </div>
+        <Alert variant="success" onDismiss={() => setApplyResult(null)}>
+          <CheckCircle2 className="h-4 w-4" />
+          <AlertDescription>
+            Categorized <span className="font-medium">{applyResult.categorized}</span> of{' '}
+            <span className="font-medium">{applyResult.total}</span> uncategorized transactions
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Error */}

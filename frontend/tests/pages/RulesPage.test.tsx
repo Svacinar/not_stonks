@@ -416,13 +416,13 @@ describe('RulesPage', () => {
     fireEvent.click(screen.getByText('Apply Rules'));
 
     await waitFor(() => {
-      expect(screen.getByRole('status')).toBeInTheDocument();
+      expect(screen.getByRole('alert')).toBeInTheDocument();
     });
 
     // Dismiss the notification
-    const dismissButton = screen.getByRole('status').querySelector('button');
+    const dismissButton = screen.getByRole('alert').querySelector('button');
     fireEvent.click(dismissButton!);
 
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });
