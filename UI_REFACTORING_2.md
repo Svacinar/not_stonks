@@ -91,7 +91,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-02: Add Uncategorized/Fallback Color Token
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Category color fallback uses hardcoded `#9ca3af` (gray-400) in multiple locations: `DashboardPage.tsx:593`, `TransactionsPage.tsx:564`, `RulesPage.tsx:230`.
@@ -109,9 +109,17 @@ This document contains work items to transform the spending dashboard from a fun
 3. Update Tailwind config with `uncategorized` color mapping
 
 **Acceptance Criteria:**
-- [ ] `constants/colors.ts` exports `UNCATEGORIZED_COLOR`
-- [ ] `bg-uncategorized`, `text-uncategorized` classes work
-- [ ] Color is consistent across light/dark modes
+- [x] `constants/colors.ts` exports `UNCATEGORIZED_COLOR`
+- [x] `bg-uncategorized`, `text-uncategorized` classes work
+- [x] Color is consistent across light/dark modes
+
+**Implementation Notes:**
+- Added `--uncategorized: 220 9% 64%` CSS variable to `:root` in `frontend/src/index.css`
+- Added dark mode variant `--uncategorized: 220 9% 55%` in `.dark` class
+- Extended Tailwind config with `uncategorized` color mapping in `frontend/tailwind.config.js`
+- Added `UNCATEGORIZED_COLOR` (#9ca3af) and `UNCATEGORIZED_COLOR_HSL` exports to `frontend/src/constants/colors.ts`
+- Build passes successfully
+- Pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand commit dd98b3b)
 
 ---
 

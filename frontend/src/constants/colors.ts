@@ -55,3 +55,15 @@ export const BANK_COLORS_HSL: Record<string, string> = {
   Raiffeisen: 'hsl(var(--bank-raiffeisen))',
   Revolut: 'hsl(var(--bank-revolut))',
 } as const;
+
+/**
+ * Uncategorized/fallback color for categories without assigned colors.
+ * Corresponds to CSS variable: --uncategorized
+ * Hex value: #9ca3af (gray-400 equivalent)
+ */
+export const UNCATEGORIZED_COLOR = '#9ca3af';
+
+/**
+ * Uncategorized color using CSS variable for theme-aware styling.
+ */
+export const UNCATEGORIZED_COLOR_HSL = 'hsl(var(--uncategorized))';
