@@ -802,7 +802,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-21: Add Table Row Hover Effects
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Table rows have minimal hover feedback. The tables feel static.
@@ -826,9 +826,17 @@ This document contains work items to transform the spending dashboard from a fun
 3. Ensure clickable rows have `cursor-pointer`
 
 **Acceptance Criteria:**
-- [ ] Table rows have visible hover feedback
-- [ ] Transition is smooth
-- [ ] Works in both light and dark mode
+- [x] Table rows have visible hover feedback
+- [x] Transition is smooth
+- [x] Works in both light and dark mode
+
+**Implementation Notes:**
+- Enhanced TableRow in `frontend/src/components/ui/table.tsx` with `hover:bg-accent/50` and `duration-150` transition
+- Added left border hover effect using `border-l-2 border-l-transparent hover:border-l-primary`
+- Clickable rows already handled via className override (cursor-pointer applied per-usage in pages)
+- Uses CSS variables (`--accent`, `--primary`) for automatic light/dark mode support
+- Build passes successfully
+- Pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand commit dd98b3b)
 
 ---
 
