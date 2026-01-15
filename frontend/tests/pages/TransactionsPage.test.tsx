@@ -316,11 +316,10 @@ describe('TransactionsPage', () => {
     });
 
     // Click on a categorized transaction's category in the table
-    const tableRows = screen.getAllByRole('row');
-    const firstDataRow = tableRows[1]; // Skip header
-    const categoryButton = firstDataRow.querySelector('button');
-    if (categoryButton) {
-      fireEvent.click(categoryButton);
+    // Find the category button by clicking on the category name text
+    const groceriesButton = screen.getAllByText('Groceries')[0].closest('button');
+    if (groceriesButton) {
+      fireEvent.click(groceriesButton);
 
       // Select new category
       await waitFor(() => {

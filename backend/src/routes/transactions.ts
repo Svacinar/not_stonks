@@ -367,14 +367,15 @@ router.patch(
 
 /**
  * DELETE /api/transactions/:id
- * Delete a transaction
+ * Soft delete a transaction (marks as hidden, keeps for deduplication)
  */
 router.delete('/:id', validateIdParam, (req: Request<{ id: string }>, res: Response): void => {
   try {
     const db = getDatabase();
     const { id } = req.params;
 
-    const result = db.prepare('DELETE FROM transactions WHERE id = ?').run(id);
+    // Soft delete - mark as hidden instead of actually deleting
+    const result = db.prepare('UPDATE transactions SET is_hidden = 1 WHERE id = ? AND is_hidden = 0').run(id);
 
     if (result.changes === 0) {
       res.status(404).json(createErrorResponse(ErrorCodes.NOT_FOUND, 'Transaction not found'));
@@ -382,6 +383,37 @@ router.delete('/:id', validateIdParam, (req: Request<{ id: string }>, res: Respo
     }
 
     res.json({ success: true, deleted: 1 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
+  }
+});
+
+/**
+ * POST /api/transactions/bulk-delete
+ * Soft delete multiple transactions
+ */
+router.post('/bulk-delete', (req: Request<{}, {}, { ids: number[] }>, res: Response): void => {
+  try {
+    const db = getDatabase();
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      res.status(400).json(createErrorResponse(ErrorCodes.BAD_REQUEST, 'ids must be a non-empty array'));
+      return;
+    }
+
+    // Validate all ids are numbers
+    if (!ids.every(id => typeof id === 'number' && Number.isInteger(id) && id > 0)) {
+      res.status(400).json(createErrorResponse(ErrorCodes.BAD_REQUEST, 'All ids must be positive integers'));
+      return;
+    }
+
+    // Soft delete - mark as hidden
+    const placeholders = ids.map(() => '?').join(', ');
+    const result = db.prepare(`UPDATE transactions SET is_hidden = 1 WHERE id IN (${placeholders}) AND is_hidden = 0`).run(...ids);
+
+    res.json({ success: true, deleted: result.changes });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
     res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));

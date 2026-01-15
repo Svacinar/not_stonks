@@ -45,6 +45,7 @@ function createTables(database: Database.Database): void {
       description TEXT NOT NULL,
       bank TEXT NOT NULL CHECK (bank IN ('CSOB', 'Raiffeisen', 'Revolut')),
       category_id INTEGER,
+      is_hidden INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
     );
@@ -76,6 +77,16 @@ function createTables(database: Database.Database): void {
   `);
 }
 
+function runMigrations(database: Database.Database): void {
+  // Migration: Add is_hidden column to transactions table
+  const columns = database.prepare("PRAGMA table_info(transactions)").all() as { name: string }[];
+  const hasIsHidden = columns.some(col => col.name === 'is_hidden');
+
+  if (!hasIsHidden) {
+    database.exec('ALTER TABLE transactions ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0');
+  }
+}
+
 function seedDefaultCategories(database: Database.Database): void {
   const existingCount = database.prepare('SELECT COUNT(*) as count FROM categories').get() as { count: number };
 
@@ -102,6 +113,7 @@ export function getDatabase(): Database.Database {
     db.pragma('journal_mode = WAL');
     db.pragma('foreign_keys = ON');
     createTables(db);
+    runMigrations(db);
     seedDefaultCategories(db);
   }
   return db;

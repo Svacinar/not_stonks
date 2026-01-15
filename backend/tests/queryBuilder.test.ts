@@ -2,11 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { buildTransactionWhereClause, TransactionFilterQuery } from '../src/utils/queryBuilder';
 
 describe('buildTransactionWhereClause', () => {
-  it('should return empty WHERE clause when no filters provided', () => {
+  // Note: All queries now always include t.is_hidden = 0 as the base condition
+
+  it('should return is_hidden filter when no other filters provided', () => {
     const query: TransactionFilterQuery = {};
     const result = buildTransactionWhereClause(query);
 
-    expect(result.whereClause).toBe('');
+    expect(result.whereClause).toBe('WHERE t.is_hidden = 0');
     expect(result.params).toEqual([]);
   });
 
@@ -14,7 +16,7 @@ describe('buildTransactionWhereClause', () => {
     const query: TransactionFilterQuery = { startDate: '2024-01-01' };
     const result = buildTransactionWhereClause(query);
 
-    expect(result.whereClause).toBe('WHERE t.date >= ?');
+    expect(result.whereClause).toBe('WHERE t.is_hidden = 0 AND t.date >= ?');
     expect(result.params).toEqual(['2024-01-01']);
   });
 
@@ -22,7 +24,7 @@ describe('buildTransactionWhereClause', () => {
     const query: TransactionFilterQuery = { endDate: '2024-12-31' };
     const result = buildTransactionWhereClause(query);
 
-    expect(result.whereClause).toBe('WHERE t.date <= ?');
+    expect(result.whereClause).toBe('WHERE t.is_hidden = 0 AND t.date <= ?');
     expect(result.params).toEqual(['2024-12-31']);
   });
 
@@ -33,7 +35,7 @@ describe('buildTransactionWhereClause', () => {
     };
     const result = buildTransactionWhereClause(query);
 
-    expect(result.whereClause).toBe('WHERE t.date >= ? AND t.date <= ?');
+    expect(result.whereClause).toBe('WHERE t.is_hidden = 0 AND t.date >= ? AND t.date <= ?');
     expect(result.params).toEqual(['2024-01-01', '2024-12-31']);
   });
 
@@ -41,7 +43,7 @@ describe('buildTransactionWhereClause', () => {
     const query: TransactionFilterQuery = { bank: 'Chase' };
     const result = buildTransactionWhereClause(query);
 
-    expect(result.whereClause).toBe('WHERE t.bank IN (?)');
+    expect(result.whereClause).toBe('WHERE t.is_hidden = 0 AND t.bank IN (?)');
     expect(result.params).toEqual(['Chase']);
   });
 
@@ -49,7 +51,7 @@ describe('buildTransactionWhereClause', () => {
     const query: TransactionFilterQuery = { bank: 'Chase, Wells Fargo, Bank of America' };
     const result = buildTransactionWhereClause(query);
 
-    expect(result.whereClause).toBe('WHERE t.bank IN (?, ?, ?)');
+    expect(result.whereClause).toBe('WHERE t.is_hidden = 0 AND t.bank IN (?, ?, ?)');
     expect(result.params).toEqual(['Chase', 'Wells Fargo', 'Bank of America']);
   });
 
@@ -57,7 +59,7 @@ describe('buildTransactionWhereClause', () => {
     const query: TransactionFilterQuery = { category: '1' };
     const result = buildTransactionWhereClause(query);
 
-    expect(result.whereClause).toBe('WHERE t.category_id IN (?)');
+    expect(result.whereClause).toBe('WHERE t.is_hidden = 0 AND t.category_id IN (?)');
     expect(result.params).toEqual([1]);
   });
 
@@ -65,7 +67,7 @@ describe('buildTransactionWhereClause', () => {
     const query: TransactionFilterQuery = { category: '1, 2, 3' };
     const result = buildTransactionWhereClause(query);
 
-    expect(result.whereClause).toBe('WHERE t.category_id IN (?, ?, ?)');
+    expect(result.whereClause).toBe('WHERE t.is_hidden = 0 AND t.category_id IN (?, ?, ?)');
     expect(result.params).toEqual([1, 2, 3]);
   });
 
@@ -73,7 +75,7 @@ describe('buildTransactionWhereClause', () => {
     const query: TransactionFilterQuery = { uncategorized: 'true' };
     const result = buildTransactionWhereClause(query);
 
-    expect(result.whereClause).toBe('WHERE t.category_id IS NULL');
+    expect(result.whereClause).toBe('WHERE t.is_hidden = 0 AND t.category_id IS NULL');
     expect(result.params).toEqual([]);
   });
 
@@ -81,7 +83,7 @@ describe('buildTransactionWhereClause', () => {
     const query: TransactionFilterQuery = { uncategorized: 'false' };
     const result = buildTransactionWhereClause(query);
 
-    expect(result.whereClause).toBe('');
+    expect(result.whereClause).toBe('WHERE t.is_hidden = 0');
     expect(result.params).toEqual([]);
   });
 
@@ -89,7 +91,7 @@ describe('buildTransactionWhereClause', () => {
     const query: TransactionFilterQuery = { search: 'grocery' };
     const result = buildTransactionWhereClause(query);
 
-    expect(result.whereClause).toBe('WHERE t.description LIKE ?');
+    expect(result.whereClause).toBe('WHERE t.is_hidden = 0 AND t.description LIKE ?');
     expect(result.params).toEqual(['%grocery%']);
   });
 
@@ -104,12 +106,12 @@ describe('buildTransactionWhereClause', () => {
     const result = buildTransactionWhereClause(query);
 
     expect(result.whereClause).toBe(
-      'WHERE t.date >= ? AND t.date <= ? AND t.bank IN (?, ?) AND t.category_id IN (?, ?) AND t.description LIKE ?'
+      'WHERE t.is_hidden = 0 AND t.date >= ? AND t.date <= ? AND t.bank IN (?, ?) AND t.category_id IN (?, ?) AND t.description LIKE ?'
     );
     expect(result.params).toEqual(['2024-01-01', '2024-12-31', 'Chase', 'Wells Fargo', 1, 2, '%store%']);
   });
 
-  it('should handle empty string values as no filter', () => {
+  it('should handle empty string values as no additional filter', () => {
     const query: TransactionFilterQuery = {
       startDate: '',
       endDate: '',
@@ -119,8 +121,8 @@ describe('buildTransactionWhereClause', () => {
     };
     const result = buildTransactionWhereClause(query);
 
-    // Empty strings are falsy, so no conditions should be added
-    expect(result.whereClause).toBe('');
+    // Empty strings are falsy, so only is_hidden condition should be present
+    expect(result.whereClause).toBe('WHERE t.is_hidden = 0');
     expect(result.params).toEqual([]);
   });
 
@@ -147,7 +149,7 @@ describe('buildTransactionWhereClause', () => {
     const result = buildTransactionWhereClause(query);
 
     expect(result.whereClause).toBe(
-      'WHERE t.date >= ? AND t.category_id IS NULL AND t.description LIKE ?'
+      'WHERE t.is_hidden = 0 AND t.date >= ? AND t.category_id IS NULL AND t.description LIKE ?'
     );
     expect(result.params).toEqual(['2024-01-01', '%coffee%']);
   });

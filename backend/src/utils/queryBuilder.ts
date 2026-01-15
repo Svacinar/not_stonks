@@ -27,7 +27,8 @@ export interface WhereClauseResult {
 export function buildTransactionWhereClause(query: TransactionFilterQuery): WhereClauseResult {
   const { startDate, endDate, bank, category, uncategorized, search } = query;
 
-  const conditions: string[] = [];
+  // Always exclude hidden transactions
+  const conditions: string[] = ['t.is_hidden = 0'];
   const params: (string | number)[] = [];
 
   if (startDate) {
@@ -61,7 +62,8 @@ export function buildTransactionWhereClause(query: TransactionFilterQuery): Wher
     params.push(`%${search}%`);
   }
 
-  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  // Always has at least one condition (is_hidden = 0)
+  const whereClause = `WHERE ${conditions.join(' AND ')}`;
 
   return { whereClause, params };
 }

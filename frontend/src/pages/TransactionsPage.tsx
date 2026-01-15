@@ -124,6 +124,11 @@ export function TransactionsPage() {
   const [deleteTransaction, setDeleteTransaction] = useState<TransactionWithCategory | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
   // Update URL params
   const updateParams = useCallback(
     (updates: Record<string, string | null>) => {
@@ -198,6 +203,11 @@ export function TransactionsPage() {
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
+
+  // Clear selection when transactions change
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [transactions]);
 
   // Handle date range picker change
   const handleDateRangeChange = (range: DateRange) => {
@@ -317,6 +327,48 @@ export function TransactionsPage() {
     }
   };
 
+  // Selection handlers
+  const toggleSelectAll = () => {
+    if (selectedIds.size === transactions.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(transactions.map(t => t.id)));
+    }
+  };
+
+  const toggleSelect = (id: number) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setSelectedIds(newSet);
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+
+    setBulkDeleting(true);
+    try {
+      const response = await api.post<{ deleted: number }>('/api/transactions/bulk-delete', {
+        ids: Array.from(selectedIds),
+      });
+      setTransactions((prev) => prev.filter((t) => !selectedIds.has(t.id)));
+      setTotal((prev) => prev - response.deleted);
+      addToast('success', `Deleted ${response.deleted} transaction${response.deleted !== 1 ? 's' : ''}`);
+      setSelectedIds(new Set());
+      setShowBulkDeleteDialog(false);
+    } catch (err) {
+      const message =
+        err instanceof ApiRequestError ? err.message : 'Failed to delete transactions';
+      addToast('error', message);
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   // Handle delete
   const handleDelete = async () => {
     if (!deleteTransaction) return;
@@ -370,6 +422,28 @@ export function TransactionsPage() {
         </h1>
         <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
           <DateRangePicker value={dateRange} onChange={handleDateRangeChange} />
+          {selectedIds.size > 0 && (
+            <Button
+              variant="destructive"
+              onClick={() => setShowBulkDeleteDialog(true)}
+              className="w-full sm:w-auto"
+            >
+              <svg
+                className="h-4 w-4 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+              Delete {selectedIds.size} selected
+            </Button>
+          )}
           <Button variant="outline" onClick={() => setShowExportModal(true)} className="w-full sm:w-auto">
             <svg
               className="h-4 w-4 mr-2"
@@ -500,6 +574,13 @@ export function TransactionsPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={transactions.length > 0 && selectedIds.size === transactions.length}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Select all transactions"
+                    />
+                  </TableHead>
                   <TableHead
                     className="cursor-pointer hover:bg-muted/80 transition-colors"
                     onClick={() => handleSort('date')}
@@ -534,7 +615,14 @@ export function TransactionsPage() {
               </TableHeader>
               <TableBody>
                 {transactions.map((tx) => (
-                    <TableRow key={tx.id}>
+                    <TableRow key={tx.id} className={cn(selectedIds.has(tx.id) && "bg-muted/50")}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.has(tx.id)}
+                          onCheckedChange={() => toggleSelect(tx.id)}
+                          aria-label={`Select transaction ${tx.description}`}
+                        />
+                      </TableCell>
                       <TableCell className="whitespace-nowrap">{tx.date}</TableCell>
                       <TableCell className="max-w-xs truncate">{tx.description}</TableCell>
                       <TableCell
@@ -765,6 +853,32 @@ export function TransactionsPage() {
             >
               {deleting ? <LoadingSpinner size="sm" className="mr-2" /> : null}
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={showBulkDeleteDialog} onOpenChange={(open) => !bulkDeleting && setShowBulkDeleteDialog(open)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedIds.size} Transaction{selectedIds.size !== 1 ? 's' : ''}</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedIds.size} selected transaction{selectedIds.size !== 1 ? 's' : ''}?
+              <span className="block mt-2 text-muted-foreground">
+                These transactions will be hidden from your reports but kept for duplicate detection on future imports.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              disabled={bulkDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {bulkDeleting ? <LoadingSpinner size="sm" className="mr-2" /> : null}
+              Delete {selectedIds.size}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
