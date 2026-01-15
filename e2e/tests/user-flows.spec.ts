@@ -37,7 +37,11 @@ async function waitForLoad(page: Page): Promise<void> {
 // Helper to set date range to "All time" to include dummy data from 2024
 async function selectAllTimeRange(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Select date range' }).click();
-  await page.getByRole('button', { name: 'All time' }).click();
+  // Wait for dropdown to appear
+  const allTimeButton = page.getByRole('button', { name: 'All time' });
+  await allTimeButton.waitFor({ state: 'visible', timeout: 5000 });
+  // Use force to bypass any animation overlays
+  await allTimeButton.click({ force: true });
   await page.waitForTimeout(300);
   await waitForLoad(page);
 }
@@ -52,12 +56,22 @@ async function uploadFile(page: Page, filepath: string): Promise<void> {
   await expect(page.getByText('Upload Successful')).toBeVisible({ timeout: 15000 });
 }
 
-// Helper to wait for categories to load in select
+// Helper to wait for categories to load in select (shadcn Select component)
 async function waitForCategoriesToLoad(page: Page): Promise<void> {
-  await page.waitForFunction(() => {
-    const select = document.querySelector('#newCategory') as HTMLSelectElement;
-    return select && select.options.length > 1;
-  }, { timeout: 10000 });
+  // Wait for the Select trigger button to be visible (categories are loaded from API)
+  await expect(page.locator('#newCategory')).toBeVisible({ timeout: 10000 });
+  // Small delay to ensure categories state is populated
+  await page.waitForTimeout(300);
+}
+
+// Helper to select a category from shadcn Select component
+async function selectCategory(page: Page, triggerId: string, categoryIndex = 0): Promise<void> {
+  // Click the select trigger to open dropdown
+  await page.locator(triggerId).click();
+  // Wait for dropdown to appear and select the category at specified index
+  const items = page.locator('[role="option"]');
+  await items.first().waitFor({ state: 'visible', timeout: 5000 });
+  await items.nth(categoryIndex).click();
 }
 
 test.describe('E2E User Flows - WI-19', () => {
@@ -106,7 +120,7 @@ test.describe('E2E User Flows - WI-19', () => {
 
         // Step 6: Verify on transactions page with data (URL may have query params)
         await expect(page).toHaveURL(/\/transactions/);
-        await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Transactions', exact: true })).toBeVisible();
 
         // Wait for table to load
         await page.waitForSelector('table tbody tr', { timeout: 10000 });
@@ -240,7 +254,7 @@ test.describe('E2E User Flows - WI-19', () => {
 
         // Step 1: Navigate to transactions
         await page.goto('/transactions');
-        await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Transactions', exact: true })).toBeVisible();
 
         // Select "All time" date range to include dummy data from 2024
         const dateButton = page.getByRole('button', { name: 'Select date range' });
@@ -373,14 +387,14 @@ test.describe('E2E User Flows - WI-19', () => {
         await waitForCategoriesToLoad(page);
 
         // Step 2: Check initial uncategorized count
-        const uncategorizedSpan = page.locator('span.text-gray-600').filter({ hasText: /\d+ uncategorized transaction/ });
+        const uncategorizedSpan = page.locator('span.text-muted-foreground').filter({ hasText: /\d+ uncategorized transaction/ });
         const initialUncategorizedText = await uncategorizedSpan.textContent();
         const initialUncategorizedCount = parseInt(initialUncategorizedText?.match(/\d+/)?.[0] || '0', 10);
 
         // Step 3: Add a new rule for "LIDL" (from dummy CSOB data)
         const uniqueKeyword = `lidl${Date.now()}`;
         await page.locator('#newKeyword').fill(uniqueKeyword);
-        await page.locator('#newCategory').selectOption({ index: 1 }); // First category (e.g., Food)
+        await selectCategory(page, '#newCategory', 0); // First category (e.g., Food)
         await page.getByRole('button', { name: 'Add Rule' }).click();
 
         // Step 4: Verify rule appears in table
@@ -394,10 +408,9 @@ test.describe('E2E User Flows - WI-19', () => {
         // Step 6: Click Apply Rules
         await page.getByRole('button', { name: 'Apply Rules' }).click();
 
-        // Step 7: Wait for and verify success message (use specific selector to avoid multiple status elements)
-        const successMessage = page.locator('.bg-green-50[role="status"]');
+        // Step 7: Wait for and verify success message (use specific selector to avoid multiple alert elements)
+        const successMessage = page.locator('[role="alert"]').filter({ hasText: /Categorized \d+ of \d+/ });
         await expect(successMessage).toBeVisible({ timeout: 10000 });
-        await expect(successMessage.getByText(/Categorized \d+ of \d+/)).toBeVisible();
 
         // Step 8: Verify the categorization message shows some transactions were categorized
         const applyResultText = await successMessage.textContent();
@@ -425,7 +438,7 @@ test.describe('E2E User Flows - WI-19', () => {
       // Add a rule
       const uniqueKeyword = `editdelete${Date.now()}`;
       await page.locator('#newKeyword').fill(uniqueKeyword);
-      await page.locator('#newCategory').selectOption({ index: 1 });
+      await selectCategory(page, '#newCategory', 0);
       await page.getByRole('button', { name: 'Add Rule' }).click();
 
       // Wait for rule to appear
@@ -441,7 +454,7 @@ test.describe('E2E User Flows - WI-19', () => {
       const editInput = page.locator('table tbody tr').filter({ has: page.locator('input[type="text"]') }).locator('input[type="text"]');
       const updatedKeyword = `updated${Date.now()}`;
       await editInput.fill(updatedKeyword);
-      await page.locator('table tbody tr').filter({ has: page.locator('input[type="text"]') }).locator('button.text-green-600').click();
+      await page.locator('table tbody tr').filter({ has: page.locator('input[type="text"]') }).locator('button.text-success').click();
       await page.waitForTimeout(500);
 
       // Verify update

@@ -440,7 +440,7 @@ export function RulesPage() {
                             size="icon"
                             onClick={handleSaveEdit}
                             disabled={savingEdit || !editKeyword.trim() || editCategoryId === ''}
-                            className="h-8 w-8 text-green-600 hover:text-green-800 hover:bg-green-100 dark:hover:bg-green-900"
+                            className="h-8 w-8 text-success hover:text-success/80 hover:bg-success/10"
                           >
                             {savingEdit ? (
                               <LoadingSpinner size="sm" />

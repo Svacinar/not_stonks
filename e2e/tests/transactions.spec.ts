@@ -33,7 +33,7 @@ test.describe('Transactions Page', () => {
     await expect(page).toHaveURL(/\/transactions/);
 
     // Wait for page load
-    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Transactions', exact: true })).toBeVisible();
 
     // Select "All time" date range to include dummy data from 2024
     // Use force: true to avoid click interception issues with sidebar on some viewports
@@ -89,7 +89,7 @@ test.describe('Transactions Page', () => {
 
     // Navigate to transactions
     await page.getByRole('button', { name: 'View Transactions' }).click();
-    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Transactions', exact: true })).toBeVisible();
 
     // Select "All time" date range to include dummy data from 2024
     const dateButton = page.getByRole('button', { name: 'Select date range' });
@@ -178,7 +178,7 @@ test.describe('Transactions Page', () => {
     await expect(page.getByText('Upload Successful')).toBeVisible({ timeout: 10000 });
 
     await page.getByRole('button', { name: 'View Transactions' }).click();
-    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Transactions', exact: true })).toBeVisible();
 
     // Select "All time" date range to include dummy data from 2024
     const dateButton = page.getByRole('button', { name: 'Select date range' });

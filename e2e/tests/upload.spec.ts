@@ -185,7 +185,7 @@ test.describe('Upload Page', () => {
 
     // Should be on transactions page
     await expect(page).toHaveURL('/transactions');
-    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Transactions', exact: true })).toBeVisible();
 
     fs.unlinkSync(csobFile);
   });

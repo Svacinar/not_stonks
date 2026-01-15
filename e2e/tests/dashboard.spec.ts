@@ -35,7 +35,11 @@ async function waitForDataView(page: any): Promise<void> {
 // Helper to set date range to "All time" to include dummy data from 2024
 async function selectAllTimeRange(page: any): Promise<void> {
   await page.getByRole('button', { name: 'Select date range' }).click();
-  await page.getByRole('button', { name: 'All time' }).click();
+  // Wait for dropdown to appear
+  const allTimeButton = page.getByRole('button', { name: 'All time' });
+  await allTimeButton.waitFor({ state: 'visible', timeout: 5000 });
+  // Use force to bypass any animation overlays
+  await allTimeButton.click({ force: true });
   await page.waitForTimeout(300);
   await waitForLoad(page);
 }
@@ -204,7 +208,7 @@ test.describe('Dashboard Page', () => {
 
       // Should navigate to transactions page (may include date range params)
       await expect(page).toHaveURL(/\/transactions/);
-      await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Transactions', exact: true })).toBeVisible();
     } finally {
       fs.unlinkSync(csobFile);
     }

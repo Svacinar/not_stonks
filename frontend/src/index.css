@@ -219,10 +219,12 @@
   from {
     opacity: 0;
     transform: translateY(10px);
+    pointer-events: none;
   }
   to {
     opacity: 1;
     transform: translateY(0);
+    pointer-events: auto;
   }
 }
 

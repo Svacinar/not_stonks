@@ -11,13 +11,23 @@ async function createTestFile(filename: string, content: string): Promise<string
   return filepath;
 }
 
-// Helper to wait for categories to load in select
+// Helper to wait for categories to load in select (shadcn Select component)
 async function waitForCategoriesToLoad(page: import('@playwright/test').Page) {
-  // Wait for the loading to complete (no spinner visible) and categories to be loaded
-  await page.waitForFunction(() => {
-    const select = document.querySelector('#newCategory') as HTMLSelectElement;
-    return select && select.options.length > 1;
-  }, { timeout: 10000 });
+  // Wait for the Select trigger button to be visible (categories are loaded from API)
+  await expect(page.locator('#newCategory')).toBeVisible({ timeout: 10000 });
+  // Small delay to ensure categories state is populated
+  await page.waitForTimeout(300);
+}
+
+// Helper to select a category from shadcn Select component
+async function selectCategory(page: import('@playwright/test').Page, triggerId: string, categoryIndex = 0) {
+  // Click the select trigger to open dropdown
+  await page.locator(triggerId).click();
+  // Wait for dropdown to appear and select the first category (index 0)
+  const items = page.locator('[role="option"]');
+  await items.first().waitFor({ state: 'visible', timeout: 5000 });
+  // Click the category at the specified index
+  await items.nth(categoryIndex).click();
 }
 
 test.describe('Rules Page', () => {
@@ -55,7 +65,7 @@ test.describe('Rules Page', () => {
     // Fill in the form with unique keyword
     const uniqueKeyword = `newrule${Date.now()}`;
     await page.locator('#newKeyword').fill(uniqueKeyword);
-    await page.locator('#newCategory').selectOption({ index: 1 });
+    await selectCategory(page, '#newCategory', 0);
 
     // Click Add Rule
     await page.getByRole('button', { name: 'Add Rule' }).click();
@@ -76,7 +86,7 @@ test.describe('Rules Page', () => {
     await waitForCategoriesToLoad(page);
     const uniqueKeyword = `editrule${Date.now()}`;
     await page.locator('#newKeyword').fill(uniqueKeyword);
-    await page.locator('#newCategory').selectOption({ index: 1 });
+    await selectCategory(page, '#newCategory', 0);
     await page.getByRole('button', { name: 'Add Rule' }).click();
 
     // Wait for the rule to appear
@@ -102,7 +112,7 @@ test.describe('Rules Page', () => {
     await inputField.fill(updatedKeyword);
 
     // Save (click the checkmark button)
-    await editingRow.locator('button.text-green-600').click();
+    await editingRow.locator('button.text-success').click();
 
     // Wait for update
     await page.waitForTimeout(500);
@@ -118,7 +128,7 @@ test.describe('Rules Page', () => {
     await waitForCategoriesToLoad(page);
     const uniqueKeyword = `delrule${Date.now()}`;
     await page.locator('#newKeyword').fill(uniqueKeyword);
-    await page.locator('#newCategory').selectOption({ index: 1 });
+    await selectCategory(page, '#newCategory', 0);
     await page.getByRole('button', { name: 'Add Rule' }).click();
 
     // Wait for the rule to appear
@@ -158,7 +168,7 @@ test.describe('Rules Page', () => {
     await waitForCategoriesToLoad(page);
     const uniqueKeyword = `keeprule${Date.now()}`;
     await page.locator('#newKeyword').fill(uniqueKeyword);
-    await page.locator('#newCategory').selectOption({ index: 1 });
+    await selectCategory(page, '#newCategory', 0);
     await page.getByRole('button', { name: 'Add Rule' }).click();
 
     // Wait for the rule to appear
@@ -205,7 +215,7 @@ test.describe('Rules Page', () => {
     // Add a rule that matches ALBERT (from dummy CSOB data) with unique keyword
     const uniqueKeyword = `albert${Date.now()}`;
     await page.locator('#newKeyword').fill(uniqueKeyword);
-    await page.locator('#newCategory').selectOption({ index: 1 });
+    await selectCategory(page, '#newCategory', 0);
     await page.getByRole('button', { name: 'Add Rule' }).click();
 
     // Wait for rule to be added
@@ -216,8 +226,8 @@ test.describe('Rules Page', () => {
     // Click Apply Rules
     await page.getByRole('button', { name: 'Apply Rules' }).click();
 
-    // Wait for success message (use specific selector to avoid multiple role="status" elements)
-    const successMessage = page.locator('[role="status"]').filter({ hasText: /Categorized \d+ of \d+/ });
+    // Wait for success message (use specific selector to avoid multiple role="alert" elements)
+    const successMessage = page.locator('[role="alert"]').filter({ hasText: /Categorized \d+ of \d+/ });
     await expect(successMessage).toBeVisible({ timeout: 10000 });
 
     // Verify the apply result shows categorization happened (message displayed)
@@ -247,7 +257,7 @@ test.describe('Rules Page', () => {
     await waitForCategoriesToLoad(page);
     const uniqueKeyword = `countrule${Date.now()}`;
     await page.locator('#newKeyword').fill(uniqueKeyword);
-    await page.locator('#newCategory').selectOption({ index: 1 });
+    await selectCategory(page, '#newCategory', 0);
     await page.getByRole('button', { name: 'Add Rule' }).click();
 
     // Wait for rule to appear
