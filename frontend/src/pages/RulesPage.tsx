@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2 } from 'lucide-react';
+import { UNCATEGORIZED_COLOR } from '@/constants/colors';
 import {
   Table,
   TableBody,
@@ -229,7 +230,7 @@ export function RulesPage() {
   // Get category color
   const getCategoryColor = (categoryId: number) => {
     const category = categories.find((c) => c.id === categoryId);
-    return category?.color || '#9ca3af';
+    return category?.color || UNCATEGORIZED_COLOR;
   };
 
   // Format date

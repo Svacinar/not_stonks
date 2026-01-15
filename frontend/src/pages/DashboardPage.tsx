@@ -587,7 +587,7 @@ export function DashboardPage() {
                             <span className="flex items-center gap-2">
                               <span
                                 className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: tx.category_color || '#9ca3af' }}
+                                style={{ backgroundColor: tx.category_color || UNCATEGORIZED_COLOR }}
                               />
                               {tx.category_name}
                             </span>

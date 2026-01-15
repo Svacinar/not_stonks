@@ -700,7 +700,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-18: Refactor Category Color Fallback
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Problem:** Category color fallback `#9ca3af` hardcoded in three places.
@@ -717,8 +717,16 @@ This document contains work items to transform the spending dashboard from a fun
 2. Replace all hardcoded `#9ca3af` with the constant
 
 **Acceptance Criteria:**
-- [ ] All category fallbacks use the constant
-- [ ] `grep '#9ca3af'` returns no results in pages/
+- [x] All category fallbacks use the constant
+- [x] `grep '#9ca3af'` returns no results in pages/
+
+**Implementation Notes:**
+- Replaced `#9ca3af` with `UNCATEGORIZED_COLOR` constant in `frontend/src/pages/DashboardPage.tsx:590`
+- Added import and replaced fallback in `frontend/src/pages/TransactionsPage.tsx:565` (import at line 30)
+- Added import and replaced fallback in `frontend/src/pages/RulesPage.tsx:233` (import at line 13)
+- Verified with grep that no `#9ca3af` remains in frontend/src/pages/
+- Build passes successfully
+- Pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand commit dd98b3b)
 
 ---
 

@@ -27,6 +27,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+import { UNCATEGORIZED_COLOR } from '@/constants/colors';
 
 interface TransactionWithCategory extends Transaction {
   category_name: string | null;
@@ -561,7 +562,7 @@ export function TransactionsPage() {
                               <>
                                 <span
                                   className="w-3 h-3 rounded-full"
-                                  style={{ backgroundColor: tx.category_color || '#9ca3af' }}
+                                  style={{ backgroundColor: tx.category_color || UNCATEGORIZED_COLOR }}
                                 />
                                 <span className="text-foreground">{tx.category_name}</span>
                               </>
