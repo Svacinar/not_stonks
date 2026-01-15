@@ -420,7 +420,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-10: Enhance Card with Elevation Variants
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Card component only has `shadow-sm`. No elevation variants exist for creating visual hierarchy.
@@ -444,10 +444,17 @@ This document contains work items to transform the spending dashboard from a fun
 3. Add default hover effect option: `hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300`
 
 **Acceptance Criteria:**
-- [ ] `<Card elevation="lg">` renders with larger shadow
-- [ ] `<Card glass>` renders with frosted glass effect
-- [ ] Interactive cards have smooth hover transitions
-- [ ] Default Card behavior unchanged (backwards compatible)
+- [x] `<Card elevation="lg">` renders with larger shadow
+- [x] `<Card glass>` renders with frosted glass effect
+- [x] Interactive cards have smooth hover transitions
+- [x] Default Card behavior unchanged (backwards compatible)
+
+**Implementation Notes:**
+- Added `elevation` variant to `cardVariants` in `frontend/src/components/ui/card.tsx` with `sm`, `md`, `lg`, `none` options
+- Added `glass` boolean variant with `bg-background/80 backdrop-blur-xl border-white/10` for frosted glass effect
+- Enhanced `interactive` variant with `transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5` for smooth hover transitions
+- Default elevation is `sm` maintaining backwards compatibility (previous default behavior)
+- Build passes successfully; pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand)
 
 ---
 
