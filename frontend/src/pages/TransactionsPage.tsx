@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api, ApiRequestError } from '../api/client';
-import { LoadingSpinner, ErrorMessage, DateRangePicker, useToast } from '../components';
+import { LoadingSpinner, ErrorMessage, DateRangePicker, useToast, EmptyState } from '../components';
 import { TransactionTableSkeleton } from '@/components/skeletons/TransactionTableSkeleton';
 import { getDefaultDateRange, type DateRange } from '../utils/dateUtils';
 import type { Transaction, Category, BankName } from '../../../shared/types';
@@ -442,8 +442,24 @@ export function TransactionsPage() {
       {/* Loading */}
       {loading && !error && <TransactionTableSkeleton rowCount={10} />}
 
+      {/* Empty State */}
+      {!loading && !error && transactions.length === 0 && (
+        <EmptyState
+          illustration={
+            <img
+              src="/illustrations/empty-transactions.svg"
+              alt=""
+              className="w-40 h-30"
+              aria-hidden="true"
+            />
+          }
+          title="No transactions found"
+          description="Try adjusting your filters or date range to find transactions."
+        />
+      )}
+
       {/* Table */}
-      {!loading && !error && (
+      {!loading && !error && transactions.length > 0 && (
         <>
           <Card>
             <div className="overflow-x-auto">
@@ -482,14 +498,7 @@ export function TransactionsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {transactions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">
-                      No transactions found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  transactions.map((tx) => (
+                {transactions.map((tx) => (
                     <TableRow key={tx.id}>
                       <TableCell className="whitespace-nowrap">{tx.date}</TableCell>
                       <TableCell className="max-w-xs truncate">{tx.description}</TableCell>
@@ -576,8 +585,7 @@ export function TransactionsPage() {
                         )}
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
+                  ))}
               </TableBody>
             </Table>
             </div>

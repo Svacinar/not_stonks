@@ -14,7 +14,7 @@ import {
 } from 'chart.js';
 import { Pie, Bar, Line } from 'react-chartjs-2';
 import { api, ApiRequestError } from '../api/client';
-import { ErrorMessage, DateRangePicker } from '../components';
+import { ErrorMessage, DateRangePicker, EmptyState } from '../components';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatCard } from '@/components/ui/stat-card';
@@ -353,30 +353,23 @@ export function DashboardPage() {
 
       {/* Empty State */}
       {!loading && !error && !hasData && (
-        <Card className="text-center py-16">
-          <CardContent className="pt-6">
-            <svg
-              className="mx-auto h-12 w-12 text-muted-foreground"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              />
-            </svg>
-            <h3 className="mt-4 text-lg font-medium text-foreground">No data available</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Upload some bank statements to see your spending dashboard.
-            </p>
-            <Button asChild className="mt-4">
+        <EmptyState
+          illustration={
+            <img
+              src="/illustrations/empty-dashboard.svg"
+              alt=""
+              className="w-40 h-30"
+              aria-hidden="true"
+            />
+          }
+          title="No data available"
+          description="Upload some bank statements to see your spending dashboard."
+          action={
+            <Button asChild>
               <Link to="/upload">Upload Statements</Link>
             </Button>
-          </CardContent>
-        </Card>
+          }
+        />
       )}
 
       {/* Dashboard Content */}

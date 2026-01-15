@@ -1,0 +1,37 @@
+<svg width="160" height="120" viewBox="0 0 160 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bar chart illustration for dashboard empty state -->
+  <!-- Uses currentColor for theme compatibility -->
+
+  <!-- Base platform -->
+  <rect x="20" y="100" width="120" height="4" rx="2" fill="currentColor" fill-opacity="0.2"/>
+
+  <!-- Bar 1 (left) -->
+  <rect x="30" y="70" width="16" height="30" rx="3" fill="currentColor" fill-opacity="0.15"/>
+  <rect x="30" y="70" width="16" height="30" rx="3" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.4"/>
+
+  <!-- Bar 2 -->
+  <rect x="54" y="45" width="16" height="55" rx="3" fill="currentColor" fill-opacity="0.15"/>
+  <rect x="54" y="45" width="16" height="55" rx="3" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.4"/>
+
+  <!-- Bar 3 (tallest) -->
+  <rect x="78" y="25" width="16" height="75" rx="3" fill="currentColor" fill-opacity="0.2"/>
+  <rect x="78" y="25" width="16" height="75" rx="3" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.5"/>
+
+  <!-- Bar 4 -->
+  <rect x="102" y="55" width="16" height="45" rx="3" fill="currentColor" fill-opacity="0.15"/>
+  <rect x="102" y="55" width="16" height="45" rx="3" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.4"/>
+
+  <!-- Trend line -->
+  <path d="M38 62 L62 40 L86 20 L110 48" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.6"/>
+
+  <!-- Data points on trend line -->
+  <circle cx="38" cy="62" r="4" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.6"/>
+  <circle cx="62" cy="40" r="4" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.6"/>
+  <circle cx="86" cy="20" r="4" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.6"/>
+  <circle cx="110" cy="48" r="4" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.6"/>
+
+  <!-- Decorative dotted lines -->
+  <line x1="20" y1="25" x2="140" y2="25" stroke="currentColor" stroke-width="1" stroke-dasharray="4 4" stroke-opacity="0.2"/>
+  <line x1="20" y1="55" x2="140" y2="55" stroke="currentColor" stroke-width="1" stroke-dasharray="4 4" stroke-opacity="0.2"/>
+  <line x1="20" y1="85" x2="140" y2="85" stroke="currentColor" stroke-width="1" stroke-dasharray="4 4" stroke-opacity="0.2"/>
+</svg>

@@ -967,7 +967,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-25: Add Empty State Illustrations
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Problem:** Empty states use generic icons. They lack personality and encouragement.
@@ -994,10 +994,18 @@ This document contains work items to transform the spending dashboard from a fun
 4. Add subtle entrance animation
 
 **Acceptance Criteria:**
-- [ ] Empty states have custom illustrations
-- [ ] Illustrations adapt to theme
-- [ ] Component is reusable across pages
-- [ ] File sizes are reasonable (<15KB each)
+- [x] Empty states have custom illustrations
+- [x] Illustrations adapt to theme
+- [x] Component is reusable across pages
+- [x] File sizes are reasonable (<15KB each)
+
+**Implementation Notes:**
+- Created `frontend/src/components/EmptyState.tsx` with reusable component accepting `illustration`, `title`, `description`, and optional `action` props
+- Created `frontend/public/illustrations/empty-dashboard.svg` (2.4KB) - bar chart with trend line illustration using `currentColor`
+- Created `frontend/public/illustrations/empty-transactions.svg` (2.1KB) - document list with search icon using `currentColor`
+- Updated `frontend/src/pages/DashboardPage.tsx` to use EmptyState component with dashboard illustration and "Upload Statements" action button
+- Updated `frontend/src/pages/TransactionsPage.tsx` to show EmptyState when no transactions found (separate from table)
+- Added `EmptyState` export to `frontend/src/components/index.ts`
 
 ---
 
