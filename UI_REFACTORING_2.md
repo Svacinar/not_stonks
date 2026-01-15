@@ -459,7 +459,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-11: Add Size Variants to Input Component
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Problem:** Button has `size` variants (sm, default, lg) but Input does not, creating inconsistency.
@@ -478,10 +478,18 @@ This document contains work items to transform the spending dashboard from a fun
 3. Export `inputVariants` for external use
 
 **Acceptance Criteria:**
-- [ ] `<Input size="sm">` renders smaller input
-- [ ] `<Input size="lg">` renders larger input
-- [ ] Sizes visually match Button sizes
-- [ ] No breaking changes to existing usage
+- [x] `<Input size="sm">` renders smaller input
+- [x] `<Input size="lg">` renders larger input
+- [x] Sizes visually match Button sizes
+- [x] No breaking changes to existing usage
+
+**Implementation Notes:**
+- Refactored `frontend/src/components/ui/input.tsx` to use `cva` from class-variance-authority
+- Added `size` variant with `sm` (h-9), `default` (h-10), `lg` (h-11) matching Button component heights
+- Used `Omit<React.ComponentProps<"input">, "size">` to avoid type conflict with HTML size attribute
+- Exported `inputVariants` for external use alongside `Input` component
+- Build passes successfully
+- Pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand commit dd98b3b)
 
 ---
 
