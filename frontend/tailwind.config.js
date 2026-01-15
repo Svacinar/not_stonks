@@ -94,12 +94,57 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "fade-in-up": {
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "scale-in": {
+          from: { opacity: "0", transform: "scale(0.95)" },
+          to: { opacity: "1", transform: "scale(1)" },
+        },
+        "shimmer": {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+        "pulse-subtle": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.7" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in-up": "fade-in-up 0.5s ease-out forwards",
+        "fade-in": "fade-in 0.3s ease-out forwards",
+        "scale-in": "scale-in 0.2s ease-out forwards",
+        "shimmer": "shimmer 2s linear infinite",
+        "pulse-subtle": "pulse-subtle 2s ease-in-out infinite",
+      },
+      animationDelay: {
+        "100": "100ms",
+        "150": "150ms",
+        "200": "200ms",
+        "250": "250ms",
+        "300": "300ms",
+        "400": "400ms",
+        "500": "500ms",
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    // Animation delay utilities plugin
+    function({ addUtilities, theme }) {
+      const delays = theme("animationDelay");
+      const utilities = Object.entries(delays).reduce((acc, [key, value]) => {
+        acc[`.animation-delay-${key}`] = { animationDelay: value };
+        return acc;
+      }, {});
+      addUtilities(utilities);
+    },
+  ],
 }

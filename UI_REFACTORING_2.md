@@ -162,7 +162,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-04: Add Animation Keyframes and Utilities
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** No custom animations exist beyond the basic accordion animations from shadcn. The app feels static with no entrance animations or micro-interactions.
@@ -205,10 +205,18 @@ This document contains work items to transform the spending dashboard from a fun
 3. Add animation delay utilities: `animation-delay-100`, `animation-delay-200`, etc.
 
 **Acceptance Criteria:**
-- [ ] `animate-fade-in-up` causes elements to fade in while moving up
-- [ ] Animation delay utilities work for staggered effects
-- [ ] `animate-shimmer` creates a loading shimmer effect
-- [ ] Animations respect `prefers-reduced-motion`
+- [x] `animate-fade-in-up` causes elements to fade in while moving up
+- [x] Animation delay utilities work for staggered effects
+- [x] `animate-shimmer` creates a loading shimmer effect
+- [x] Animations respect `prefers-reduced-motion`
+
+**Implementation Notes:**
+- Added 5 keyframes (`fade-in-up`, `fade-in`, `scale-in`, `shimmer`, `pulse-subtle`) to `frontend/src/index.css`
+- Added corresponding animation utilities in `frontend/tailwind.config.js` (`animate-fade-in-up`, `animate-fade-in`, `animate-scale-in`, `animate-shimmer`, `animate-pulse-subtle`)
+- Added `animationDelay` theme extension with 7 delay values (100ms-500ms) and a custom plugin to generate `animation-delay-*` utilities
+- Added `prefers-reduced-motion` media query in CSS that disables all animations for accessibility
+- Build passes successfully; animation classes are JIT-compiled when used
+- Pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand commit dd98b3b)
 
 ---
 
