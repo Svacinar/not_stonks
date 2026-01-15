@@ -22,15 +22,16 @@ const upload = multer({
       'application/csv',
       'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/pdf',
     ];
 
-    const allowedExtensions = ['.csv', '.txt', '.xlsx', '.xls'];
+    const allowedExtensions = ['.csv', '.txt', '.xlsx', '.xls', '.pdf'];
     const ext = file.originalname.toLowerCase().slice(file.originalname.lastIndexOf('.'));
 
     if (allowedMimeTypes.includes(file.mimetype) || allowedExtensions.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error(`Unsupported file type: ${file.originalname}. Supported formats: CSV, TXT, XLSX, XLS`));
+      cb(new Error(`Unsupported file type: ${file.originalname}. Supported formats: CSV, TXT, XLSX, XLS, PDF`));
     }
   },
 });

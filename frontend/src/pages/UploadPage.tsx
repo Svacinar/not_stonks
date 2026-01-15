@@ -28,7 +28,7 @@ export function UploadPage() {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isDragOver, setIsDragOver] = useState(false);
 
-  const acceptedExtensions = '.csv,.txt,.xlsx,.xls';
+  const acceptedExtensions = '.csv,.txt,.xlsx,.xls,.pdf';
   const maxFileSize = 5 * 1024 * 1024; // 5MB
   const maxFiles = 10;
 
@@ -36,10 +36,10 @@ export function UploadPage() {
 
   const validateFile = (file: File): string | null => {
     const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
-    const validExtensions = ['.csv', '.txt', '.xlsx', '.xls'];
+    const validExtensions = ['.csv', '.txt', '.xlsx', '.xls', '.pdf'];
 
     if (!validExtensions.includes(ext)) {
-      return `Invalid file type: ${file.name}. Supported formats: CSV, TXT, XLSX, XLS`;
+      return `Invalid file type: ${file.name}. Supported formats: CSV, TXT, XLSX, XLS, PDF`;
     }
 
     if (file.size > maxFileSize) {
@@ -280,7 +280,7 @@ export function UploadPage() {
             </div>
 
             <p className="mt-4 text-xs text-muted-foreground">
-              Supported formats: CSV, TXT, XLSX, XLS (max 5MB each, up to 10 files)
+              Supported formats: CSV, TXT, XLSX, XLS, PDF (max 5MB each, up to 10 files)
             </p>
           </div>
 

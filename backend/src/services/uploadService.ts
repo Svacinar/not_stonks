@@ -83,8 +83,9 @@ export class UploadService {
     const rules = this.getCategoryRules(db);
 
     // Prepare statements
-    const checkDuplicate = db.prepare(`
-      SELECT id FROM transactions
+    // Count existing transactions with same signature (allows multiple legitimate same-day purchases)
+    const countExisting = db.prepare(`
+      SELECT COUNT(*) as count FROM transactions
       WHERE date = ? AND amount = ? AND description = ? AND bank = ?
     `);
 
@@ -105,16 +106,46 @@ export class UploadService {
       Revolut: 0,
     };
 
+    // Count occurrences of each transaction signature in the upload
+    // This allows us to handle multiple legitimate same-day purchases
+    const uploadCounts = new Map<string, number>();
+    for (const tx of transactions) {
+      const key = `${tx.date}|${tx.amount}|${tx.description}|${tx.bank}`;
+      uploadCounts.set(key, (uploadCounts.get(key) || 0) + 1);
+    }
+
+    // Get existing counts from DB BEFORE processing (snapshot)
+    // This prevents issues with newly inserted rows being counted
+    const existingCounts = new Map<string, number>();
+    for (const key of uploadCounts.keys()) {
+      const [date, amount, description, bank] = key.split('|');
+      const existingResult = countExisting.get(date, parseFloat(amount), description, bank) as { count: number };
+      existingCounts.set(key, existingResult.count);
+    }
+
+    // Track how many of each signature we've processed in this upload
+    const processedCounts = new Map<string, number>();
+
     // Process each transaction
     const processTransactions = db.transaction(() => {
       for (const tx of transactions) {
-        // Check for duplicate
-        const existing = checkDuplicate.get(tx.date, tx.amount, tx.description, tx.bank);
+        const key = `${tx.date}|${tx.amount}|${tx.description}|${tx.bank}`;
+        const processedSoFar = processedCounts.get(key) || 0;
+        const existingCount = existingCounts.get(key) || 0;
+        const uploadCount = uploadCounts.get(key)!;
 
-        if (existing) {
+        // Calculate how many we should import: uploadCount - existingCount
+        // If we've already processed that many, skip the rest as duplicates
+        const toImport = Math.max(0, uploadCount - existingCount);
+
+        if (processedSoFar >= toImport) {
+          // Already imported enough of this signature
           result.duplicates++;
+          processedCounts.set(key, processedSoFar + 1);
           continue;
         }
+
+        processedCounts.set(key, processedSoFar + 1);
 
         // Apply categorization
         const categoryId = this.categorizeTransaction(tx, rules);

@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: spending-dashboard
+    ports:
+      - "3001:3001"
+    volumes:
+      # Persist SQLite database between container restarts
+      - spending_data:/app/data
+    environment:
+      - NODE_ENV=production
+      - DB_PATH=/app/data/spending.db
+      - PORT=3001
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  spending_data:
+    name: spending_dashboard_data

@@ -10,18 +10,19 @@ import {
 } from '../src/parsers';
 import type { BankParser, ParsedTransaction } from '../src/parsers';
 
-// Path to test statement file
-const TEST_REVOLUT_CSV = join(__dirname, '../test-statements/account-statement_2025-12-01_2025-12-31_es-es_03436b.csv');
+// Path to test statement files (use generic names - actual files are gitignored)
+const TEST_REVOLUT_CSV = join(__dirname, '../test-statements/revolut-statement.csv');
+const TEST_CSOB_PDF = join(__dirname, '../test-statements/csob-statement.pdf');
+const TEST_RAIFFEISEN_PDF = join(__dirname, '../test-statements/raiffeisen-statement.pdf');
 
 describe('BankParser Interface Contract', () => {
-  // Note: CSOB and Raiffeisen are still dummy implementations
-  // Revolut is a real parser that needs valid CSV input
-  const dummyParsers: BankParser[] = [
+  const allParsers: BankParser[] = [
     new CsobParser(),
     new RaiffeisenParser(),
+    new RevolutParser(),
   ];
 
-  it.each(dummyParsers.map((p) => [p.bankName, p]))(
+  it.each(allParsers.map((p) => [p.bankName, p]))(
     '%s parser has required properties',
     (_name, parser) => {
       expect(parser.bankName).toBeDefined();
@@ -32,32 +33,6 @@ describe('BankParser Interface Contract', () => {
       expect(typeof parser.parse).toBe('function');
     }
   );
-
-  it.each(dummyParsers.map((p) => [p.bankName, p]))(
-    '%s parser returns correct transaction structure',
-    async (_name, parser) => {
-      const buffer = Buffer.from('dummy content');
-      const transactions = await parser.parse(buffer);
-
-      expect(Array.isArray(transactions)).toBe(true);
-      expect(transactions.length).toBeGreaterThan(0);
-
-      transactions.forEach((tx: ParsedTransaction) => {
-        expect(tx.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-        expect(typeof tx.amount).toBe('number');
-        expect(typeof tx.description).toBe('string');
-        expect(tx.description.length).toBeGreaterThan(0);
-        expect(['CSOB', 'Raiffeisen', 'Revolut']).toContain(tx.bank);
-      });
-    }
-  );
-
-  it('RevolutParser has required properties', () => {
-    const parser = new RevolutParser();
-    expect(parser.bankName).toBe('Revolut');
-    expect(typeof parser.detect).toBe('function');
-    expect(typeof parser.parse).toBe('function');
-  });
 });
 
 describe('CsobParser', () => {
@@ -84,9 +59,14 @@ describe('CsobParser', () => {
       expect(parser.detect(buffer, 'čsob_výpis.csv')).toBe(true);
     });
 
-    it('detects files with csob in content', () => {
-      const buffer = Buffer.from('Header row\nCSOB Bank Statement\nData...');
-      expect(parser.detect(buffer, 'unknown.csv')).toBe(true);
+    it('detects CSOB PDF filename pattern', () => {
+      const buffer = Buffer.from('%PDF-1.4 some pdf content');
+      expect(parser.detect(buffer, '123456789_20251231_12_MCZB.pdf')).toBe(true);
+    });
+
+    it.skipIf(!existsSync(TEST_CSOB_PDF))('detects real CSOB PDF file', () => {
+      const buffer = readFileSync(TEST_CSOB_PDF);
+      expect(parser.detect(buffer, 'csob-statement.pdf')).toBe(true);
     });
 
     it('does not detect unrelated files', () => {
@@ -97,15 +77,21 @@ describe('CsobParser', () => {
   });
 
   describe('parse', () => {
-    it('returns 10 sample transactions', async () => {
+    it('throws error for non-PDF content', async () => {
       const buffer = Buffer.from('dummy content');
-      const transactions = await parser.parse(buffer);
-
-      expect(transactions).toHaveLength(10);
+      await expect(parser.parse(buffer)).rejects.toThrow('CSOB parser currently only supports PDF format');
     });
 
-    it('all transactions have CSOB bank', async () => {
-      const buffer = Buffer.from('dummy content');
+    it.skipIf(!existsSync(TEST_CSOB_PDF))('parses real CSOB PDF file', async () => {
+      const buffer = readFileSync(TEST_CSOB_PDF);
+      const transactions = await parser.parse(buffer);
+
+      // The test file has 26 transactions
+      expect(transactions.length).toBe(26);
+    });
+
+    it.skipIf(!existsSync(TEST_CSOB_PDF))('all transactions have CSOB bank', async () => {
+      const buffer = readFileSync(TEST_CSOB_PDF);
       const transactions = await parser.parse(buffer);
 
       transactions.forEach((tx) => {
@@ -113,18 +99,17 @@ describe('CsobParser', () => {
       });
     });
 
-    it('includes realistic Czech merchant descriptions', async () => {
-      const buffer = Buffer.from('dummy content');
+    it.skipIf(!existsSync(TEST_CSOB_PDF))('has correct date format', async () => {
+      const buffer = readFileSync(TEST_CSOB_PDF);
       const transactions = await parser.parse(buffer);
-      const descriptions = transactions.map((tx) => tx.description);
 
-      // Should include typical Czech merchants
-      expect(descriptions.some((d) => d.includes('ALBERT'))).toBe(true);
-      expect(descriptions.some((d) => d.includes('LIDL'))).toBe(true);
+      transactions.forEach((tx) => {
+        expect(tx.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      });
     });
 
-    it('has mix of positive and negative amounts', async () => {
-      const buffer = Buffer.from('dummy content');
+    it.skipIf(!existsSync(TEST_CSOB_PDF))('has mix of positive and negative amounts', async () => {
+      const buffer = readFileSync(TEST_CSOB_PDF);
       const transactions = await parser.parse(buffer);
 
       const positiveAmounts = transactions.filter((tx) => tx.amount > 0);
@@ -132,6 +117,19 @@ describe('CsobParser', () => {
 
       expect(positiveAmounts.length).toBeGreaterThan(0);
       expect(negativeAmounts.length).toBeGreaterThan(0);
+    });
+
+    it.skipIf(!existsSync(TEST_CSOB_PDF))('parses amounts correctly', async () => {
+      const buffer = readFileSync(TEST_CSOB_PDF);
+      const transactions = await parser.parse(buffer);
+
+      // Check some known transactions from the PDF
+      const tchibo = transactions.find((tx) => tx.description.includes('tchibo'));
+      expect(tchibo).toBeDefined();
+      expect(tchibo?.amount).toBe(-1462);
+
+      const income = transactions.find((tx) => tx.amount === 33500);
+      expect(income).toBeDefined();
     });
   });
 });
@@ -149,11 +147,22 @@ describe('RaiffeisenParser', () => {
 
   describe('detect', () => {
     it('detects files with raiffeisen in filename', () => {
-      const buffer = Buffer.from('some content');
-      expect(parser.detect(buffer, 'raiffeisen_export.csv')).toBe(true);
-      expect(parser.detect(buffer, 'Raiffeisen-statement.csv')).toBe(true);
-      expect(parser.detect(buffer, 'rb_transactions.csv')).toBe(true);
-      expect(parser.detect(buffer, 'raiff_2024.csv')).toBe(true);
+      const buffer = Buffer.from('%PDF-1.4 some content');
+      expect(parser.detect(buffer, 'raiffeisen_export.pdf')).toBe(true);
+      expect(parser.detect(buffer, 'Raiffeisen-statement.pdf')).toBe(true);
+      expect(parser.detect(buffer, 'rb_transactions.pdf')).toBe(true);
+      expect(parser.detect(buffer, 'raiff_2024.pdf')).toBe(true);
+    });
+
+    it('detects Raiffeisen PDF filename pattern', () => {
+      const buffer = Buffer.from('%PDF-1.4 some pdf content');
+      expect(parser.detect(buffer, 'Statement_123456789_CZK_2025_012.pdf')).toBe(true);
+      expect(parser.detect(buffer, 'Statement_987654321_EUR_2024_01.pdf')).toBe(true);
+    });
+
+    it.skipIf(!existsSync(TEST_RAIFFEISEN_PDF))('detects real Raiffeisen PDF file', () => {
+      const buffer = readFileSync(TEST_RAIFFEISEN_PDF);
+      expect(parser.detect(buffer, 'raiffeisen-statement.pdf')).toBe(true);
     });
 
     it('detects files with raiffeisen in content', () => {
@@ -169,15 +178,21 @@ describe('RaiffeisenParser', () => {
   });
 
   describe('parse', () => {
-    it('returns 10 sample transactions', async () => {
+    it('throws error for non-PDF content', async () => {
       const buffer = Buffer.from('dummy content');
-      const transactions = await parser.parse(buffer);
-
-      expect(transactions).toHaveLength(10);
+      await expect(parser.parse(buffer)).rejects.toThrow('Raiffeisen parser currently only supports PDF format');
     });
 
-    it('all transactions have Raiffeisen bank', async () => {
-      const buffer = Buffer.from('dummy content');
+    it.skipIf(!existsSync(TEST_RAIFFEISEN_PDF))('parses real Raiffeisen PDF file', async () => {
+      const buffer = readFileSync(TEST_RAIFFEISEN_PDF);
+      const transactions = await parser.parse(buffer);
+
+      // The test file has 16 transactions
+      expect(transactions.length).toBe(16);
+    });
+
+    it.skipIf(!existsSync(TEST_RAIFFEISEN_PDF))('all transactions have Raiffeisen bank', async () => {
+      const buffer = readFileSync(TEST_RAIFFEISEN_PDF);
       const transactions = await parser.parse(buffer);
 
       transactions.forEach((tx) => {
@@ -185,13 +200,54 @@ describe('RaiffeisenParser', () => {
       });
     });
 
-    it('includes realistic Czech merchant descriptions', async () => {
-      const buffer = Buffer.from('dummy content');
+    it.skipIf(!existsSync(TEST_RAIFFEISEN_PDF))('has correct date format', async () => {
+      const buffer = readFileSync(TEST_RAIFFEISEN_PDF);
       const transactions = await parser.parse(buffer);
-      const descriptions = transactions.map((tx) => tx.description);
 
-      expect(descriptions.some((d) => d.includes('TESCO'))).toBe(true);
-      expect(descriptions.some((d) => d.includes('IKEA'))).toBe(true);
+      transactions.forEach((tx) => {
+        expect(tx.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      });
+    });
+
+    it.skipIf(!existsSync(TEST_RAIFFEISEN_PDF))('has mix of positive and negative amounts', async () => {
+      const buffer = readFileSync(TEST_RAIFFEISEN_PDF);
+      const transactions = await parser.parse(buffer);
+
+      const positiveAmounts = transactions.filter((tx) => tx.amount > 0);
+      const negativeAmounts = transactions.filter((tx) => tx.amount < 0);
+
+      expect(positiveAmounts.length).toBeGreaterThan(0);
+      expect(negativeAmounts.length).toBeGreaterThan(0);
+    });
+
+    it.skipIf(!existsSync(TEST_RAIFFEISEN_PDF))('parses amounts correctly', async () => {
+      const buffer = readFileSync(TEST_RAIFFEISEN_PDF);
+      const transactions = await parser.parse(buffer);
+
+      // Check some known transactions from the PDF
+      const tmobile = transactions.find((tx) => tx.description.includes('T-MOBILE'));
+      expect(tmobile).toBeDefined();
+      expect(tmobile?.amount).toBe(-495);
+
+      const cookielab = transactions.find((tx) => tx.description.includes('COOKIELAB'));
+      expect(cookielab).toBeDefined();
+      expect(cookielab?.amount).toBe(109825);
+    });
+
+    it.skipIf(!existsSync(TEST_RAIFFEISEN_PDF))('totals match PDF header values', async () => {
+      const buffer = readFileSync(TEST_RAIFFEISEN_PDF);
+      const transactions = await parser.parse(buffer);
+
+      const totalIncome = transactions
+        .filter((tx) => tx.amount > 0)
+        .reduce((sum, tx) => sum + tx.amount, 0);
+      const totalExpenses = transactions
+        .filter((tx) => tx.amount < 0)
+        .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+
+      // Values from the PDF header
+      expect(totalIncome).toBe(111825);
+      expect(totalExpenses).toBeCloseTo(114850.52, 2);
     });
   });
 });
@@ -368,9 +424,7 @@ data1,data2,data3`;
 
     it.skipIf(!existsSync(TEST_REVOLUT_CSV))('detects real Revolut file', () => {
       const buffer = readFileSync(TEST_REVOLUT_CSV);
-      const filename = 'account-statement_2025-12-01_2025-12-31_es-es_03436b.csv';
-
-      expect(parser.detect(buffer, filename)).toBe(true);
+      expect(parser.detect(buffer, 'revolut-statement.csv')).toBe(true);
     });
   });
 });
@@ -427,19 +481,19 @@ describe('ParserService', () => {
   });
 
   describe('parse', () => {
-    it('parses CSOB file', async () => {
-      const buffer = Buffer.from('content');
-      const transactions = await service.parse(buffer, 'csob_export.csv');
+    it.skipIf(!existsSync(TEST_CSOB_PDF))('parses CSOB PDF file', async () => {
+      const buffer = readFileSync(TEST_CSOB_PDF);
+      const transactions = await service.parse(buffer, 'csob-statement.pdf');
 
-      expect(transactions).toHaveLength(10);
+      expect(transactions.length).toBe(26);
       expect(transactions[0].bank).toBe('CSOB');
     });
 
-    it('parses Raiffeisen file', async () => {
-      const buffer = Buffer.from('content');
-      const transactions = await service.parse(buffer, 'raiffeisen_export.csv');
+    it.skipIf(!existsSync(TEST_RAIFFEISEN_PDF))('parses Raiffeisen PDF file', async () => {
+      const buffer = readFileSync(TEST_RAIFFEISEN_PDF);
+      const transactions = await service.parse(buffer, 'raiffeisen-statement.pdf');
 
-      expect(transactions).toHaveLength(10);
+      expect(transactions.length).toBe(16);
       expect(transactions[0].bank).toBe('Raiffeisen');
     });
 
