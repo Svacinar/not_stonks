@@ -598,7 +598,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-15: Refactor Success Buttons to Use Variant
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** Multiple buttons use inline green styling:
@@ -616,8 +616,15 @@ This document contains work items to transform the spending dashboard from a fun
 2. Remove className overrides
 
 **Acceptance Criteria:**
-- [ ] All success/confirm buttons use `variant="success"`
-- [ ] No inline `bg-green-*` classes on buttons
+- [x] All success/confirm buttons use `variant="success"`
+- [x] No inline `bg-green-*` classes on buttons
+
+**Implementation Notes:**
+- Replaced `bg-green-600 hover:bg-green-700 text-white` with `variant="success"` on "Add Rule" button in `frontend/src/pages/RulesPage.tsx:341`
+- Replaced `bg-green-600 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700` with `variant="success"` on "View Transactions" button in `frontend/src/pages/UploadPage.tsx:214`
+- Verified no `bg-green-*` classes remain on buttons in pages/
+- Build passes successfully
+- Pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand commit dd98b3b)
 
 ---
 

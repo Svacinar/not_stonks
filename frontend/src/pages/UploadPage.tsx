@@ -211,7 +211,7 @@ export function UploadPage() {
                 <div className="mt-4 flex gap-3">
                   <Button
                     onClick={handleGoToTransactions}
-                    className="bg-green-600 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700"
+                    variant="success"
                   >
                     View Transactions
                   </Button>

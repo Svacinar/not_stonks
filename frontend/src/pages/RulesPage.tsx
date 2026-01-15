@@ -338,8 +338,9 @@ export function RulesPage() {
             </div>
             <Button
               type="submit"
+              variant="success"
               disabled={addingRule || !newKeyword.trim() || newCategoryId === ''}
-              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
+              className="w-full sm:w-auto"
             >
               {addingRule ? (
                 <>
