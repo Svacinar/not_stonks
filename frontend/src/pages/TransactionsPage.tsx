@@ -19,6 +19,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Table,
   TableBody,
   TableCell,
@@ -109,6 +119,10 @@ export function TransactionsPage() {
   // Export modal state
   const [showExportModal, setShowExportModal] = useState(false);
   const [exporting, setExporting] = useState(false);
+
+  // Delete confirmation state
+  const [deleteTransaction, setDeleteTransaction] = useState<TransactionWithCategory | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Update URL params
   const updateParams = useCallback(
@@ -300,6 +314,26 @@ export function TransactionsPage() {
       addToast('error', message);
     } finally {
       setExporting(false);
+    }
+  };
+
+  // Handle delete
+  const handleDelete = async () => {
+    if (!deleteTransaction) return;
+
+    setDeleting(true);
+    try {
+      await api.delete(`/api/transactions/${deleteTransaction.id}`);
+      setTransactions((prev) => prev.filter((t) => t.id !== deleteTransaction.id));
+      setTotal((prev) => prev - 1);
+      addToast('success', 'Transaction deleted');
+      setDeleteTransaction(null);
+    } catch (err) {
+      const message =
+        err instanceof ApiRequestError ? err.message : 'Failed to delete transaction';
+      addToast('error', message);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -495,6 +529,7 @@ export function TransactionsPage() {
                     Bank{getSortIndicator('bank')}
                   </TableHead>
                   <TableHead>Category</TableHead>
+                  <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -583,6 +618,29 @@ export function TransactionsPage() {
                             )}
                           </button>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => setDeleteTransaction(tx)}
+                          title="Delete transaction"
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -682,6 +740,35 @@ export function TransactionsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTransaction} onOpenChange={(open) => !deleting && !open && setDeleteTransaction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Transaction</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this transaction?
+              {deleteTransaction && (
+                <span className="block mt-2 font-medium text-foreground">
+                  {deleteTransaction.date} - {deleteTransaction.description} ({formatAmount(deleteTransaction.amount)})
+                </span>
+              )}
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? <LoadingSpinner size="sm" className="mr-2" /> : null}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

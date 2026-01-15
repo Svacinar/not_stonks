@@ -74,7 +74,7 @@ export class CsobParser implements BankParser {
     const transactions: ParsedTransaction[] = [];
 
     // Split text into lines for processing
-    const lines = text.split('\n').map((line) => line.trim()).filter((line) => line);
+    const lines = text.split('\n').map((line: string) => line.trim()).filter((line: string) => line);
 
     // Transaction line pattern:
     // DD.MM.Description IDAmount Balance
