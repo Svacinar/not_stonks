@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { CheckCircle2 } from 'lucide-react';
+import { GradientText } from '@/components/ui/gradient-text';
 
 interface SelectedFile {
   file: File;
@@ -173,7 +174,9 @@ export function UploadPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-foreground mb-6">Upload Bank Statements</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        <GradientText>Upload Bank Statements</GradientText>
+      </h1>
 
       {/* Success State */}
       {uploadState === 'success' && uploadResult && (

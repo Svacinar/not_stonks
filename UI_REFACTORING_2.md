@@ -925,7 +925,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-24: Enhance Page Headers with Gradient Text
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** LOW
 
 **Problem:** Page headers use plain text with no visual distinction. Headers don't convey brand personality.
@@ -951,10 +951,18 @@ This document contains work items to transform the spending dashboard from a fun
 4. Keep it subtle - not overly colorful
 
 **Acceptance Criteria:**
-- [ ] Page headers have subtle gradient effect
-- [ ] Text remains readable
-- [ ] Effect is elegant, not garish
-- [ ] Works in both themes
+- [x] Page headers have subtle gradient effect
+- [x] Text remains readable
+- [x] Effect is elegant, not garish
+- [x] Works in both themes
+
+**Implementation Notes:**
+- Created `frontend/src/components/ui/gradient-text.tsx` with GradientText component using Radix Slot for `asChild` pattern
+- Applied gradient using `bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent`
+- Updated all 4 pages: DashboardPage, TransactionsPage, RulesPage, UploadPage
+- Wrapped h1 text content with GradientText component in each page
+- Gradient is subtle (foreground to 70% foreground) maintaining readability
+- Uses CSS variables for automatic light/dark mode support
 
 ---
 

@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select';
 import { CheckCircle2 } from 'lucide-react';
 import { UNCATEGORIZED_COLOR } from '@/constants/colors';
+import { GradientText } from '@/components/ui/gradient-text';
 import {
   Table,
   TableBody,
@@ -252,7 +253,9 @@ export function RulesPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Categorization Rules</h1>
+        <h1 className="text-2xl font-bold">
+          <GradientText>Categorization Rules</GradientText>
+        </h1>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <span className="text-sm text-muted-foreground text-center sm:text-left">
             <span className="font-medium">{uncategorizedCount}</span> uncategorized transaction

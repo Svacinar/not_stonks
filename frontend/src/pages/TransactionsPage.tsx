@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { UNCATEGORIZED_COLOR } from '@/constants/colors';
+import { GradientText } from '@/components/ui/gradient-text';
 
 interface TransactionWithCategory extends Transaction {
   category_name: string | null;
@@ -330,7 +331,9 @@ export function TransactionsPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
+        <h1 className="text-2xl font-bold">
+          <GradientText>Transactions</GradientText>
+        </h1>
         <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
           <DateRangePicker value={dateRange} onChange={handleDateRangeChange} />
           <Button variant="outline" onClick={() => setShowExportModal(true)} className="w-full sm:w-auto">

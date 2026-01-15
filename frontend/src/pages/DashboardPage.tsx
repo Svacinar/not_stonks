@@ -18,6 +18,7 @@ import { ErrorMessage, DateRangePicker } from '../components';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatCard } from '@/components/ui/stat-card';
+import { GradientText } from '@/components/ui/gradient-text';
 import { DollarSign, ClipboardList, Calculator, TrendingUp } from 'lucide-react';
 import {
   Table,
@@ -336,7 +337,9 @@ export function DashboardPage() {
     <div className="space-y-6">
       {/* Header with date selector */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+        <h1 className="text-2xl font-bold">
+          <GradientText>Dashboard</GradientText>
+        </h1>
 
         {/* Date Range Selector */}
         <DateRangePicker value={dateRange} onChange={setDateRange} />
