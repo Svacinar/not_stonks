@@ -129,13 +129,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-30 w-64 bg-sidebar border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col',
+          'fixed inset-y-0 left-0 z-30 w-64 bg-sidebar/90 backdrop-blur-xl border-r border-border/50 transform transition-transform duration-300 ease-in-out flex flex-col',
           'lg:translate-x-0 lg:static lg:inset-auto',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* Logo/Title */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-border">
+        <div className="flex items-center justify-between h-16 px-4 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
           <div className="flex items-center gap-3">
             <LogoIcon />
             <span className="text-xl font-bold text-sidebar-foreground tracking-tight">
@@ -161,7 +161,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="mt-4 px-3 flex-1">
-          <ul className="space-y-1">
+          <ul className="space-y-2">
             {navItems.map((item) => (
               <li key={item.path}>
                 <NavLink
@@ -169,10 +169,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   onClick={onClose}
                   className={({ isActive }) =>
                     cn(
-                      'flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-150',
+                      'flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200',
                       isActive
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground'
+                        ? 'bg-gradient-to-r from-primary/15 to-transparent border-l-2 border-l-primary text-sidebar-foreground shadow-sm'
+                        : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground hover:translate-x-1'
                     )
                   }
                   end={item.path === '/'}
@@ -186,15 +186,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         {/* Theme toggle */}
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="flex items-center justify-between gap-1 p-1 bg-sidebar-accent rounded-lg">
+        <div className="p-4 border-t border-border/50">
+          <div className="flex items-center justify-between gap-1 p-1 bg-sidebar-accent/50 rounded-lg">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setTheme('light')}
               className={cn(
-                'flex-1 h-8 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar',
-                theme === 'light' && 'bg-sidebar text-primary shadow-sm'
+                'flex-1 h-8 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar transition-all duration-200',
+                theme === 'light' && 'bg-sidebar text-primary shadow-md ring-1 ring-primary/20'
               )}
               aria-label="Light theme"
             >
@@ -205,8 +205,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               size="sm"
               onClick={() => setTheme('dark')}
               className={cn(
-                'flex-1 h-8 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar',
-                theme === 'dark' && 'bg-sidebar text-primary shadow-sm'
+                'flex-1 h-8 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar transition-all duration-200',
+                theme === 'dark' && 'bg-sidebar text-primary shadow-md ring-1 ring-primary/20'
               )}
               aria-label="Dark theme"
             >
@@ -217,8 +217,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               size="sm"
               onClick={() => setTheme('system')}
               className={cn(
-                'flex-1 h-8 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar',
-                theme === 'system' && 'bg-sidebar text-primary shadow-sm'
+                'flex-1 h-8 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar transition-all duration-200',
+                theme === 'system' && 'bg-sidebar text-primary shadow-md ring-1 ring-primary/20'
               )}
               aria-label="System theme"
             >

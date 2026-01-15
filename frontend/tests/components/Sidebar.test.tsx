@@ -27,7 +27,7 @@ describe('Sidebar', () => {
   it('renders app title', () => {
     renderSidebar();
 
-    expect(screen.getByText('Spending')).toBeInTheDocument();
+    expect(screen.getByText('Not Stonks')).toBeInTheDocument();
   });
 
   it('shows overlay when open on mobile', () => {
