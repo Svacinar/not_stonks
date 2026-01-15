@@ -63,11 +63,12 @@ function validateFiles(files: Express.Multer.File[]): void {
     const printableRatio = 1 - (nonPrintableCount / Math.min(100, file.size));
 
     // If more than 30% of first 100 bytes are non-printable, likely corrupted
-    // (allowing some non-printable for Excel files which have binary headers)
-    const isExcel = file.originalname.toLowerCase().endsWith('.xlsx') ||
-                    file.originalname.toLowerCase().endsWith('.xls');
+    // (allowing some non-printable for Excel and PDF files which have binary content)
+    const isBinaryFormat = file.originalname.toLowerCase().endsWith('.xlsx') ||
+                           file.originalname.toLowerCase().endsWith('.xls') ||
+                           file.originalname.toLowerCase().endsWith('.pdf');
 
-    if (!isExcel && printableRatio < 0.7) {
+    if (!isBinaryFormat && printableRatio < 0.7) {
       errors[file.originalname] = 'File appears to be corrupted or in an unsupported format';
     }
   }
