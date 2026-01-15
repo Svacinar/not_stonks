@@ -333,7 +333,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-08: Enhance Button with Hover Elevation Effects
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Buttons have basic color transitions but no elevation changes on hover. They feel flat and lack premium polish.
@@ -356,10 +356,18 @@ This document contains work items to transform the spending dashboard from a fun
 4. Keep `active:scale-[0.98]` for press feedback
 
 **Acceptance Criteria:**
-- [ ] Default button lifts slightly on hover with shadow
-- [ ] Primary button has subtle glow on hover
-- [ ] Transitions feel smooth and premium
-- [ ] Ghost and link variants don't have elevation (appropriate)
+- [x] Default button lifts slightly on hover with shadow
+- [x] Primary button has subtle glow on hover
+- [x] Transitions feel smooth and premium
+- [x] Ghost and link variants don't have elevation (appropriate)
+
+**Implementation Notes:**
+- Updated `buttonVariants` in `frontend/src/components/ui/button.tsx`
+- Default variant: Added `hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5` for premium glow effect
+- Destructive, outline, secondary variants: Added `hover:shadow-md hover:-translate-y-0.5` for lift effect
+- Success variant: Added `hover:shadow-md hover:shadow-success/20 hover:-translate-y-0.5` for colored glow
+- Ghost and link variants left unchanged (no elevation, as appropriate)
+- Changed base transition from `duration-150` to `duration-200` for smoother feel
 
 ---
 
