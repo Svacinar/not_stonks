@@ -15,12 +15,13 @@ Object.defineProperty(window, 'localStorage', {
   writable: true,
 });
 
-// Mock ResizeObserver for chart.js
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+// Mock ResizeObserver for chart.js and Radix UI components
+class ResizeObserverMock {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
+global.ResizeObserver = ResizeObserverMock;
 
 // Mock canvas context for Chart.js
 HTMLCanvasElement.prototype.getContext = vi.fn().mockImplementation(() => ({
@@ -75,3 +76,11 @@ Object.defineProperty(window, 'matchMedia', {
 // Mock URL.createObjectURL and URL.revokeObjectURL
 global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
 global.URL.revokeObjectURL = vi.fn();
+
+// Mock pointer capture methods for Radix UI components
+Element.prototype.hasPointerCapture = vi.fn(() => false);
+Element.prototype.setPointerCapture = vi.fn();
+Element.prototype.releasePointerCapture = vi.fn();
+
+// Mock scrollIntoView for Radix UI Select
+Element.prototype.scrollIntoView = vi.fn();

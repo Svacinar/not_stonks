@@ -731,7 +731,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-19: Replace Native Selects with Select Component
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Native `<select>` elements used with manual styling instead of Select component:
@@ -749,9 +749,18 @@ This document contains work items to transform the spending dashboard from a fun
 3. Test keyboard navigation
 
 **Acceptance Criteria:**
-- [ ] RulesPage uses Select component for categories
-- [ ] Keyboard navigation works
-- [ ] Visual consistency with design system
+- [x] RulesPage uses Select component for categories
+- [x] Keyboard navigation works
+- [x] Visual consistency with design system
+
+**Implementation Notes:**
+- Replaced native `<select>` with shadcn Select component for new rule category (lines 312-327)
+- Replaced native `<select>` with shadcn Select component for edit rule category (lines 400-417)
+- Added Select imports from `@/components/ui/select`
+- Converted numeric category_id values to strings for Select (uses string values)
+- Added test setup mocks for Radix UI (pointer capture, scrollIntoView) in `frontend/tests/setup.ts`
+- Updated `RulesPage.test.tsx` to test via hidden native select (Radix renders for form compatibility)
+- Pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand commit dd98b3b)
 
 ---
 

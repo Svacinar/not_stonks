@@ -172,12 +172,17 @@ describe('RulesPage', () => {
       expect(screen.getByLabelText('Keyword')).toBeInTheDocument();
     });
 
+    // Fill in keyword input
     fireEvent.change(screen.getByLabelText('Keyword'), {
       target: { value: 'NETFLIX' },
     });
-    fireEvent.change(screen.getByLabelText('Category'), {
-      target: { value: '1' },
-    });
+
+    // Radix Select renders a hidden native select for form accessibility
+    // Use that for testing since jsdom doesn't fully support Radix UI pointer events
+    const hiddenSelect = document.querySelector('select[aria-hidden="true"]') as HTMLSelectElement;
+    fireEvent.change(hiddenSelect, { target: { value: '1' } });
+
+    // Click Add Rule button
     fireEvent.click(screen.getByText('Add Rule'));
 
     await waitFor(() => {

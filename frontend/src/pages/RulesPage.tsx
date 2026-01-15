@@ -9,6 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { CheckCircle2 } from 'lucide-react';
 import { UNCATEGORIZED_COLOR } from '@/constants/colors';
 import {
@@ -302,20 +309,22 @@ export function RulesPage() {
             </div>
             <div className="flex-1 min-w-0 sm:min-w-48 space-y-2">
               <Label htmlFor="newCategory">Category</Label>
-              <select
-                id="newCategory"
-                value={newCategoryId}
-                onChange={(e) => setNewCategoryId(e.target.value ? parseInt(e.target.value, 10) : '')}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              <Select
+                value={newCategoryId === '' ? undefined : String(newCategoryId)}
+                onValueChange={(value) => setNewCategoryId(value ? parseInt(value, 10) : '')}
                 disabled={addingRule}
               >
-                <option value="">Select category...</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="newCategory">
+                  <SelectValue placeholder="Select category..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={String(cat.id)}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <Button
               type="submit"
@@ -388,22 +397,24 @@ export function RulesPage() {
                           <label htmlFor={`edit-category-${rule.id}`} className="sr-only">
                             Edit category
                           </label>
-                          <select
-                            id={`edit-category-${rule.id}`}
-                            value={editCategoryId}
-                            onChange={(e) =>
-                              setEditCategoryId(e.target.value ? parseInt(e.target.value, 10) : '')
+                          <Select
+                            value={editCategoryId === '' ? undefined : String(editCategoryId)}
+                            onValueChange={(value) =>
+                              setEditCategoryId(value ? parseInt(value, 10) : '')
                             }
-                            className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={savingEdit}
                           >
-                            <option value="">Select category...</option>
-                            {categories.map((cat) => (
-                              <option key={cat.id} value={cat.id}>
-                                {cat.name}
-                              </option>
-                            ))}
-                          </select>
+                            <SelectTrigger id={`edit-category-${rule.id}`}>
+                              <SelectValue placeholder="Select category..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories.map((cat) => (
+                                <SelectItem key={cat.id} value={String(cat.id)}>
+                                  {cat.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </>
                       ) : (
                         <span className="flex items-center gap-2">
