@@ -492,7 +492,7 @@ export function TransactionsPage() {
                       <TableCell
                         className={cn(
                           "whitespace-nowrap text-right font-medium",
-                          tx.amount < 0 ? "text-red-600" : "text-green-600"
+                          tx.amount < 0 ? "text-destructive" : "text-success"
                         )}
                       >
                         {formatAmount(tx.amount)}

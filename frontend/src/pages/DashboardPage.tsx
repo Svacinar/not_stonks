@@ -581,7 +581,7 @@ export function DashboardPage() {
                           {tx.description}
                         </TableCell>
                         <TableCell className={`whitespace-nowrap text-right font-medium ${
-                          tx.amount < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
+                          tx.amount < 0 ? 'text-destructive' : 'text-success'
                         }`}>
                           {tx.amount < 0 ? '-' : ''}{formatCurrency(tx.amount)}
                         </TableCell>

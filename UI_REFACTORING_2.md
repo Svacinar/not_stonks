@@ -564,7 +564,7 @@ This document contains work items to transform the spending dashboard from a fun
 ## Work Items - Page Refactoring
 
 ### UI2-14: Refactor Amount Color Display
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** Transaction amounts use hardcoded colors:
@@ -583,9 +583,17 @@ This document contains work items to transform the spending dashboard from a fun
 3. CSS variables handle dark mode automatically (no `dark:` prefix needed)
 
 **Acceptance Criteria:**
-- [ ] All amount colors use semantic tokens
-- [ ] Dark mode works correctly in both pages
-- [ ] No hardcoded red/green classes remain for amounts
+- [x] All amount colors use semantic tokens
+- [x] Dark mode works correctly in both pages
+- [x] No hardcoded red/green classes remain for amounts
+
+**Implementation Notes:**
+- Replaced `text-red-600 dark:text-red-400` with `text-destructive` in `frontend/src/pages/DashboardPage.tsx:584`
+- Replaced `text-green-600 dark:text-green-400` with `text-success` in `frontend/src/pages/DashboardPage.tsx:584`
+- Replaced `text-red-600` with `text-destructive` in `frontend/src/pages/TransactionsPage.tsx:495`
+- Replaced `text-green-600` with `text-success` in `frontend/src/pages/TransactionsPage.tsx:495`
+- Dark mode now handled automatically via CSS variables (no explicit `dark:` prefix needed)
+- Pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand commit dd98b3b)
 
 ---
 
