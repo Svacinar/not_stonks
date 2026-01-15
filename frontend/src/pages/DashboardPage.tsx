@@ -336,7 +336,7 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header with date selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in-up opacity-0" style={{ animationFillMode: 'forwards' }}>
         <h1 className="text-2xl font-bold">
           <GradientText>Dashboard</GradientText>
         </h1>
@@ -419,7 +419,7 @@ export function DashboardPage() {
           </div>
 
           {/* Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in-up opacity-0 animation-delay-300" style={{ animationFillMode: 'forwards' }}>
             {/* Spending by Category Pie Chart */}
             <Card>
               <CardHeader>
@@ -458,7 +458,7 @@ export function DashboardPage() {
           </div>
 
           {/* Spending and Income Over Time Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in-up opacity-0 animation-delay-400" style={{ animationFillMode: 'forwards' }}>
             {/* Spending Over Time Line Chart */}
             <Card>
               <CardHeader>
@@ -497,7 +497,7 @@ export function DashboardPage() {
           </div>
 
           {/* Recent Transactions */}
-          <Card>
+          <Card className="animate-fade-in-up opacity-0 animation-delay-500" style={{ animationFillMode: 'forwards' }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
               <CardTitle className="text-lg">Recent Transactions</CardTitle>
               <Button variant="link" asChild className="p-0 h-auto">

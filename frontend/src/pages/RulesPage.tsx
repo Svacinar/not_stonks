@@ -252,7 +252,7 @@ export function RulesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up opacity-0" style={{ animationFillMode: 'forwards' }}>
         <h1 className="text-2xl font-bold">
           <GradientText>Categorization Rules</GradientText>
         </h1>
@@ -293,7 +293,7 @@ export function RulesPage() {
       {error && <ErrorMessage message={error} onRetry={fetchData} />}
 
       {/* Add New Rule Form */}
-      <Card>
+      <Card className="animate-fade-in-up opacity-0 animation-delay-100" style={{ animationFillMode: 'forwards' }}>
         <CardHeader className="pb-4">
           <CardTitle className="text-lg">Add New Rule</CardTitle>
         </CardHeader>
@@ -353,7 +353,7 @@ export function RulesPage() {
 
       {/* Rules Table */}
       {!loading && (
-        <Card>
+        <Card className="animate-fade-in-up opacity-0 animation-delay-200" style={{ animationFillMode: 'forwards' }}>
           <div className="overflow-x-auto">
           <Table>
             <TableHeader>

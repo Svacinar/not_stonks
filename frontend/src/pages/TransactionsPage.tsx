@@ -330,7 +330,7 @@ export function TransactionsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up opacity-0" style={{ animationFillMode: 'forwards' }}>
         <h1 className="text-2xl font-bold">
           <GradientText>Transactions</GradientText>
         </h1>
@@ -356,7 +356,7 @@ export function TransactionsPage() {
       </div>
 
       {/* Filter Panel */}
-      <Card>
+      <Card className="animate-fade-in-up opacity-0 animation-delay-100" style={{ animationFillMode: 'forwards' }}>
         <CardContent className="p-4 space-y-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
             {/* Search */}
@@ -461,7 +461,7 @@ export function TransactionsPage() {
       {/* Table */}
       {!loading && !error && transactions.length > 0 && (
         <>
-          <Card>
+          <Card className="animate-fade-in-up opacity-0 animation-delay-200" style={{ animationFillMode: 'forwards' }}>
             <div className="overflow-x-auto">
             <Table>
               <TableHeader>

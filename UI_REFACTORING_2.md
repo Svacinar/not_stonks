@@ -1010,7 +1010,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-26: Implement Staggered Entrance Animations
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** MEDIUM
 
 **Problem:** Page content appears instantly with no animation. This feels abrupt and misses opportunity for polish.
@@ -1033,10 +1033,17 @@ This document contains work items to transform the spending dashboard from a fun
 4. Keep animations subtle (duration ~500ms, small translate)
 
 **Acceptance Criteria:**
-- [ ] Page content animates in with stagger
-- [ ] Animation feels smooth and premium
-- [ ] Respects reduced motion preference
-- [ ] No layout shift during animation
+- [x] Page content animates in with stagger
+- [x] Animation feels smooth and premium
+- [x] Respects reduced motion preference
+- [x] No layout shift during animation
+
+**Implementation Notes:**
+- DashboardPage: Added `animate-fade-in-up` to header (no delay), charts row (300ms), second charts row (400ms), and recent transactions table (500ms); stat cards already animated from UI2-20
+- TransactionsPage: Added `animate-fade-in-up` to header (no delay), filter panel (100ms), and transactions table (200ms)
+- RulesPage: Added `animate-fade-in-up` to header (no delay), add rule form (100ms), and rules table (200ms)
+- Used `opacity-0` initial state with `animationFillMode: 'forwards'` to prevent layout shift
+- Animations respect `prefers-reduced-motion` via existing CSS rule in `index.css`
 
 ---
 
