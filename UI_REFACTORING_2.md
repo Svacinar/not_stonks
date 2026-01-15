@@ -124,7 +124,7 @@ This document contains work items to transform the spending dashboard from a fun
 ---
 
 ### UI2-03: Define Brand Gradient CSS Custom Properties
-**Status:** NOT IMPLEMENTED
+**Status:** DONE
 **Severity:** HIGH
 
 **Problem:** No gradient utilities exist. The app uses flat colors everywhere, contributing to the "plain" feeling.
@@ -147,10 +147,17 @@ This document contains work items to transform the spending dashboard from a fun
 3. Add Tailwind utilities: `bg-gradient-brand`, `bg-gradient-success`, `bg-gradient-danger`, `bg-gradient-subtle`
 
 **Acceptance Criteria:**
-- [ ] `bg-gradient-brand` renders a blue-to-cyan gradient
-- [ ] `bg-gradient-success` renders a green-to-teal gradient
-- [ ] Gradients adapt appropriately in dark mode
-- [ ] `bg-gradient-subtle` provides a subtle background tint
+- [x] `bg-gradient-brand` renders a blue-to-cyan gradient
+- [x] `bg-gradient-success` renders a green-to-teal gradient
+- [x] Gradients adapt appropriately in dark mode
+- [x] `bg-gradient-subtle` provides a subtle background tint
+
+**Implementation Notes:**
+- Added `--gradient-brand`, `--gradient-success`, `--gradient-danger`, `--gradient-subtle` CSS variables to `:root` in `frontend/src/index.css`
+- Added dark mode variants in `.dark` class with adjusted lightness values for better visibility
+- Extended Tailwind config with `backgroundImage` mapping for all four gradient utilities in `frontend/tailwind.config.js`
+- Build passes successfully; gradient classes are JIT-compiled when used
+- Pre-existing test failure in Sidebar.test.tsx (unrelated - from rebrand commit dd98b3b)
 
 ---
 
