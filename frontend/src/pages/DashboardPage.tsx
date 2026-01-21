@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDateRangeParams } from '@/hooks/useDateRangeParams';
 import {
   Chart as ChartJS,
@@ -98,13 +98,14 @@ function generateMonthRange(startDate: string, endDate: string): string[] {
 
 export function DashboardPage() {
   const { dateRange, startDate, endDate, setDateRange, searchParams } = useDateRangeParams();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<TransactionStats | null>(null);
   const [recentTransactions, setRecentTransactions] = useState<TransactionWithCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Create a color map from category name to color
+  // Create maps from category name to color and id
   const categoryColorMap = useMemo(() => {
     const map = new Map<string, string>();
     categories.forEach(cat => {
@@ -112,6 +113,32 @@ export function DashboardPage() {
     });
     return map;
   }, [categories]);
+
+  const categoryIdMap = useMemo(() => {
+    const map = new Map<string, number>();
+    categories.forEach(cat => {
+      map.set(cat.name, cat.id);
+    });
+    return map;
+  }, [categories]);
+
+  // Handle pie chart click - navigate to transactions with category filter
+  const handlePieClick = useCallback((categoryName: string) => {
+    const params = new URLSearchParams();
+    if (startDate) params.set('startDate', startDate);
+    if (endDate) params.set('endDate', endDate);
+
+    if (categoryName === 'Uncategorized') {
+      params.set('uncategorized', 'true');
+    } else {
+      const categoryId = categoryIdMap.get(categoryName);
+      if (categoryId) {
+        params.set('category', String(categoryId));
+      }
+    }
+
+    navigate(`/transactions?${params.toString()}`);
+  }, [startDate, endDate, categoryIdMap, navigate]);
 
   // Fetch stats, categories, and recent transactions
   const fetchData = async () => {
@@ -315,9 +342,18 @@ export function DashboardPage() {
     };
   }, [stats, chartColors, createGradient, allMonths]);
 
-  // Chart options - modern premium styling
+  // Chart options - modern premium styling with click handler
   const pieOptions = useMemo(() => ({
     ...getPieChartOptions,
+    onClick: (_event: unknown, elements: { index: number }[]) => {
+      if (elements.length > 0 && categoryPieData) {
+        const index = elements[0].index;
+        const categoryName = categoryPieData.labels[index];
+        if (categoryName) {
+          handlePieClick(categoryName);
+        }
+      }
+    },
     plugins: {
       ...getPieChartOptions.plugins,
       tooltip: {
@@ -329,7 +365,7 @@ export function DashboardPage() {
         },
       },
     },
-  }), [getPieChartOptions]);
+  }), [getPieChartOptions, categoryPieData, handlePieClick]);
 
   const barOptions = useMemo(() => ({
     ...getBarChartOptions,
@@ -489,7 +525,7 @@ export function DashboardPage() {
               </CardHeader>
               <CardContent className="pt-4">
                 {categoryPieData ? (
-                  <div className="h-72">
+                  <div className="h-72 cursor-pointer" title="Click to view transactions">
                     <Pie data={categoryPieData} options={pieOptions} />
                   </div>
                 ) : (
