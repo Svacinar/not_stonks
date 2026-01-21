@@ -60,6 +60,12 @@ router.get('/', (req: Request<{}, {}, {}, TransactionListQuery>, res: Response):
     const sortColumn = allowedSortColumns.includes(sort) ? sort : 'date';
     const sortOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
+    // For amount sorting, use absolute value so "largest" means highest magnitude
+    // This is more intuitive: DESC shows biggest transactions first regardless of sign
+    const orderByClause = sortColumn === 'amount'
+      ? `ABS(t.amount) ${sortOrder}`
+      : `t.${sortColumn} ${sortOrder}`;
+
     // Get total count
     const countQuery = `SELECT COUNT(*) as total FROM transactions t ${whereClause}`;
     const countResult = db.prepare(countQuery).get(...params) as { total: number };
@@ -79,7 +85,7 @@ router.get('/', (req: Request<{}, {}, {}, TransactionListQuery>, res: Response):
       FROM transactions t
       LEFT JOIN categories c ON t.category_id = c.id
       ${whereClause}
-      ORDER BY t.${sortColumn} ${sortOrder}
+      ORDER BY ${orderByClause}
       LIMIT ? OFFSET ?
     `;
 

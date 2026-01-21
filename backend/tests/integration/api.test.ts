@@ -178,7 +178,7 @@ describe('API Integration Tests', () => {
         expect(response.body.offset).toBe(0);
       });
 
-      it('should sort by amount ascending', async () => {
+      it('should sort by amount ascending (smallest magnitude first)', async () => {
         const db = getDatabase();
         seedStandardTestData(db);
 
@@ -188,7 +188,8 @@ describe('API Integration Tests', () => {
 
         expect(response.status).toBe(200);
         const amounts = response.body.transactions.map((t: { amount: number }) => t.amount);
-        expect(amounts[0]).toBe(-200.0);
+        // Sorts by absolute value - smallest magnitude first
+        expect(amounts[0]).toBe(-25.0); // smallest expense by magnitude
       });
     });
 
