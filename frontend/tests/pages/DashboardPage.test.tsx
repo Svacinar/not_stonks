@@ -202,7 +202,7 @@ describe('DashboardPage', () => {
     expect(screen.getAllByTestId('line-chart')).toHaveLength(2);
   });
 
-  it('renders recent transactions table', async () => {
+  it('renders latest transactions table', async () => {
     vi.mocked(apiClient.api.get).mockImplementation((url: string) => {
       if (url.includes('/stats')) return Promise.resolve(mockStats);
       return Promise.resolve(mockTransactions);
@@ -211,7 +211,7 @@ describe('DashboardPage', () => {
     renderDashboard();
 
     await waitFor(() => {
-      expect(screen.getByText('Recent Transactions')).toBeInTheDocument();
+      expect(screen.getByText('Latest Transactions')).toBeInTheDocument();
     });
 
     expect(screen.getByText('Test transaction 1')).toBeInTheDocument();
@@ -263,7 +263,7 @@ describe('DashboardPage', () => {
     expect(screen.getByText('Spending Over Time')).toBeInTheDocument();
   });
 
-  it('renders "View all" link to transactions', async () => {
+  it('renders "View all" link to transactions with date params', async () => {
     vi.mocked(apiClient.api.get).mockImplementation((url: string) => {
       if (url.includes('/stats')) return Promise.resolve(mockStats);
       return Promise.resolve(mockTransactions);
@@ -275,7 +275,13 @@ describe('DashboardPage', () => {
       expect(screen.getByText('View all')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('View all').closest('a')).toHaveAttribute('href', '/transactions');
+    const link = screen.getByText('View all').closest('a');
+    expect(link).toBeDefined();
+    // Link should go to transactions page and include date params
+    const href = link?.getAttribute('href') || '';
+    expect(href).toMatch(/^\/transactions\?/);
+    expect(href).toContain('startDate=');
+    expect(href).toContain('endDate=');
   });
 
   it('renders DateRangePicker', async () => {
@@ -294,7 +300,7 @@ describe('DashboardPage', () => {
     });
   });
 
-  it('shows "No recent transactions" when empty', async () => {
+  it('shows empty message when no transactions in period', async () => {
     vi.mocked(apiClient.api.get).mockImplementation((url: string) => {
       if (url.includes('/stats')) return Promise.resolve(mockStats);
       return Promise.resolve({ transactions: [], total: 100, limit: 10, offset: 0 });
@@ -303,7 +309,7 @@ describe('DashboardPage', () => {
     renderDashboard();
 
     await waitFor(() => {
-      expect(screen.getByText('No recent transactions')).toBeInTheDocument();
+      expect(screen.getByText('No transactions in this period')).toBeInTheDocument();
     });
   });
 

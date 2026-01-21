@@ -3,7 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { api, ApiRequestError } from '../api/client';
 import { LoadingSpinner, ErrorMessage, DateRangePicker, useToast, EmptyState } from '../components';
 import { TransactionTableSkeleton } from '@/components/skeletons/TransactionTableSkeleton';
-import { getDefaultDateRange, type DateRange } from '../utils/dateUtils';
+import { useDateRangeParams } from '@/hooks/useDateRangeParams';
+import type { DateRange } from '../utils/dateUtils';
 import type { Transaction, Category, BankName } from '../../../shared/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -64,6 +65,7 @@ const PAGE_SIZE = 50;
 
 export function TransactionsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { dateRange, startDate, endDate } = useDateRangeParams();
   const { addToast } = useToast();
 
   // Data state
@@ -73,9 +75,7 @@ export function TransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filter state from URL params
-  const startDate = searchParams.get('startDate') || '';
-  const endDate = searchParams.get('endDate') || '';
+  // Filter state from URL params (non-date filters)
   const bankParam = searchParams.get('bank') || '';
   const categoryParam = searchParams.get('category') || '';
   const selectedBanks = useMemo(
@@ -91,26 +91,6 @@ export function TransactionsPage() {
   const sortColumn = (searchParams.get('sort') as SortColumn) || 'date';
   const sortOrder = (searchParams.get('order') as SortOrder) || 'desc';
   const page = parseInt(searchParams.get('page') || '1', 10);
-
-  // Initialize with default date range if no dates in URL
-  useEffect(() => {
-    if (!searchParams.has('startDate') && !searchParams.has('endDate')) {
-      const defaultRange = getDefaultDateRange();
-      const newParams = new URLSearchParams(searchParams);
-      newParams.set('startDate', defaultRange.startDate);
-      newParams.set('endDate', defaultRange.endDate);
-      setSearchParams(newParams, { replace: true });
-    }
-  }, []); // Only run on mount
-
-  // Derived date range for the picker component
-  const dateRange: DateRange = useMemo(
-    () => ({
-      startDate: startDate,
-      endDate: endDate,
-    }),
-    [startDate, endDate]
-  );
 
   // Inline editing state
   const [editingTransactionId, setEditingTransactionId] = useState<number | null>(null);
@@ -209,7 +189,7 @@ export function TransactionsPage() {
     setSelectedIds(new Set());
   }, [transactions]);
 
-  // Handle date range picker change
+  // Handle date range picker change - also persists to localStorage via the hook's effect
   const handleDateRangeChange = (range: DateRange) => {
     updateParams({
       startDate: range.startDate || null,
@@ -416,7 +396,7 @@ export function TransactionsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between animate-fade-in-up opacity-0" style={{ animationFillMode: 'forwards' }}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative z-50 animate-fade-in-up opacity-0" style={{ animationFillMode: 'forwards' }}>
         <h1 className="text-2xl font-bold">
           <GradientText>Transactions</GradientText>
         </h1>

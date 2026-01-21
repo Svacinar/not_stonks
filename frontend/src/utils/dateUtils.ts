@@ -8,7 +8,7 @@ export interface DateRange {
   endDate: string; // ISO format: YYYY-MM-DD
 }
 
-export type DatePreset = 'last3months' | 'last6months' | 'thisYear' | 'allTime';
+export type DatePreset = 'thisMonth' | 'lastMonth' | 'last3months' | 'last6months' | 'thisYear' | 'allTime';
 
 /**
  * Returns the default date range (last 3 months).
@@ -33,6 +33,14 @@ export function getDateRangeFromPreset(preset: DatePreset): DateRange {
   const start = new Date();
 
   switch (preset) {
+    case 'thisMonth':
+      start.setDate(1);
+      break;
+    case 'lastMonth':
+      start.setMonth(start.getMonth() - 1);
+      start.setDate(1);
+      end.setDate(0); // Last day of previous month
+      break;
     case 'last3months':
       start.setMonth(start.getMonth() - 3);
       break;
@@ -94,7 +102,7 @@ export function getPresetFromDateRange(range: DateRange): DatePreset | null {
     return 'allTime';
   }
 
-  const presets: DatePreset[] = ['last3months', 'last6months', 'thisYear'];
+  const presets: DatePreset[] = ['thisMonth', 'lastMonth', 'last3months', 'last6months', 'thisYear'];
 
   for (const preset of presets) {
     const presetRange = getDateRangeFromPreset(preset);
@@ -120,6 +128,10 @@ export function getDateRangeLabel(range: DateRange): string {
   const preset = getPresetFromDateRange(range);
   if (preset) {
     switch (preset) {
+      case 'thisMonth':
+        return 'This month';
+      case 'lastMonth':
+        return 'Last month';
       case 'last3months':
         return 'Last 3 months';
       case 'last6months':

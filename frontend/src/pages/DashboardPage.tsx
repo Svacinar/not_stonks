@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useDateRangeParams } from '@/hooks/useDateRangeParams';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -31,11 +32,7 @@ import {
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { BANK_COLORS, CHART_COLORS_HEX, UNCATEGORIZED_COLOR } from '@/constants/colors';
 import { useChartTheme } from '@/hooks/useChartTheme';
-import {
-  getDefaultDateRange,
-  formatDateForDisplay,
-  type DateRange,
-} from '../utils/dateUtils';
+import { formatDateForDisplay } from '../utils/dateUtils';
 import type { TransactionStats, Transaction, BankName } from '../../../shared/types';
 
 // Register Chart.js components
@@ -73,14 +70,34 @@ function formatCurrency(amount: number): string {
   }).format(Math.abs(amount));
 }
 
+// Generate all months between two dates (inclusive)
+function generateMonthRange(startDate: string, endDate: string): string[] {
+  if (!startDate || !endDate) return [];
+
+  const months: string[] = [];
+  const start = new Date(startDate + 'T00:00:00');
+  const end = new Date(endDate + 'T00:00:00');
+
+  // Start from the first day of the start month
+  const current = new Date(start.getFullYear(), start.getMonth(), 1);
+  const endMonth = new Date(end.getFullYear(), end.getMonth(), 1);
+
+  while (current <= endMonth) {
+    const year = current.getFullYear();
+    const month = String(current.getMonth() + 1).padStart(2, '0');
+    months.push(`${year}-${month}`);
+    current.setMonth(current.getMonth() + 1);
+  }
+
+  return months;
+}
+
 export function DashboardPage() {
+  const { dateRange, startDate, endDate, setDateRange, searchParams } = useDateRangeParams();
   const [stats, setStats] = useState<TransactionStats | null>(null);
   const [recentTransactions, setRecentTransactions] = useState<TransactionWithCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Date range state - default to last 3 months
-  const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange);
 
   // Fetch stats and recent transactions
   const fetchData = async () => {
@@ -89,8 +106,8 @@ export function DashboardPage() {
 
     try {
       const params = new URLSearchParams();
-      if (dateRange.startDate) params.set('startDate', dateRange.startDate);
-      if (dateRange.endDate) params.set('endDate', dateRange.endDate);
+      if (startDate) params.set('startDate', startDate);
+      if (endDate) params.set('endDate', endDate);
 
       // Fetch stats and recent transactions in parallel
       const [statsData, transactionsData] = await Promise.all([
@@ -110,7 +127,7 @@ export function DashboardPage() {
 
   useEffect(() => {
     fetchData();
-  }, [dateRange]);
+  }, [startDate, endDate]);
 
   // Calculate derived stats
   const derivedStats = useMemo(() => {
@@ -191,13 +208,23 @@ export function DashboardPage() {
     };
   }, [stats]);
 
+  // Generate full month range for charts
+  const allMonths = useMemo(() => generateMonthRange(startDate, endDate), [startDate, endDate]);
+
   // Line chart data for spending over time
   const timeLineData = useMemo(() => {
-    if (!stats || stats.by_month.length === 0) return null;
+    if (!stats) return null;
+
+    // Use full month range if available, otherwise fall back to data months
+    const months = allMonths.length > 0 ? allMonths : stats.by_month.map(m => m.month);
+    if (months.length === 0) return null;
+
+    // Create a map of existing data for quick lookup
+    const dataMap = new Map(stats.by_month.map(m => [m.month, Math.abs(m.sum)]));
 
     return {
-      labels: stats.by_month.map(m => {
-        const [year, month] = m.month.split('-');
+      labels: months.map(m => {
+        const [year, month] = m.split('-');
         return new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('cs-CZ', {
           month: 'short',
           year: '2-digit',
@@ -205,7 +232,7 @@ export function DashboardPage() {
       }),
       datasets: [{
         label: 'Monthly Spending',
-        data: stats.by_month.map(m => Math.abs(m.sum)),
+        data: months.map(m => dataMap.get(m) || 0),
         borderColor: chartColors.spendingLine,
         backgroundColor: (context: { chart: { ctx: CanvasRenderingContext2D; chartArea?: { top: number; bottom: number; left: number; right: number; width: number; height: number } } }) => {
           const { ctx, chartArea } = context.chart;
@@ -225,15 +252,23 @@ export function DashboardPage() {
         pointHoverBorderWidth: 3,
       }],
     };
-  }, [stats, chartColors, createGradient]);
+  }, [stats, chartColors, createGradient, allMonths]);
 
   // Line chart data for income over time
   const incomeLineData = useMemo(() => {
-    if (!stats || !stats.income_by_month || stats.income_by_month.length === 0) return null;
+    if (!stats) return null;
+
+    // Use full month range if available, otherwise fall back to data months
+    const incomeMonths = stats.income_by_month || [];
+    const months = allMonths.length > 0 ? allMonths : incomeMonths.map(m => m.month);
+    if (months.length === 0) return null;
+
+    // Create a map of existing data for quick lookup
+    const dataMap = new Map(incomeMonths.map(m => [m.month, m.sum]));
 
     return {
-      labels: stats.income_by_month.map(m => {
-        const [year, month] = m.month.split('-');
+      labels: months.map(m => {
+        const [year, month] = m.split('-');
         return new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('cs-CZ', {
           month: 'short',
           year: '2-digit',
@@ -241,7 +276,7 @@ export function DashboardPage() {
       }),
       datasets: [{
         label: 'Monthly Income',
-        data: stats.income_by_month.map(m => m.sum),
+        data: months.map(m => dataMap.get(m) || 0),
         borderColor: chartColors.incomeLine,
         backgroundColor: (context: { chart: { ctx: CanvasRenderingContext2D; chartArea?: { top: number; bottom: number; left: number; right: number; width: number; height: number } } }) => {
           const { ctx, chartArea } = context.chart;
@@ -261,7 +296,7 @@ export function DashboardPage() {
         pointHoverBorderWidth: 3,
       }],
     };
-  }, [stats, chartColors, createGradient]);
+  }, [stats, chartColors, createGradient, allMonths]);
 
   // Chart options - modern premium styling
   const pieOptions = useMemo(() => ({
@@ -515,12 +550,12 @@ export function DashboardPage() {
             </Card>
           </div>
 
-          {/* Recent Transactions */}
+          {/* Transactions in selected period */}
           <Card className="animate-fade-in-up opacity-0 animation-delay-500" style={{ animationFillMode: 'forwards' }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle className="text-lg">Recent Transactions</CardTitle>
+              <CardTitle className="text-lg">Latest Transactions</CardTitle>
               <Button variant="link" asChild className="p-0 h-auto">
-                <Link to="/transactions">View all</Link>
+                <Link to={`/transactions?${searchParams.toString()}`}>View all</Link>
               </Button>
             </CardHeader>
             <CardContent className="p-0">
@@ -538,7 +573,7 @@ export function DashboardPage() {
                   {recentTransactions.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
-                        No recent transactions
+                        No transactions in this period
                       </TableCell>
                     </TableRow>
                   ) : (

@@ -28,6 +28,8 @@ interface PresetButton {
 }
 
 const PRESETS: PresetButton[] = [
+  { preset: 'thisMonth', label: 'This month' },
+  { preset: 'lastMonth', label: 'Last month' },
   { preset: 'last3months', label: 'Last 3 months' },
   { preset: 'last6months', label: 'Last 6 months' },
   { preset: 'thisYear', label: 'This year' },
@@ -45,11 +47,24 @@ export function DateRangePicker({
     typeof window !== 'undefined' ? window.innerWidth < 768 : false
   );
 
+  // Local state for pending range selection (only used while picker is open)
+  const [pendingRange, setPendingRange] = useState<DayPickerDateRange | undefined>(undefined);
+
   // Convert ISO strings to Date objects for DayPicker
-  const selectedRange: DayPickerDateRange | undefined = {
+  const committedRange: DayPickerDateRange | undefined = {
     from: parseISODate(value.startDate) ?? undefined,
     to: parseISODate(value.endDate) ?? undefined,
   };
+
+  // Use pending range while selecting, otherwise use committed range
+  const selectedRange = pendingRange ?? committedRange;
+
+  // Reset pending range when dropdown closes
+  useEffect(() => {
+    if (!isOpen) {
+      setPendingRange(undefined);
+    }
+  }, [isOpen]);
 
   // Determine active preset
   const activePreset = getPresetFromDateRange(value);
@@ -85,10 +100,27 @@ export function DateRangePicker({
 
   // Handle calendar range selection
   const handleRangeSelect = (range: DayPickerDateRange | undefined) => {
-    onChange({
-      startDate: range?.from ? formatDateToISO(range.from) : '',
-      endDate: range?.to ? formatDateToISO(range.to) : '',
-    });
+    setPendingRange(range);
+
+    // Auto-apply when both dates are selected
+    if (range?.from && range?.to) {
+      onChange({
+        startDate: formatDateToISO(range.from),
+        endDate: formatDateToISO(range.to),
+      });
+      setIsOpen(false);
+    }
+  };
+
+  // Handle Apply button click
+  const handleApply = () => {
+    if (pendingRange?.from) {
+      onChange({
+        startDate: formatDateToISO(pendingRange.from),
+        endDate: pendingRange.to ? formatDateToISO(pendingRange.to) : '',
+      });
+    }
+    setIsOpen(false);
   };
 
   return (
@@ -141,7 +173,7 @@ export function DateRangePicker({
 
       {/* Dropdown Panel */}
       {isOpen && (
-        <div className="absolute right-0 z-50 mt-2 bg-card text-card-foreground border border-border rounded-xl shadow-lg">
+        <div className="absolute right-0 z-[100] mt-2 bg-card text-card-foreground border border-border rounded-xl shadow-lg">
           <div className={cn('flex', isMobile && 'flex-col')}>
             {/* Presets Sidebar */}
             <div
@@ -199,7 +231,7 @@ export function DateRangePicker({
             <Button
               type="button"
               size="sm"
-              onClick={() => setIsOpen(false)}
+              onClick={handleApply}
             >
               Apply
             </Button>
