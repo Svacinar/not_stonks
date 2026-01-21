@@ -33,7 +33,7 @@ import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { BANK_COLORS, CHART_COLORS_HEX, UNCATEGORIZED_COLOR } from '@/constants/colors';
 import { useChartTheme } from '@/hooks/useChartTheme';
 import { formatDateForDisplay } from '../utils/dateUtils';
-import type { TransactionStats, Transaction, BankName } from '../../../shared/types';
+import type { TransactionStats, Transaction, BankName, Category } from '../../../shared/types';
 
 // Register Chart.js components
 ChartJS.register(
@@ -58,6 +58,10 @@ interface TransactionListResponse {
   total: number;
   limit: number;
   offset: number;
+}
+
+interface CategoryListResponse {
+  categories: Category[];
 }
 
 // Format currency in CZK
@@ -96,10 +100,20 @@ export function DashboardPage() {
   const { dateRange, startDate, endDate, setDateRange, searchParams } = useDateRangeParams();
   const [stats, setStats] = useState<TransactionStats | null>(null);
   const [recentTransactions, setRecentTransactions] = useState<TransactionWithCategory[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch stats and recent transactions
+  // Create a color map from category name to color
+  const categoryColorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    categories.forEach(cat => {
+      map.set(cat.name, cat.color);
+    });
+    return map;
+  }, [categories]);
+
+  // Fetch stats, categories, and recent transactions
   const fetchData = async () => {
     setLoading(true);
     setError(null);
@@ -109,13 +123,15 @@ export function DashboardPage() {
       if (startDate) params.set('startDate', startDate);
       if (endDate) params.set('endDate', endDate);
 
-      // Fetch stats and recent transactions in parallel
-      const [statsData, transactionsData] = await Promise.all([
+      // Fetch stats, categories, and recent transactions in parallel
+      const [statsData, categoriesData, transactionsData] = await Promise.all([
         api.get<TransactionStats>(`/api/transactions/stats?${params.toString()}`),
+        api.get<CategoryListResponse>('/api/categories'),
         api.get<TransactionListResponse>(`/api/transactions?${params.toString()}&limit=10&sort=date&order=desc`),
       ]);
 
       setStats(statsData);
+      setCategories(categoriesData.categories);
       setRecentTransactions(transactionsData.transactions);
     } catch (err) {
       const message = err instanceof ApiRequestError ? err.message : 'Failed to load dashboard data';
@@ -171,13 +187,14 @@ export function DashboardPage() {
     // Return null if no expenses to show
     if (expenses.length === 0) return null;
 
-    // Assign colors: gray for Uncategorized, chart colors for others
-    let colorIndex = 0;
+    // Use category colors from the color map, fallback to chart colors for missing
+    let fallbackIndex = 0;
     const colors = expenses.map(c => {
       if (c.name === 'Uncategorized') {
         return UNCATEGORIZED_COLOR;
       }
-      return CHART_COLORS_HEX[colorIndex++ % CHART_COLORS_HEX.length];
+      // Use the category's stored color, or fallback to chart colors
+      return categoryColorMap.get(c.name) || CHART_COLORS_HEX[fallbackIndex++ % CHART_COLORS_HEX.length];
     });
 
     return {
@@ -189,7 +206,7 @@ export function DashboardPage() {
         hoverOffset: 8,
       }],
     };
-  }, [stats]);
+  }, [stats, categoryColorMap]);
 
   // Bar chart data for spending by bank
   const bankBarData = useMemo(() => {
