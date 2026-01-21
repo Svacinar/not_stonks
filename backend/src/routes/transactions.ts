@@ -420,6 +420,81 @@ router.post('/bulk-delete', (req: Request<{}, {}, { ids: number[] }>, res: Respo
   }
 });
 
+interface BulkCategorizeBody {
+  ids: number[];
+  category_id: number | null;
+  create_rule?: boolean;
+}
+
+/**
+ * POST /api/transactions/bulk-categorize
+ * Assign category to multiple transactions, optionally creating a rule
+ */
+router.post('/bulk-categorize', (req: Request<{}, {}, BulkCategorizeBody>, res: Response): void => {
+  try {
+    const db = getDatabase();
+    const { ids, category_id, create_rule } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      res.status(400).json(createErrorResponse(ErrorCodes.BAD_REQUEST, 'ids must be a non-empty array'));
+      return;
+    }
+
+    // Validate all ids are numbers
+    if (!ids.every(id => typeof id === 'number' && Number.isInteger(id) && id > 0)) {
+      res.status(400).json(createErrorResponse(ErrorCodes.BAD_REQUEST, 'All ids must be positive integers'));
+      return;
+    }
+
+    // Validate category_id exists if provided
+    if (category_id !== null) {
+      const category = db.prepare('SELECT id FROM categories WHERE id = ?').get(category_id);
+      if (!category) {
+        res.status(404).json(createErrorResponse(ErrorCodes.NOT_FOUND, 'Category not found'));
+        return;
+      }
+    }
+
+    let ruleCreated = false;
+    let ruleKeyword: string | null = null;
+
+    // If create_rule is true and we have a category, create a rule from the first transaction
+    if (create_rule && category_id !== null) {
+      // Get the first transaction to extract keyword
+      const firstTx = db.prepare('SELECT description FROM transactions WHERE id = ?').get(ids[0]) as { description: string } | undefined;
+
+      if (firstTx) {
+        const keyword = extractKeyword(firstTx.description);
+
+        if (keyword) {
+          // Check if rule already exists
+          const existingRule = db.prepare('SELECT id FROM category_rules WHERE LOWER(keyword) = LOWER(?)').get(keyword);
+
+          if (!existingRule) {
+            db.prepare('INSERT INTO category_rules (keyword, category_id) VALUES (?, ?)').run(keyword, category_id);
+            ruleCreated = true;
+            ruleKeyword = keyword;
+          }
+        }
+      }
+    }
+
+    // Update all transactions
+    const placeholders = ids.map(() => '?').join(', ');
+    const result = db.prepare(`UPDATE transactions SET category_id = ? WHERE id IN (${placeholders}) AND is_hidden = 0`).run(category_id, ...ids);
+
+    res.json({
+      success: true,
+      updated: result.changes,
+      rule_created: ruleCreated,
+      rule_keyword: ruleKeyword
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json(createErrorResponse(ErrorCodes.INTERNAL_ERROR, message));
+  }
+});
+
 /**
  * Extract a significant keyword from a transaction description
  * Skips common words like "payment", "transfer", etc.

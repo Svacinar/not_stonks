@@ -92,9 +92,11 @@ export function TransactionsPage() {
   const sortOrder = (searchParams.get('order') as SortOrder) || 'desc';
   const page = parseInt(searchParams.get('page') || '1', 10);
 
-  // Inline editing state
-  const [editingTransactionId, setEditingTransactionId] = useState<number | null>(null);
-  const [updatingCategoryId, setUpdatingCategoryId] = useState<number | null>(null);
+  // Single transaction categorize dialog state
+  const [categorizeTransaction, setCategorizeTransaction] = useState<TransactionWithCategory | null>(null);
+  const [singleCategoryId, setSingleCategoryId] = useState<number | null>(null);
+  const [createRuleOnSingle, setCreateRuleOnSingle] = useState(false);
+  const [updatingCategory, setUpdatingCategory] = useState(false);
 
   // Export modal state
   const [showExportModal, setShowExportModal] = useState(false);
@@ -108,6 +110,12 @@ export function TransactionsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+
+  // Bulk categorize state
+  const [showBulkCategorizeDialog, setShowBulkCategorizeDialog] = useState(false);
+  const [bulkCategorizing, setBulkCategorizing] = useState(false);
+  const [bulkCategoryId, setBulkCategoryId] = useState<number | null>(null);
+  const [createRuleOnCategorize, setCreateRuleOnCategorize] = useState(false);
 
   // Update URL params
   const updateParams = useCallback(
@@ -250,25 +258,60 @@ export function TransactionsPage() {
     setSearchParams(new URLSearchParams());
   };
 
-  // Handle inline category edit
-  const handleCategoryChange = async (transactionId: number, categoryId: number | null) => {
-    setUpdatingCategoryId(transactionId);
+  // Handle single transaction category change (via dialog)
+  const handleSingleCategorize = async () => {
+    if (!categorizeTransaction || singleCategoryId === null) return;
+
+    setUpdatingCategory(true);
     try {
-      const updated = await api.patch<TransactionWithCategory>(
-        `/api/transactions/${transactionId}`,
-        { category_id: categoryId }
-      );
+      const response = await api.post<{
+        updated: number;
+        rule_created: boolean;
+        rule_keyword: string | null;
+      }>('/api/transactions/bulk-categorize', {
+        ids: [categorizeTransaction.id],
+        category_id: singleCategoryId,
+        create_rule: createRuleOnSingle,
+      });
+
+      // Update local state with the new category
+      const selectedCategory = categories.find(c => c.id === singleCategoryId);
       setTransactions((prev) =>
-        prev.map((t) => (t.id === transactionId ? updated : t))
+        prev.map((t) =>
+          t.id === categorizeTransaction.id
+            ? {
+                ...t,
+                category_id: singleCategoryId,
+                category_name: selectedCategory?.name || null,
+                category_color: selectedCategory?.color || null,
+              }
+            : t
+        )
       );
-      setEditingTransactionId(null);
+
+      let message = 'Category updated';
+      if (response.rule_created && response.rule_keyword) {
+        message += ` and created rule "${response.rule_keyword}"`;
+      }
+      addToast('success', message);
+
+      setCategorizeTransaction(null);
+      setSingleCategoryId(null);
+      setCreateRuleOnSingle(false);
     } catch (err) {
       const message =
         err instanceof ApiRequestError ? err.message : 'Failed to update category';
       addToast('error', message);
     } finally {
-      setUpdatingCategoryId(null);
+      setUpdatingCategory(false);
     }
+  };
+
+  // Open categorize dialog for a single transaction
+  const openCategorizeDialog = (tx: TransactionWithCategory) => {
+    setCategorizeTransaction(tx);
+    setSingleCategoryId(tx.category_id);
+    setCreateRuleOnSingle(false);
   };
 
   // Handle export
@@ -349,6 +392,56 @@ export function TransactionsPage() {
     }
   };
 
+  // Handle bulk categorize
+  const handleBulkCategorize = async () => {
+    if (selectedIds.size === 0 || bulkCategoryId === null) return;
+
+    setBulkCategorizing(true);
+    try {
+      const response = await api.post<{
+        updated: number;
+        rule_created: boolean;
+        rule_keyword: string | null;
+      }>('/api/transactions/bulk-categorize', {
+        ids: Array.from(selectedIds),
+        category_id: bulkCategoryId,
+        create_rule: createRuleOnCategorize,
+      });
+
+      // Update local state with the new category
+      const selectedCategory = categories.find(c => c.id === bulkCategoryId);
+      setTransactions((prev) =>
+        prev.map((t) =>
+          selectedIds.has(t.id)
+            ? {
+                ...t,
+                category_id: bulkCategoryId,
+                category_name: selectedCategory?.name || null,
+                category_color: selectedCategory?.color || null,
+              }
+            : t
+        )
+      );
+
+      let message = `Categorized ${response.updated} transaction${response.updated !== 1 ? 's' : ''}`;
+      if (response.rule_created && response.rule_keyword) {
+        message += ` and created rule "${response.rule_keyword}"`;
+      }
+      addToast('success', message);
+
+      setSelectedIds(new Set());
+      setShowBulkCategorizeDialog(false);
+      setBulkCategoryId(null);
+      setCreateRuleOnCategorize(false);
+    } catch (err) {
+      const message =
+        err instanceof ApiRequestError ? err.message : 'Failed to categorize transactions';
+      addToast('error', message);
+    } finally {
+      setBulkCategorizing(false);
+    }
+  };
+
   // Handle delete
   const handleDelete = async () => {
     if (!deleteTransaction) return;
@@ -403,26 +496,48 @@ export function TransactionsPage() {
         <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
           <DateRangePicker value={dateRange} onChange={handleDateRangeChange} />
           {selectedIds.size > 0 && (
-            <Button
-              variant="destructive"
-              onClick={() => setShowBulkDeleteDialog(true)}
-              className="w-full sm:w-auto"
-            >
-              <svg
-                className="h-4 w-4 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => setShowBulkCategorizeDialog(true)}
+                className="w-full sm:w-auto"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-              Delete {selectedIds.size} selected
-            </Button>
+                <svg
+                  className="h-4 w-4 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                  />
+                </svg>
+                Categorize {selectedIds.size}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => setShowBulkDeleteDialog(true)}
+                className="w-full sm:w-auto"
+              >
+                <svg
+                  className="h-4 w-4 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+                Delete {selectedIds.size}
+              </Button>
+            </>
           )}
           <Button variant="outline" onClick={() => setShowExportModal(true)} className="w-full sm:w-auto">
             <svg
@@ -617,75 +732,23 @@ export function TransactionsPage() {
                         {tx.bank}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
-                        {editingTransactionId === tx.id ? (
-                          <div className="flex items-center gap-2">
-                            <Label htmlFor={`category-select-${tx.id}`} className="sr-only">
-                              Select category for transaction
-                            </Label>
-                            <select
-                              id={`category-select-${tx.id}`}
-                              value={tx.category_id ?? ''}
-                              onChange={(e) =>
-                                handleCategoryChange(
-                                  tx.id,
-                                  e.target.value ? parseInt(e.target.value, 10) : null
-                                )
-                              }
-                              disabled={updatingCategoryId === tx.id}
-                              className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                              autoFocus
-                            >
-                              <option value="">Uncategorized</option>
-                              {categories.map((cat) => (
-                                <option key={cat.id} value={cat.id}>
-                                  {cat.name}
-                                </option>
-                              ))}
-                            </select>
-                            {updatingCategoryId === tx.id && (
-                              <LoadingSpinner size="sm" />
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => setEditingTransactionId(null)}
-                              disabled={updatingCategoryId === tx.id}
-                            >
-                              <svg
-                                className="h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M6 18L18 6M6 6l12 12"
-                                />
-                              </svg>
-                            </Button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setEditingTransactionId(tx.id)}
-                            className="flex items-center gap-2 hover:opacity-75 transition-opacity"
-                          >
-                            {tx.category_name ? (
-                              <>
-                                <span
-                                  className="w-3 h-3 rounded-full"
-                                  style={{ backgroundColor: tx.category_color || UNCATEGORIZED_COLOR }}
-                                />
-                                <span className="text-foreground">{tx.category_name}</span>
-                              </>
-                            ) : (
-                              <span className="text-muted-foreground italic">Uncategorized</span>
-                            )}
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => openCategorizeDialog(tx)}
+                          className="flex items-center gap-2 hover:opacity-75 transition-opacity"
+                        >
+                          {tx.category_name ? (
+                            <>
+                              <span
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: tx.category_color || UNCATEGORIZED_COLOR }}
+                              />
+                              <span className="text-foreground">{tx.category_name}</span>
+                            </>
+                          ) : (
+                            <span className="text-muted-foreground italic">Uncategorized</span>
+                          )}
+                        </button>
                       </TableCell>
                       <TableCell>
                         <Button
@@ -863,6 +926,192 @@ export function TransactionsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Single Transaction Categorize Dialog */}
+      <Dialog
+        open={!!categorizeTransaction}
+        onOpenChange={(open) => {
+          if (!updatingCategory && !open) {
+            setCategorizeTransaction(null);
+            setSingleCategoryId(null);
+            setCreateRuleOnSingle(false);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Categorize Transaction</DialogTitle>
+            <DialogDescription>
+              {categorizeTransaction && (
+                <span className="block mt-1 font-medium text-foreground truncate">
+                  {categorizeTransaction.description}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="single-category-select">Category</Label>
+              <select
+                id="single-category-select"
+                value={singleCategoryId ?? ''}
+                onChange={(e) => setSingleCategoryId(e.target.value ? parseInt(e.target.value, 10) : null)}
+                className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                <option value="">Uncategorized</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {singleCategoryId !== null && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Options</Label>
+                <Label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="single-categorize-option"
+                    checked={!createRuleOnSingle}
+                    onChange={() => setCreateRuleOnSingle(false)}
+                    className="mt-1"
+                  />
+                  <div>
+                    <span className="font-medium">Only this transaction</span>
+                    <p className="text-sm text-muted-foreground">
+                      Assign the category to this transaction only.
+                    </p>
+                  </div>
+                </Label>
+                <Label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="single-categorize-option"
+                    checked={createRuleOnSingle}
+                    onChange={() => setCreateRuleOnSingle(true)}
+                    className="mt-1"
+                  />
+                  <div>
+                    <span className="font-medium">Create a rule</span>
+                    <p className="text-sm text-muted-foreground">
+                      Also create a categorization rule to auto-categorize similar transactions.
+                    </p>
+                  </div>
+                </Label>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setCategorizeTransaction(null)}
+              disabled={updatingCategory}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSingleCategorize}
+              disabled={updatingCategory || singleCategoryId === null}
+            >
+              {updatingCategory && <LoadingSpinner size="sm" className="mr-2" />}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Categorize Dialog */}
+      <Dialog
+        open={showBulkCategorizeDialog}
+        onOpenChange={(open) => {
+          if (!bulkCategorizing) {
+            setShowBulkCategorizeDialog(open);
+            if (!open) {
+              setBulkCategoryId(null);
+              setCreateRuleOnCategorize(false);
+            }
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Categorize {selectedIds.size} Transaction{selectedIds.size !== 1 ? 's' : ''}</DialogTitle>
+            <DialogDescription>
+              Assign a category to the selected transactions.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="bulk-category-select">Category</Label>
+              <select
+                id="bulk-category-select"
+                value={bulkCategoryId ?? ''}
+                onChange={(e) => setBulkCategoryId(e.target.value ? parseInt(e.target.value, 10) : null)}
+                className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                <option value="">Select a category...</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Options</Label>
+              <Label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="categorize-option"
+                  checked={!createRuleOnCategorize}
+                  onChange={() => setCreateRuleOnCategorize(false)}
+                  className="mt-1"
+                />
+                <div>
+                  <span className="font-medium">Only these transactions</span>
+                  <p className="text-sm text-muted-foreground">
+                    Assign the category to the selected transactions only.
+                  </p>
+                </div>
+              </Label>
+              <Label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="categorize-option"
+                  checked={createRuleOnCategorize}
+                  onChange={() => setCreateRuleOnCategorize(true)}
+                  className="mt-1"
+                />
+                <div>
+                  <span className="font-medium">Create a rule</span>
+                  <p className="text-sm text-muted-foreground">
+                    Also create a categorization rule based on the transaction description to auto-categorize future imports.
+                  </p>
+                </div>
+              </Label>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowBulkCategorizeDialog(false)}
+              disabled={bulkCategorizing}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleBulkCategorize}
+              disabled={bulkCategorizing || bulkCategoryId === null}
+            >
+              {bulkCategorizing && <LoadingSpinner size="sm" className="mr-2" />}
+              Categorize
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
