@@ -7,8 +7,8 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      # Persist SQLite database between container restarts
-      - spending_data:/app/data
+      # Mount local data directory to persist/reuse existing database
+      - ./backend/data:/app/data
     environment:
       - NODE_ENV=production
       - DB_PATH=/app/data/spending.db
@@ -20,7 +20,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-
-volumes:
-  spending_data:
-    name: spending_dashboard_data
