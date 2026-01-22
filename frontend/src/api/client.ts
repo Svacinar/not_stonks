@@ -225,6 +225,45 @@ export const api = {
   },
 
   /**
+   * Parse files without importing (step 1 of two-step import).
+   * Returns currencies detected and a sessionId for completing the import.
+   */
+  async parseFiles<T>(files: File[]): Promise<T> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+
+    const response = await fetchWithNetworkErrorHandling('/api/upload/parse', {
+      method: 'POST',
+      body: formData,
+    });
+
+    return handleResponse<T>(response);
+  },
+
+  /**
+   * Complete import with conversion rates (step 2 of two-step import).
+   */
+  async completeImport<T>(sessionId: string, conversionRates: Record<string, number>): Promise<T> {
+    return this.post<T>('/api/upload/complete', { sessionId, conversionRates });
+  },
+
+  /**
+   * Get exchange rate for currency conversion.
+   */
+  async getExchangeRate(from: string, to: string = 'CZK'): Promise<{ from: string; to: string; rate: number }> {
+    return this.get(`/api/exchange-rate?from=${from}&to=${to}`);
+  },
+
+  /**
+   * Get exchange rates for multiple currencies at once.
+   */
+  async getExchangeRates(currencies: string[], to: string = 'CZK'): Promise<{ rates: Record<string, number>; to: string }> {
+    return this.post('/api/exchange-rate/batch', { currencies, to });
+  },
+
+  /**
    * Download a file from the given endpoint.
    * Returns a Blob for the caller to handle.
    * Includes retry logic for transient failures.

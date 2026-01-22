@@ -11,12 +11,26 @@ const pdfParse = require('pdf-parse');
  */
 export class RaiffeisenParser implements BankParser {
   bankName = 'Raiffeisen';
+  private detectedCurrency: string = 'CZK';
 
   /**
-   * Detects Raiffeisen files based on filename pattern or content markers
+   * Extracts currency code from Raiffeisen filename
+   * Pattern: statement_123456_EUR_2025_01.pdf -> EUR
+   */
+  private extractCurrencyFromFilename(filename: string): string {
+    const match = filename.match(/statement_\d+_([A-Za-z]{3})_\d{4}/i);
+    return match ? match[1].toUpperCase() : 'CZK';
+  }
+
+  /**
+   * Detects Raiffeisen files based on filename pattern or content markers.
+   * Also extracts currency from filename if available.
    */
   detect(buffer: Buffer, filename: string): boolean {
     const lowerFilename = filename.toLowerCase();
+
+    // Extract currency from filename if pattern matches
+    this.detectedCurrency = this.extractCurrencyFromFilename(filename);
 
     // Check filename patterns for PDF
     if (lowerFilename.endsWith('.pdf')) {
@@ -116,16 +130,16 @@ export class RaiffeisenParser implements BankParser {
         while (j < lines.length) {
           const nextLine = lines[j];
 
-          // Check if this line contains the amount (ends with " CZK")
+          // Check if this line contains the amount (ends with currency code like " CZK" or " EUR")
           // Amount pattern: optional minus, digits with optional space thousand separators,
           // comma or dot decimal separator, exactly 2 decimal places
           // Note: sometimes VS number is concatenated before the amount, so we look for
-          // the amount pattern at the end: -?X XXX,XX CZK or X XXX.XX CZK
-          const amountMatch = nextLine.match(/(-?\d{1,3}(?:\s\d{3})*[.,]\d{2})\s*CZK$/);
+          // the amount pattern at the end: -?X XXX,XX CZK or X XXX.XX EUR
+          const amountMatch = nextLine.match(/(-?\d{1,3}(?:\s\d{3})*[.,]\d{2})\s*([A-Z]{3})$/);
           if (amountMatch) {
             amount = this.parseCzechAmount(amountMatch[1]);
             // Also extract any text before the amount as potential description
-            const textBeforeAmount = nextLine.replace(/(-?\d{1,3}(?:\s\d{3})*[.,]\d{2})\s*CZK$/, '').trim();
+            const textBeforeAmount = nextLine.replace(/(-?\d{1,3}(?:\s\d{3})*[.,]\d{2})\s*[A-Z]{3}$/, '').trim();
             if (textBeforeAmount && !textBeforeAmount.match(/^\d+$/)) {
               blockLines.push(textBeforeAmount);
             }
@@ -159,6 +173,7 @@ export class RaiffeisenParser implements BankParser {
               amount,
               description,
               bank: 'Raiffeisen',
+              currency: this.detectedCurrency,
             });
           }
         }

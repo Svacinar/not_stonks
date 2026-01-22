@@ -78,12 +78,30 @@ function createTables(database: Database.Database): void {
 }
 
 function runMigrations(database: Database.Database): void {
-  // Migration: Add is_hidden column to transactions table
   const columns = database.prepare("PRAGMA table_info(transactions)").all() as { name: string }[];
-  const hasIsHidden = columns.some(col => col.name === 'is_hidden');
 
+  // Migration: Add is_hidden column to transactions table
+  const hasIsHidden = columns.some(col => col.name === 'is_hidden');
   if (!hasIsHidden) {
     database.exec('ALTER TABLE transactions ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0');
+  }
+
+  // Migration: Add currency columns for multi-currency support
+  const hasOriginalAmount = columns.some(col => col.name === 'original_amount');
+  if (!hasOriginalAmount) {
+    database.exec(`
+      ALTER TABLE transactions ADD COLUMN original_amount REAL;
+      ALTER TABLE transactions ADD COLUMN original_currency TEXT DEFAULT 'CZK';
+      ALTER TABLE transactions ADD COLUMN conversion_rate REAL DEFAULT 1.0;
+    `);
+    // Backfill existing transactions: original_amount = amount (they were all CZK)
+    database.exec(`
+      UPDATE transactions
+      SET original_amount = amount,
+          original_currency = 'CZK',
+          conversion_rate = 1.0
+      WHERE original_amount IS NULL
+    `);
   }
 }
 

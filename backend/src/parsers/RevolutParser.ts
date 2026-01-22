@@ -23,6 +23,7 @@ export class RevolutParser implements BankParser {
       description: 'descripción',
       amount: 'importe',
       fee: 'comisión',
+      currency: 'divisa',
     },
     english: {
       type: 'type',
@@ -30,6 +31,7 @@ export class RevolutParser implements BankParser {
       description: 'description',
       amount: 'amount',
       fee: 'fee',
+      currency: 'currency',
     },
   };
 
@@ -111,7 +113,7 @@ export class RevolutParser implements BankParser {
    */
   private detectHeaderMapping(
     headers: string[]
-  ): { type: number; startDate: number; description: number; amount: number; fee: number } | null {
+  ): { type: number; startDate: number; description: number; amount: number; fee: number; currency: number } | null {
     const lowerHeaders = headers.map((h) => h.toLowerCase().trim());
 
     // Try Spanish first
@@ -121,6 +123,7 @@ export class RevolutParser implements BankParser {
     const descIdxEs = lowerHeaders.findIndex((h) => h === spanishMapping.description);
     const amountIdxEs = lowerHeaders.findIndex((h) => h === spanishMapping.amount);
     const feeIdxEs = lowerHeaders.findIndex((h) => h === spanishMapping.fee);
+    const currencyIdxEs = lowerHeaders.findIndex((h) => h === spanishMapping.currency);
 
     if (typeIdxEs !== -1 && startDateIdxEs !== -1 && descIdxEs !== -1 && amountIdxEs !== -1) {
       return {
@@ -129,6 +132,7 @@ export class RevolutParser implements BankParser {
         description: descIdxEs,
         amount: amountIdxEs,
         fee: feeIdxEs,
+        currency: currencyIdxEs,
       };
     }
 
@@ -139,6 +143,7 @@ export class RevolutParser implements BankParser {
     const descIdxEn = lowerHeaders.findIndex((h) => h === englishMapping.description);
     const amountIdxEn = lowerHeaders.findIndex((h) => h === englishMapping.amount);
     const feeIdxEn = lowerHeaders.findIndex((h) => h === englishMapping.fee);
+    const currencyIdxEn = lowerHeaders.findIndex((h) => h === englishMapping.currency);
 
     if (typeIdxEn !== -1 && startDateIdxEn !== -1 && descIdxEn !== -1 && amountIdxEn !== -1) {
       return {
@@ -147,6 +152,7 @@ export class RevolutParser implements BankParser {
         description: descIdxEn,
         amount: amountIdxEn,
         fee: feeIdxEn,
+        currency: currencyIdxEn,
       };
     }
 
@@ -222,6 +228,7 @@ export class RevolutParser implements BankParser {
       const description = fields[mapping.description] || '';
       const amountStr = fields[mapping.amount] || '0';
       const feeStr = mapping.fee !== -1 ? fields[mapping.fee] || '0' : '0';
+      const currency = mapping.currency !== -1 ? (fields[mapping.currency] || 'CZK').toUpperCase() : 'CZK';
 
       const amount = this.parseAmount(amountStr);
       const fee = this.parseAmount(feeStr);
@@ -239,6 +246,7 @@ export class RevolutParser implements BankParser {
           description,
           bank: 'Revolut',
           originalCategory: type,
+          currency,
         });
       }
 
@@ -250,6 +258,7 @@ export class RevolutParser implements BankParser {
           description: `Fee: ${description}`,
           bank: 'Revolut',
           originalCategory: 'Fee',
+          currency,
         });
       }
 

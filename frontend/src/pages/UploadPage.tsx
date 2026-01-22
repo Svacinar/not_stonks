@@ -1,9 +1,10 @@
 import { useState, useCallback, useRef, DragEvent, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, ApiRequestError } from '../api/client';
-import { UploadResponse, BankName } from '../../../shared/types';
+import { UploadResponse, ParseResponse, BankName } from '../../../shared/types';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ErrorMessage } from '../components/ErrorMessage';
+import { CurrencyConversionModal } from '../components/CurrencyConversionModal';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -27,6 +28,10 @@ export function UploadPage() {
   const [uploadResult, setUploadResult] = useState<UploadResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isDragOver, setIsDragOver] = useState(false);
+
+  // Two-step import state
+  const [parseResult, setParseResult] = useState<ParseResponse | null>(null);
+  const [showConversionModal, setShowConversionModal] = useState(false);
 
   const acceptedExtensions = '.csv,.txt,.xlsx,.xls,.pdf';
   const maxFileSize = 5 * 1024 * 1024; // 5MB
@@ -141,10 +146,24 @@ export function UploadPage() {
 
     try {
       const files = selectedFiles.map((sf) => sf.file);
-      const result = await api.upload<UploadResponse>('/api/upload', files);
 
-      setUploadResult(result);
-      setUploadState('success');
+      // Step 1: Parse files to detect currencies
+      const parsed = await api.parseFiles<ParseResponse>(files);
+      setParseResult(parsed);
+
+      // Check if foreign currencies detected (anything other than CZK)
+      const hasForeignCurrency = parsed.currencies.some(c => c !== 'CZK');
+
+      if (hasForeignCurrency) {
+        // Show conversion modal for user to verify/adjust rates
+        setUploadState('idle');
+        setShowConversionModal(true);
+      } else {
+        // No foreign currencies, complete import directly
+        const result = await api.completeImport<UploadResponse>(parsed.sessionId, { CZK: 1.0 });
+        setUploadResult(result);
+        setUploadState('success');
+      }
     } catch (error) {
       const message =
         error instanceof ApiRequestError
@@ -153,6 +172,32 @@ export function UploadPage() {
       setErrorMessage(message);
       setUploadState('error');
     }
+  };
+
+  const handleConversionConfirm = async (rates: Record<string, number>) => {
+    if (!parseResult) return;
+
+    setShowConversionModal(false);
+    setUploadState('uploading');
+    setErrorMessage('');
+
+    try {
+      const result = await api.completeImport<UploadResponse>(parseResult.sessionId, rates);
+      setUploadResult(result);
+      setUploadState('success');
+    } catch (error) {
+      const message =
+        error instanceof ApiRequestError
+          ? error.message
+          : 'An unexpected error occurred during import';
+      setErrorMessage(message);
+      setUploadState('error');
+    }
+  };
+
+  const handleConversionCancel = () => {
+    setShowConversionModal(false);
+    setParseResult(null);
   };
 
   const handleGoToTransactions = () => {
@@ -177,6 +222,17 @@ export function UploadPage() {
       <h1 className="text-2xl font-bold mb-6">
         <GradientText>Upload Bank Statements</GradientText>
       </h1>
+
+      {/* Currency Conversion Modal */}
+      {parseResult && (
+        <CurrencyConversionModal
+          open={showConversionModal}
+          currencies={parseResult.currencies}
+          byCurrency={parseResult.byCurrency}
+          onConfirm={handleConversionConfirm}
+          onCancel={handleConversionCancel}
+        />
+      )}
 
       {/* Success State */}
       {uploadState === 'success' && uploadResult && (

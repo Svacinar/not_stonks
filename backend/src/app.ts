@@ -6,6 +6,7 @@ import transactionsRouter from './routes/transactions';
 import categoriesRouter from './routes/categories';
 import rulesRouter from './routes/rules';
 import exportRouter from './routes/export';
+import exchangeRouter from './routes/exchange';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { apiLimiter, uploadLimiter } from './middleware/rateLimit';
 import { getDatabase } from './db/database';
@@ -113,6 +114,7 @@ app.use('/api/transactions', apiLimiter, transactionsRouter);
 app.use('/api/categories', apiLimiter, categoriesRouter);
 app.use('/api/rules', apiLimiter, rulesRouter);
 app.use('/api/export', apiLimiter, exportRouter);
+app.use('/api/exchange-rate', apiLimiter, exchangeRouter);
 
 // In production, SPA fallback - serve index.html for non-API routes
 if (process.env.NODE_ENV === 'production') {

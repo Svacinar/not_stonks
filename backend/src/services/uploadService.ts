@@ -1,6 +1,7 @@
 import { getDatabase } from '../db/database';
 import { parserService } from '../parsers/ParserService';
-import type { ParsedTransaction, BankName, UploadResponse } from 'shared/types';
+import type { ParsedTransaction, BankName, UploadResponse, ParseResponse } from 'shared/types';
+import { randomUUID } from 'crypto';
 
 interface FileUpload {
   buffer: Buffer;
@@ -11,6 +12,20 @@ interface CategoryRule {
   keyword: string;
   category_id: number;
 }
+
+// Store parsed transactions temporarily during the two-step import flow
+const parsedSessionsCache = new Map<string, ParsedTransaction[]>();
+
+// Clean up old sessions periodically (cache has max 100 entries)
+const SESSION_CLEANUP_INTERVAL_MS = 30 * 60 * 1000;
+setInterval(() => {
+  // If cache gets too big, clear oldest entries
+  if (parsedSessionsCache.size > 100) {
+    const keys = Array.from(parsedSessionsCache.keys());
+    // Remove first 50 entries (oldest)
+    keys.slice(0, 50).forEach(key => parsedSessionsCache.delete(key));
+  }
+}, SESSION_CLEANUP_INTERVAL_MS);
 
 /**
  * UploadService - Handles file upload processing
@@ -24,9 +39,65 @@ interface CategoryRule {
  */
 export class UploadService {
   /**
-   * Process multiple file uploads
+   * Parse files and return summary with currencies detected (step 1 of two-step import)
+   * Stores parsed transactions in session cache for later import
    */
-  async processUploads(files: FileUpload[]): Promise<UploadResponse> {
+  async parseOnly(files: FileUpload[]): Promise<ParseResponse> {
+    const allTransactions: ParsedTransaction[] = [];
+    const byBank: Record<BankName, number> = { CSOB: 0, Raiffeisen: 0, Revolut: 0 };
+    const byCurrency: Record<string, number> = {};
+    const currencies = new Set<string>();
+
+    for (const file of files) {
+      const transactions = await parserService.parse(file.buffer, file.filename);
+      allTransactions.push(...transactions);
+
+      for (const tx of transactions) {
+        byBank[tx.bank]++;
+        const currency = tx.currency || 'CZK';
+        currencies.add(currency);
+        byCurrency[currency] = (byCurrency[currency] || 0) + 1;
+      }
+    }
+
+    // Store in session cache
+    const sessionId = randomUUID();
+    parsedSessionsCache.set(sessionId, allTransactions);
+
+    return {
+      success: true,
+      parsed: allTransactions.length,
+      currencies: Array.from(currencies),
+      byBank,
+      byCurrency,
+      sessionId,
+    };
+  }
+
+  /**
+   * Complete import with conversion rates (step 2 of two-step import)
+   */
+  async completeImport(
+    sessionId: string,
+    conversionRates: Record<string, number>
+  ): Promise<UploadResponse> {
+    const transactions = parsedSessionsCache.get(sessionId);
+    if (!transactions) {
+      throw new Error('Session expired or invalid. Please upload files again.');
+    }
+
+    // Clean up session
+    parsedSessionsCache.delete(sessionId);
+
+    const db = getDatabase();
+    return this.importTransactions(transactions, conversionRates, db, 'session-import');
+  }
+
+  /**
+   * Process multiple file uploads (original one-step flow, still supported)
+   * For CZK-only files, this works as before. For mixed currencies, uses default rate of 1.0.
+   */
+  async processUploads(files: FileUpload[], conversionRates?: Record<string, number>): Promise<UploadResponse> {
     const result: UploadResponse = {
       success: true,
       imported: 0,
@@ -41,7 +112,7 @@ export class UploadService {
     const db = getDatabase();
 
     for (const file of files) {
-      const fileResult = await this.processFile(file, db);
+      const fileResult = await this.processFile(file, db, conversionRates);
       result.imported += fileResult.imported;
       result.duplicates += fileResult.duplicates;
 
@@ -59,39 +130,53 @@ export class UploadService {
    */
   private async processFile(
     file: FileUpload,
-    db: ReturnType<typeof getDatabase>
+    db: ReturnType<typeof getDatabase>,
+    conversionRates?: Record<string, number>
   ): Promise<UploadResponse> {
-    const result: UploadResponse = {
-      success: true,
-      imported: 0,
-      duplicates: 0,
-      byBank: {
-        CSOB: 0,
-        Raiffeisen: 0,
-        Revolut: 0,
-      },
-    };
-
     // Parse the file
     const transactions = await parserService.parse(file.buffer, file.filename);
 
     if (transactions.length === 0) {
-      return result;
+      return {
+        success: true,
+        imported: 0,
+        duplicates: 0,
+        byBank: { CSOB: 0, Raiffeisen: 0, Revolut: 0 },
+      };
     }
+
+    return this.importTransactions(transactions, conversionRates || {}, db, file.filename);
+  }
+
+  /**
+   * Import parsed transactions into database with conversion rates
+   */
+  private importTransactions(
+    transactions: ParsedTransaction[],
+    conversionRates: Record<string, number>,
+    db: ReturnType<typeof getDatabase>,
+    filename: string
+  ): UploadResponse {
+    const result: UploadResponse = {
+      success: true,
+      imported: 0,
+      duplicates: 0,
+      byBank: { CSOB: 0, Raiffeisen: 0, Revolut: 0 },
+    };
 
     // Get categorization rules
     const rules = this.getCategoryRules(db);
 
     // Prepare statements
-    // Count existing transactions with same signature (allows multiple legitimate same-day purchases)
+    // Include currency in deduplication to handle multi-currency correctly
     const countExisting = db.prepare(`
       SELECT COUNT(*) as count FROM transactions
-      WHERE date = ? AND amount = ? AND description = ? AND bank = ?
+      WHERE date = ? AND original_amount = ? AND description = ? AND bank = ? AND original_currency = ?
     `);
 
     const insertTransaction = db.prepare(`
-      INSERT INTO transactions (date, amount, description, bank, category_id)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO transactions (date, amount, description, bank, category_id, original_amount, original_currency, conversion_rate)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const insertUploadLog = db.prepare(`
@@ -100,46 +185,40 @@ export class UploadService {
     `);
 
     // Track imported per bank for this file
-    const importedByBank: Record<BankName, number> = {
-      CSOB: 0,
-      Raiffeisen: 0,
-      Revolut: 0,
-    };
+    const importedByBank: Record<BankName, number> = { CSOB: 0, Raiffeisen: 0, Revolut: 0 };
 
-    // Count occurrences of each transaction signature in the upload
-    // This allows us to handle multiple legitimate same-day purchases
+    // Count occurrences of each transaction signature in the upload (now including currency)
     const uploadCounts = new Map<string, number>();
     for (const tx of transactions) {
-      const key = `${tx.date}|${tx.amount}|${tx.description}|${tx.bank}`;
+      const currency = tx.currency || 'CZK';
+      const key = `${tx.date}|${tx.amount}|${tx.description}|${tx.bank}|${currency}`;
       uploadCounts.set(key, (uploadCounts.get(key) || 0) + 1);
     }
 
     // Get existing counts from DB BEFORE processing (snapshot)
-    // This prevents issues with newly inserted rows being counted
     const existingCounts = new Map<string, number>();
     for (const key of uploadCounts.keys()) {
-      const [date, amount, description, bank] = key.split('|');
-      const existingResult = countExisting.get(date, parseFloat(amount), description, bank) as { count: number };
+      const [date, amount, description, bank, currency] = key.split('|');
+      const existingResult = countExisting.get(date, parseFloat(amount), description, bank, currency) as { count: number };
       existingCounts.set(key, existingResult.count);
     }
 
-    // Track how many of each signature we've processed in this upload
+    // Track how many of each signature we've processed
     const processedCounts = new Map<string, number>();
 
     // Process each transaction
     const processTransactions = db.transaction(() => {
       for (const tx of transactions) {
-        const key = `${tx.date}|${tx.amount}|${tx.description}|${tx.bank}`;
+        const currency = tx.currency || 'CZK';
+        const key = `${tx.date}|${tx.amount}|${tx.description}|${tx.bank}|${currency}`;
         const processedSoFar = processedCounts.get(key) || 0;
         const existingCount = existingCounts.get(key) || 0;
         const uploadCount = uploadCounts.get(key)!;
 
-        // Calculate how many we should import: uploadCount - existingCount
-        // If we've already processed that many, skip the rest as duplicates
+        // Calculate how many we should import
         const toImport = Math.max(0, uploadCount - existingCount);
 
         if (processedSoFar >= toImport) {
-          // Already imported enough of this signature
           result.duplicates++;
           processedCounts.set(key, processedSoFar + 1);
           continue;
@@ -150,23 +229,34 @@ export class UploadService {
         // Apply categorization
         const categoryId = this.categorizeTransaction(tx, rules);
 
-        // Insert transaction
-        insertTransaction.run(tx.date, tx.amount, tx.description, tx.bank, categoryId);
+        // Calculate converted amount
+        const originalAmount = tx.amount;
+        const conversionRate = currency === 'CZK' ? 1.0 : (conversionRates[currency] || 1.0);
+        const convertedAmount = originalAmount * conversionRate;
+
+        // Insert transaction with currency info
+        insertTransaction.run(
+          tx.date,
+          convertedAmount,
+          tx.description,
+          tx.bank,
+          categoryId,
+          originalAmount,
+          currency,
+          conversionRate
+        );
         result.imported++;
         importedByBank[tx.bank]++;
       }
 
       // Log the upload if any transactions were imported
-      if (result.imported > 0) {
-        // Get the bank from the first transaction (all transactions in a file should be from same bank)
+      if (result.imported > 0 && transactions.length > 0) {
         const bank = transactions[0].bank;
-        insertUploadLog.run(file.filename, bank, result.imported);
+        insertUploadLog.run(filename, bank, result.imported);
       }
     });
 
     processTransactions();
-
-    // Set byBank result
     result.byBank = importedByBank;
 
     return result;

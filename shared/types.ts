@@ -10,6 +10,9 @@ export interface Transaction {
   bank: BankName;
   category_id: number | null;
   created_at: string;
+  original_amount: number | null;
+  original_currency: string | null;
+  conversion_rate: number | null;
 }
 
 export interface ParsedTransaction {
@@ -18,6 +21,7 @@ export interface ParsedTransaction {
   description: string;
   bank: BankName;
   originalCategory?: string;
+  currency?: string;
 }
 
 // Category types
@@ -63,6 +67,22 @@ export interface UploadResponse {
   imported: number;
   duplicates: number;
   byBank: Record<BankName, number>;
+}
+
+// Response for parsing files (step 1 of import)
+export interface ParseResponse {
+  success: boolean;
+  parsed: number;
+  currencies: string[];
+  byBank: Record<BankName, number>;
+  byCurrency: Record<string, number>;
+  sessionId: string;
+}
+
+// Request for completing import with conversion rates (step 2)
+export interface ImportRequest {
+  sessionId: string;
+  conversionRates: Record<string, number>;
 }
 
 export interface TransactionStats {

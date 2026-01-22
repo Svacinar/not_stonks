@@ -85,8 +85,71 @@ function validateFiles(files: Express.Multer.File[]): void {
 }
 
 /**
+ * POST /api/upload/parse
+ * Parse files and return currencies detected (step 1 of two-step import)
+ *
+ * Request: multipart/form-data with 'files' field
+ * Response: { success: true, parsed: 45, currencies: ['CZK', 'EUR'], byBank: {...}, byCurrency: {...}, sessionId: '...' }
+ */
+router.post(
+  '/parse',
+  upload.array('files', 10),
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const files = req.files as Express.Multer.File[];
+
+      if (!files || files.length === 0) {
+        throw new BadRequestError('No files uploaded. Please select at least one file.');
+      }
+
+      validateFiles(files);
+
+      const fileUploads = files.map((file) => ({
+        buffer: file.buffer,
+        filename: file.originalname,
+      }));
+
+      const result = await uploadService.parseOnly(fileUploads);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/upload/complete
+ * Complete import with conversion rates (step 2 of two-step import)
+ *
+ * Request: { sessionId: '...', conversionRates: { EUR: 25.12 } }
+ * Response: { success: true, imported: 45, duplicates: 5, byBank: {...} }
+ */
+router.post(
+  '/complete',
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { sessionId, conversionRates } = req.body;
+
+      if (!sessionId) {
+        throw new BadRequestError('Session ID is required');
+      }
+
+      if (!conversionRates || typeof conversionRates !== 'object') {
+        throw new BadRequestError('Conversion rates are required');
+      }
+
+      const result = await uploadService.completeImport(sessionId, conversionRates);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
  * POST /api/upload
- * Upload one or more bank statement files
+ * Upload one or more bank statement files (original one-step flow)
+ * For CZK-only files this works directly; for foreign currencies use /parse + /complete
  *
  * Request: multipart/form-data with 'files' field
  * Response: { success: true, imported: 45, duplicates: 5, byBank: { CSOB: 20, Revolut: 25 } }

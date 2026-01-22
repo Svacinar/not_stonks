@@ -138,6 +138,7 @@ export class CsobParser implements BankParser {
             amount,
             description: this.cleanDescription(betterDescription),
             bank: 'CSOB',
+            currency: 'CZK', // CSOB is a Czech bank, always CZK
           });
         }
       }
