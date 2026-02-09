@@ -67,7 +67,7 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
               <p className="text-[11px] uppercase tracking-[0.12em] font-light text-muted-foreground truncate">
                 {title}
               </p>
-              <p className="text-4xl font-black [font-variant-numeric:tabular-nums] text-foreground dark:text-gold truncate">
+              <p className="text-2xl md:text-3xl lg:text-4xl font-black [font-variant-numeric:tabular-nums] text-foreground dark:text-gold truncate">
                 {value}
               </p>
               {trend && (
