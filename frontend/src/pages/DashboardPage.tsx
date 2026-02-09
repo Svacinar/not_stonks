@@ -280,19 +280,16 @@ export function DashboardPage() {
         backgroundColor: (context: { chart: { ctx: CanvasRenderingContext2D; chartArea?: { top: number; bottom: number; left: number; right: number; width: number; height: number } } }) => {
           const { ctx, chartArea } = context.chart;
           if (!chartArea) return chartColors.spendingFill;
-          return createGradient(ctx, chartArea, chartColors.spendingRGB);
+          return createGradient(ctx, chartArea, chartColors.spendingRGB, 0.25);
         },
         fill: true,
-        tension: 0.4,
-        borderWidth: 3,
-        pointRadius: 5,
-        pointBackgroundColor: chartColors.spendingLine,
-        pointBorderColor: chartColors.tooltipBackground,
-        pointBorderWidth: 2,
-        pointHoverRadius: 8,
+        tension: 0.35,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 5,
         pointHoverBackgroundColor: chartColors.spendingLine,
         pointHoverBorderColor: chartColors.tooltipBackground,
-        pointHoverBorderWidth: 3,
+        pointHoverBorderWidth: 2,
       }],
     };
   }, [stats, chartColors, createGradient, allMonths]);
@@ -324,19 +321,16 @@ export function DashboardPage() {
         backgroundColor: (context: { chart: { ctx: CanvasRenderingContext2D; chartArea?: { top: number; bottom: number; left: number; right: number; width: number; height: number } } }) => {
           const { ctx, chartArea } = context.chart;
           if (!chartArea) return chartColors.incomeFill;
-          return createGradient(ctx, chartArea, chartColors.incomeRGB);
+          return createGradient(ctx, chartArea, chartColors.incomeRGB, 0.25);
         },
         fill: true,
-        tension: 0.4,
-        borderWidth: 3,
-        pointRadius: 5,
-        pointBackgroundColor: chartColors.incomeLine,
-        pointBorderColor: chartColors.tooltipBackground,
-        pointBorderWidth: 2,
-        pointHoverRadius: 8,
+        tension: 0.35,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 5,
         pointHoverBackgroundColor: chartColors.incomeLine,
         pointHoverBorderColor: chartColors.tooltipBackground,
-        pointHoverBorderWidth: 3,
+        pointHoverBorderWidth: 2,
       }],
     };
   }, [stats, chartColors, createGradient, allMonths]);

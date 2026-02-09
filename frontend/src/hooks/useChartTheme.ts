@@ -160,8 +160,7 @@ export function useChartTheme() {
           padding: 12,
         },
         grid: {
-          color: colors.grid,
-          lineWidth: 1,
+          display: false,
         },
         border: {
           display: false,

@@ -169,10 +169,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   onClick={onClose}
                   className={({ isActive }) =>
                     cn(
-                      'flex items-center px-3 py-2.5 uppercase text-xs tracking-[0.08em] font-light rounded-lg transition-colors duration-200',
+                      'flex items-center px-3 py-2.5 uppercase text-xs tracking-[0.08em] rounded-lg transition-colors duration-200',
                       isActive
-                        ? 'border-l-2 border-l-gold text-gold'
-                        : 'text-sidebar-muted hover:text-sidebar-foreground'
+                        ? 'bg-gold/10 text-gold font-medium border-l-2 border-l-gold'
+                        : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 font-light'
                     )
                   }
                   end={item.path === '/'}

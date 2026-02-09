@@ -611,10 +611,6 @@ export function TransactionsPage() {
                     onCheckedChange={() => handleCategoryToggle(cat.id)}
                     disabled={uncategorizedOnly}
                   />
-                  <span
-                    className="w-4 h-4 rounded-full inline-block border border-border"
-                    style={{ backgroundColor: cat.color }}
-                  />
                   {cat.name}
                 </Label>
               ))}
