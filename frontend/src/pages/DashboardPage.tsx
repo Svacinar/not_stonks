@@ -471,7 +471,7 @@ export function DashboardPage() {
               variant="danger"
               title="Total Spending"
               value={formatCurrency(derivedStats.totalSpending)}
-              icon={<DollarSign className="w-6 h-6 text-destructive" />}
+              icon={<DollarSign />}
               className="animate-fade-in-up opacity-0"
               style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}
             />
@@ -481,7 +481,7 @@ export function DashboardPage() {
               variant="default"
               title="Transactions"
               value={derivedStats.transactionCount.toLocaleString('cs-CZ')}
-              icon={<ClipboardList className="w-6 h-6 text-primary" />}
+              icon={<ClipboardList />}
               className="animate-fade-in-up opacity-0"
               style={{ animationDelay: '150ms', animationFillMode: 'forwards' }}
             />
@@ -491,7 +491,7 @@ export function DashboardPage() {
               variant="default"
               title="Average"
               value={formatCurrency(derivedStats.averageTransaction)}
-              icon={<Calculator className="w-6 h-6 text-primary" />}
+              icon={<Calculator />}
               className="animate-fade-in-up opacity-0"
               style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}
             />
@@ -501,7 +501,7 @@ export function DashboardPage() {
               variant="warning"
               title="Largest Category"
               value={formatCurrency(derivedStats.largestExpense)}
-              icon={<TrendingUp className="w-6 h-6 text-amber-500" />}
+              icon={<TrendingUp />}
               className="animate-fade-in-up opacity-0"
               style={{ animationDelay: '250ms', animationFillMode: 'forwards' }}
             />

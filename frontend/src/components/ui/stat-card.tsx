@@ -22,22 +22,6 @@ const statCardVariants = cva(
   }
 )
 
-const iconContainerVariants = cva(
-  "w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 bg-muted/50",
-  {
-    variants: {
-      variant: {
-        default: "",
-        success: "",
-        warning: "",
-        danger: "",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
 
 export interface StatCardProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "title">,
@@ -59,13 +43,13 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
         {...props}
       >
         <CardContent className="p-5">
-          <div className="flex items-start justify-between">
+          <div className="flex items-center gap-1.5">
+            <div className="[&>svg]:w-3.5 [&>svg]:h-3.5 text-muted-foreground">
+              {icon}
+            </div>
             <p className="text-[11px] uppercase tracking-[0.12em] font-light text-muted-foreground">
               {title}
             </p>
-            <div className={cn(iconContainerVariants({ variant }), "w-9 h-9 rounded-md [&>svg]:w-4 [&>svg]:h-4")}>
-              {icon}
-            </div>
           </div>
           <p className="text-3xl font-black [font-variant-numeric:tabular-nums] text-foreground dark:text-gold mt-2">
             {value}
@@ -100,4 +84,4 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
 )
 StatCard.displayName = "StatCard"
 
-export { StatCard, statCardVariants, iconContainerVariants }
+export { StatCard, statCardVariants }
