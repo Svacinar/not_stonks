@@ -14,7 +14,7 @@ const GradientText = React.forwardRef<HTMLSpanElement, GradientTextProps>(
     return (
       <Comp
         className={cn(
-          "bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent",
+          "text-foreground font-light",
           className
         )}
         ref={ref}

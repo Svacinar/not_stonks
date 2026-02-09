@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 
 const statCardVariants = cva(
-  "transition-all duration-300 hover:shadow-lg hover:-translate-y-1",
+  "transition-colors duration-200",
   {
     variants: {
       variant: {
@@ -23,14 +23,14 @@ const statCardVariants = cva(
 )
 
 const iconContainerVariants = cva(
-  "w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0",
+  "w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 bg-muted/50",
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-br from-primary/20 to-primary/5",
-        success: "bg-gradient-to-br from-success/20 to-success/5",
-        warning: "bg-gradient-to-br from-amber-500/20 to-amber-500/5",
-        danger: "bg-gradient-to-br from-destructive/20 to-destructive/5",
+        default: "",
+        success: "",
+        warning: "",
+        danger: "",
       },
     },
     defaultVariants: {
@@ -64,10 +64,10 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
               {icon}
             </div>
             <div className="ml-4 flex-1 min-w-0">
-              <p className="text-sm font-medium text-muted-foreground truncate">
+              <p className="text-[11px] uppercase tracking-[0.12em] font-light text-muted-foreground truncate">
                 {title}
               </p>
-              <p className="text-2xl font-semibold text-foreground truncate">
+              <p className="text-4xl font-black [font-variant-numeric:tabular-nums] text-foreground truncate">
                 {value}
               </p>
               {trend && (
