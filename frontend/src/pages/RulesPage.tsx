@@ -391,7 +391,7 @@ export function RulesPage() {
                           />
                         </>
                       ) : (
-                        <span className="font-mono text-foreground">{rule.keyword}</span>
+                        <span className="font-mono text-foreground dark:text-gold/80">{rule.keyword}</span>
                       )}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">

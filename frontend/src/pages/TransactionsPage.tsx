@@ -580,7 +580,7 @@ export function TransactionsPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
             {/* Bank Checkboxes */}
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-sm font-medium text-muted-foreground">Banks:</span>
+              <span className="text-[11px] uppercase tracking-[0.12em] font-light text-muted-foreground">Banks</span>
               {BANKS.map((bank) => (
                 <Label
                   key={bank}
@@ -597,7 +597,7 @@ export function TransactionsPage() {
 
             {/* Category Checkboxes */}
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-sm font-medium text-muted-foreground">Categories:</span>
+              <span className="text-[11px] uppercase tracking-[0.12em] font-light text-muted-foreground">Categories</span>
               {categories.map((cat) => (
                 <Label
                   key={cat.id}
@@ -722,7 +722,7 @@ export function TransactionsPage() {
                       <TableCell className="max-w-xs truncate">{tx.description}</TableCell>
                       <TableCell
                         className={cn(
-                          "whitespace-nowrap text-right font-medium",
+                          "whitespace-nowrap text-right font-medium [font-variant-numeric:tabular-nums]",
                           tx.amount < 0 ? "text-destructive" : "text-success"
                         )}
                       >

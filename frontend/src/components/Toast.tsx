@@ -57,7 +57,7 @@ interface ToastContainerProps {
 function ToastContainer({ toasts, removeToast }: ToastContainerProps) {
   return (
     <div
-      className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-md"
+      className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-md"
       aria-live="polite"
       aria-label="Notifications"
     >
@@ -150,7 +150,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
 
   return (
     <div
-      className={`${styles.bg} border rounded-lg shadow-lg p-4 flex items-start gap-3 transition-all duration-300 ${
+      className={`bg-card/95 backdrop-blur-xl border border-border border-t-2 border-t-gold/40 rounded-lg shadow-lg p-4 flex items-start gap-3 transition-all duration-300 ${
         isExiting ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0'
       }`}
       role="alert"
@@ -158,11 +158,11 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
       <svg className={`h-5 w-5 ${styles.icon} flex-shrink-0`} viewBox="0 0 20 20" fill="currentColor">
         {icons[toast.type]}
       </svg>
-      <p className={`text-sm ${styles.iconBg} flex-1`}>{toast.message}</p>
+      <p className="text-sm text-foreground flex-1">{toast.message}</p>
       <button
         type="button"
         onClick={handleDismiss}
-        className={`${styles.iconBg} hover:opacity-70 flex-shrink-0`}
+        className="text-muted-foreground hover:opacity-70 flex-shrink-0"
         aria-label="Dismiss notification"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

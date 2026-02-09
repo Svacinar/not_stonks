@@ -288,8 +288,8 @@ export function UploadPage() {
             className={cn(
               'relative rounded-xl border-2 border-dashed p-8 text-center transition-colors',
               isDragOver
-                ? 'border-primary bg-primary/5'
-                : 'border-muted-foreground/25 hover:border-muted-foreground/50',
+                ? 'border-gold bg-gold/5'
+                : 'border-gold/20 hover:border-gold/40',
               uploadState === 'uploading' && 'pointer-events-none opacity-60'
             )}
           >
@@ -308,7 +308,7 @@ export function UploadPage() {
             />
 
             <svg
-              className="mx-auto h-12 w-12 text-muted-foreground"
+              className="mx-auto h-12 w-12 text-gold/30"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -322,7 +322,7 @@ export function UploadPage() {
             </svg>
 
             <div className="mt-4">
-              <p className="text-lg text-muted-foreground">
+              <p className="text-lg font-light text-muted-foreground">
                 Drag and drop your bank statements here
               </p>
               <p className="mt-1 text-sm text-muted-foreground">or</p>
