@@ -145,8 +145,8 @@ describe('TransactionsPage', () => {
       expect(screen.getByPlaceholderText('Search descriptions...')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Banks:')).toBeInTheDocument();
-    expect(screen.getByText('Categories:')).toBeInTheDocument();
+    expect(screen.getByText('Banks')).toBeInTheDocument();
+    expect(screen.getByText('Categories')).toBeInTheDocument();
     expect(screen.getByLabelText('CSOB')).toBeInTheDocument();
     expect(screen.getByLabelText('Raiffeisen')).toBeInTheDocument();
     expect(screen.getByLabelText('Revolut')).toBeInTheDocument();

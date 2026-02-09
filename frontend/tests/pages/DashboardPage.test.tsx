@@ -90,6 +90,13 @@ const mockTransactions = {
   offset: 0,
 };
 
+const mockCategories = {
+  categories: [
+    { id: 1, name: 'Groceries', color: '#2D6A4F', transaction_count: 40 },
+    { id: 2, name: 'Transport', color: '#4A6FA5', transaction_count: 20 },
+  ],
+};
+
 describe('DashboardPage', () => {
   beforeEach(() => {
     // Only clear API mocks, not global mocks like matchMedia
@@ -114,6 +121,7 @@ describe('DashboardPage', () => {
   it('renders page title', async () => {
     vi.mocked(apiClient.api.get).mockImplementation((url: string) => {
       if (url.includes('/stats')) return Promise.resolve(mockStats);
+      if (url.includes('/categories')) return Promise.resolve(mockCategories);
       return Promise.resolve(mockTransactions);
     });
 
@@ -152,6 +160,7 @@ describe('DashboardPage', () => {
       if (url.includes('/stats')) {
         return Promise.resolve({ ...mockStats, total_count: 0, total_amount: 0 });
       }
+      if (url.includes('/categories')) return Promise.resolve(mockCategories);
       return Promise.resolve({ transactions: [], total: 0, limit: 10, offset: 0 });
     });
 
@@ -167,6 +176,7 @@ describe('DashboardPage', () => {
   it('displays stats cards with formatted values', async () => {
     vi.mocked(apiClient.api.get).mockImplementation((url: string) => {
       if (url.includes('/stats')) return Promise.resolve(mockStats);
+      if (url.includes('/categories')) return Promise.resolve(mockCategories);
       return Promise.resolve(mockTransactions);
     });
 
@@ -184,6 +194,7 @@ describe('DashboardPage', () => {
   it('renders chart sections', async () => {
     vi.mocked(apiClient.api.get).mockImplementation((url: string) => {
       if (url.includes('/stats')) return Promise.resolve(mockStats);
+      if (url.includes('/categories')) return Promise.resolve(mockCategories);
       return Promise.resolve(mockTransactions);
     });
 
@@ -205,6 +216,7 @@ describe('DashboardPage', () => {
   it('renders latest transactions table', async () => {
     vi.mocked(apiClient.api.get).mockImplementation((url: string) => {
       if (url.includes('/stats')) return Promise.resolve(mockStats);
+      if (url.includes('/categories')) return Promise.resolve(mockCategories);
       return Promise.resolve(mockTransactions);
     });
 
@@ -221,6 +233,7 @@ describe('DashboardPage', () => {
   it('shows category name for categorized transactions', async () => {
     vi.mocked(apiClient.api.get).mockImplementation((url: string) => {
       if (url.includes('/stats')) return Promise.resolve(mockStats);
+      if (url.includes('/categories')) return Promise.resolve(mockCategories);
       return Promise.resolve(mockTransactions);
     });
 
@@ -235,6 +248,7 @@ describe('DashboardPage', () => {
   it('shows "Uncategorized" for transactions without category', async () => {
     vi.mocked(apiClient.api.get).mockImplementation((url: string) => {
       if (url.includes('/stats')) return Promise.resolve(mockStats);
+      if (url.includes('/categories')) return Promise.resolve(mockCategories);
       return Promise.resolve(mockTransactions);
     });
 
@@ -249,6 +263,7 @@ describe('DashboardPage', () => {
     // Stats include income_by_month for the Income over Time chart
     vi.mocked(apiClient.api.get).mockImplementation((url: string) => {
       if (url.includes('/stats')) return Promise.resolve(mockStats);
+      if (url.includes('/categories')) return Promise.resolve(mockCategories);
       return Promise.resolve(mockTransactions);
     });
 
@@ -266,6 +281,7 @@ describe('DashboardPage', () => {
   it('renders "View all" link to transactions with date params', async () => {
     vi.mocked(apiClient.api.get).mockImplementation((url: string) => {
       if (url.includes('/stats')) return Promise.resolve(mockStats);
+      if (url.includes('/categories')) return Promise.resolve(mockCategories);
       return Promise.resolve(mockTransactions);
     });
 
@@ -287,6 +303,7 @@ describe('DashboardPage', () => {
   it('renders DateRangePicker', async () => {
     vi.mocked(apiClient.api.get).mockImplementation((url: string) => {
       if (url.includes('/stats')) return Promise.resolve(mockStats);
+      if (url.includes('/categories')) return Promise.resolve(mockCategories);
       return Promise.resolve(mockTransactions);
     });
 
@@ -303,6 +320,7 @@ describe('DashboardPage', () => {
   it('shows empty message when no transactions in period', async () => {
     vi.mocked(apiClient.api.get).mockImplementation((url: string) => {
       if (url.includes('/stats')) return Promise.resolve(mockStats);
+      if (url.includes('/categories')) return Promise.resolve(mockCategories);
       return Promise.resolve({ transactions: [], total: 100, limit: 10, offset: 0 });
     });
 

@@ -7,7 +7,8 @@ import * as apiClient from '../../src/api/client';
 // Mock the API client
 vi.mock('../../src/api/client', () => ({
   api: {
-    upload: vi.fn(),
+    parseFiles: vi.fn(),
+    completeImport: vi.fn(),
   },
   ApiRequestError: class ApiRequestError extends Error {
     status: number;
@@ -168,7 +169,12 @@ describe('UploadPage', () => {
   });
 
   it('uploads files and shows success message', async () => {
-    vi.mocked(apiClient.api.upload).mockResolvedValueOnce({
+    vi.mocked(apiClient.api.parseFiles).mockResolvedValueOnce({
+      sessionId: 'test-session',
+      currencies: ['CZK'],
+      byCurrency: {},
+    });
+    vi.mocked(apiClient.api.completeImport).mockResolvedValueOnce({
       imported: 100,
       duplicates: 5,
       byBank: { CSOB: 50, Raiffeisen: 50, Revolut: 0 },
@@ -195,7 +201,7 @@ describe('UploadPage', () => {
   });
 
   it('shows error message on upload failure', async () => {
-    vi.mocked(apiClient.api.upload).mockRejectedValueOnce(
+    vi.mocked(apiClient.api.parseFiles).mockRejectedValueOnce(
       new apiClient.ApiRequestError('Upload failed', 500)
     );
 
@@ -219,7 +225,12 @@ describe('UploadPage', () => {
   });
 
   it('navigates to transactions after successful upload', async () => {
-    vi.mocked(apiClient.api.upload).mockResolvedValueOnce({
+    vi.mocked(apiClient.api.parseFiles).mockResolvedValueOnce({
+      sessionId: 'test-session',
+      currencies: ['CZK'],
+      byCurrency: {},
+    });
+    vi.mocked(apiClient.api.completeImport).mockResolvedValueOnce({
       imported: 100,
       duplicates: 0,
       byBank: { CSOB: 100, Raiffeisen: 0, Revolut: 0 },
@@ -246,7 +257,12 @@ describe('UploadPage', () => {
   });
 
   it('allows uploading more files after success', async () => {
-    vi.mocked(apiClient.api.upload).mockResolvedValueOnce({
+    vi.mocked(apiClient.api.parseFiles).mockResolvedValueOnce({
+      sessionId: 'test-session',
+      currencies: ['CZK'],
+      byCurrency: {},
+    });
+    vi.mocked(apiClient.api.completeImport).mockResolvedValueOnce({
       imported: 100,
       duplicates: 0,
       byBank: { CSOB: 100, Raiffeisen: 0, Revolut: 0 },
