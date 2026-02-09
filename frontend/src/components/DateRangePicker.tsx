@@ -98,15 +98,21 @@ export function DateRangePicker({
     setIsOpen(false);
   };
 
-  // Handle calendar range selection
-  const handleRangeSelect = (range: DayPickerDateRange | undefined) => {
-    setPendingRange(range);
+  // Handle calendar day click — full control over the two-click cycle
+  const handleDayClick = (day: Date) => {
+    if (!pendingRange?.from || pendingRange?.to) {
+      // Phase 1: No from yet, or range already complete → start fresh
+      setPendingRange({ from: day, to: undefined });
+    } else {
+      // Phase 2: from is set, to is not → complete the range
+      const [start, end] = pendingRange.from <= day
+        ? [pendingRange.from, day]
+        : [day, pendingRange.from];
 
-    // Auto-apply when both dates are selected
-    if (range?.from && range?.to) {
+      setPendingRange({ from: start, to: end });
       onChange({
-        startDate: formatDateToISO(range.from),
-        endDate: formatDateToISO(range.to),
+        startDate: formatDateToISO(start),
+        endDate: formatDateToISO(end),
       });
       setIsOpen(false);
     }
@@ -210,7 +216,7 @@ export function DateRangePicker({
               <DayPicker
                 mode="range"
                 selected={selectedRange}
-                onSelect={handleRangeSelect}
+                onDayClick={handleDayClick}
                 numberOfMonths={isMobile ? 1 : 2}
                 showOutsideDays
                 fixedWeeks
