@@ -39,29 +39,33 @@ import { cn } from '@/lib/utils'
 
 All colors are defined as CSS variables in `frontend/src/index.css`. Use Tailwind classes that reference these tokens.
 
+**Design Aesthetic:** Luxury Swiss Private Bank — Emerald & Gold palette, Satoshi geometric font, dark-default theme with warm ivory light mode.
+
 ### Semantic Colors
 
 | Token | Light Mode | Dark Mode | Usage |
 |-------|-----------|-----------|-------|
-| `--background` | `0 0% 100%` (white) | `222 84% 5%` (dark slate) | Page background |
-| `--foreground` | `222 84% 5%` | `210 40% 98%` | Primary text |
-| `--card` | `0 0% 100%` | `222 84% 5%` | Card background |
-| `--card-foreground` | `222 84% 5%` | `210 40% 98%` | Card text |
-| `--popover` | `0 0% 100%` | `222 84% 5%` | Popover/dropdown background |
-| `--popover-foreground` | `222 84% 5%` | `210 40% 98%` | Popover/dropdown text |
-| `--primary` | `221 83% 53%` (blue-600) | `217 91% 60%` | Primary actions |
-| `--primary-foreground` | `210 40% 98%` | `222 84% 5%` | Text on primary |
-| `--secondary` | `210 40% 96%` | `217 33% 17%` | Secondary elements |
-| `--secondary-foreground` | `222 84% 5%` | `210 40% 98%` | Text on secondary |
-| `--muted` | `210 40% 96%` | `217 33% 17%` | Muted backgrounds |
-| `--muted-foreground` | `215 16% 47%` | `215 20% 65%` | Secondary text |
-| `--accent` | `210 40% 96%` | `217 33% 17%` | Hover states |
-| `--accent-foreground` | `222 84% 5%` | `210 40% 98%` | Text on accent |
-| `--destructive` | `0 84% 60%` (red-500) | `0 62% 30%` | Delete, errors |
-| `--destructive-foreground` | `210 40% 98%` | `210 40% 98%` | Text on destructive |
-| `--border` | `214 32% 91%` | `217 33% 17%` | Borders |
-| `--input` | `214 32% 91%` | `217 33% 17%` | Input borders |
-| `--ring` | `221 83% 53%` | `224 76% 48%` | Focus rings |
+| `--background` | `37 29% 94%` (warm ivory) | `220 28% 6%` (deep blue-black) | Page background |
+| `--foreground` | `0 0% 10%` | `30 12% 88%` (warm off-white) | Primary text |
+| `--card` | `0 0% 100%` | `220 22% 10%` | Card background |
+| `--card-foreground` | `0 0% 10%` | `30 12% 88%` | Card text |
+| `--popover` | `0 0% 100%` | `220 22% 10%` | Popover/dropdown background |
+| `--popover-foreground` | `0 0% 10%` | `30 12% 88%` | Popover/dropdown text |
+| `--primary` | `153 41% 30%` (deep emerald) | `153 41% 30%` | Primary actions |
+| `--primary-foreground` | `37 29% 94%` | `30 12% 88%` | Text on primary |
+| `--secondary` | `37 20% 90%` | `220 18% 14%` | Secondary elements |
+| `--secondary-foreground` | `0 0% 10%` | `30 12% 88%` | Text on secondary |
+| `--muted` | `37 20% 90%` | `220 18% 14%` | Muted backgrounds |
+| `--muted-foreground` | `30 3% 41%` | `220 4% 50%` | Secondary text |
+| `--accent` | `37 20% 90%` | `220 18% 14%` | Hover states |
+| `--accent-foreground` | `0 0% 10%` | `30 12% 88%` | Text on accent |
+| `--destructive` | `0 55% 39%` | `0 55% 39%` | Delete, errors |
+| `--destructive-foreground` | `37 29% 94%` | `30 12% 88%` | Text on destructive |
+| `--gold` | `44 52% 54%` | `44 52% 54%` | Gold highlights, accents |
+| `--gold-muted` | `44 38% 40%` | `44 38% 40%` | Subdued gold |
+| `--border` | `30 5% 85%` | `220 10% 16%` | Borders |
+| `--input` | `30 5% 85%` | `220 10% 16%` | Input borders |
+| `--ring` | `153 41% 30%` (emerald) | `44 52% 54%` (gold) | Focus rings |
 | `--radius` | `0.5rem` | `0.5rem` | Base border radius |
 
 ### Bank Colors
@@ -74,21 +78,21 @@ All colors are defined as CSS variables in `frontend/src/index.css`. Use Tailwin
 
 ### Chart Color Palette
 
-Use these colors in order for charts:
+Desaturated jewel tones. Use these colors in order for charts:
 ```typescript
 const chartColors = [
-  'hsl(var(--chart-1))',  // green
-  'hsl(var(--chart-2))',  // blue
-  'hsl(var(--chart-3))',  // amber
-  'hsl(var(--chart-4))',  // purple
-  'hsl(var(--chart-5))',  // red
-  'hsl(var(--chart-6))',  // cyan
-  'hsl(var(--chart-7))',  // slate
-  'hsl(var(--chart-8))',  // gray
-  'hsl(var(--chart-9))',  // pink
-  'hsl(var(--chart-10))', // teal
-  'hsl(var(--chart-11))', // orange
-  'hsl(var(--chart-12))', // lime
+  'hsl(var(--chart-1))',  // deep emerald
+  'hsl(var(--chart-2))',  // slate blue
+  'hsl(var(--chart-3))',  // gold
+  'hsl(var(--chart-4))',  // dusty rose
+  'hsl(var(--chart-5))',  // sage
+  'hsl(var(--chart-6))',  // muted purple
+  'hsl(var(--chart-7))',  // dark goldenrod
+  'hsl(var(--chart-8))',  // muted teal
+  'hsl(var(--chart-9))',  // sienna
+  'hsl(var(--chart-10))', // slate gray
+  'hsl(var(--chart-11))', // dark sea green
+  'hsl(var(--chart-12))', // peru
 ]
 ```
 
@@ -223,10 +227,16 @@ Use Tailwind's default spacing scale consistently:
 - Badges/pills: `rounded-full`
 
 ### Shadows
-Use soft, modern shadows:
-- Cards: `shadow-sm` (subtle lift)
-- Hover elevation: `shadow-md`
+Minimal shadow usage — rely on borders and subtle color for depth:
+- Cards: No shadows (use `border` only)
 - Modals/dropdowns: `shadow-lg`
+
+### Typography Conventions
+- Font: Satoshi (loaded via Fontshare CDN)
+- Hero numbers / stat values: `text-4xl font-black`, with `dark:text-gold` and `[font-variant-numeric:tabular-nums]`
+- Labels / meta text: `text-[11px] uppercase tracking-[0.12em] font-light`
+- Page titles: `text-3xl font-light` with a gold rule divider below
+- Body text: default weight (400)
 
 ### Transitions
 All interactive elements should have transitions:
@@ -234,17 +244,30 @@ All interactive elements should have transitions:
 // Buttons, links
 className="transition-colors duration-150"
 
-// Cards with hover
-className="transition-shadow duration-200 hover:shadow-md"
+// Cards
+className="transition-colors duration-200"
 
 // Modal/dropdown entry
 className="transition-all duration-200"
 ```
 
-### Dark Mode
-All components must support dark mode. Use `dark:` prefix:
+### Gold Accent Pattern
+Use gold sparingly for highlights:
 ```tsx
-<div className="bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100">
+// Active sidebar item
+className="border-l-2 border-l-gold text-gold"
+
+// Stat card values in dark mode
+className="dark:text-gold"
+
+// Decorative dividers
+<div className="h-px bg-gradient-to-r from-gold/40 to-transparent" />
+```
+
+### Dark Mode
+Dark mode is the default. All components must support both modes. Use `dark:` prefix:
+```tsx
+<div className="bg-card dark:bg-card text-foreground dark:text-foreground">
 ```
 
 ## File Structure
