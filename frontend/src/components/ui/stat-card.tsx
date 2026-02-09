@@ -58,43 +58,41 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
         className={cn(statCardVariants({ variant, className }))}
         {...props}
       >
-        <CardContent className="p-6">
-          <div className="flex items-center">
-            <div className={cn(iconContainerVariants({ variant }))}>
+        <CardContent className="p-5">
+          <div className="flex items-start justify-between">
+            <p className="text-[11px] uppercase tracking-[0.12em] font-light text-muted-foreground">
+              {title}
+            </p>
+            <div className={cn(iconContainerVariants({ variant }), "w-9 h-9 rounded-md [&>svg]:w-4 [&>svg]:h-4")}>
               {icon}
             </div>
-            <div className="ml-4 flex-1 min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.12em] font-light text-muted-foreground truncate">
-                {title}
-              </p>
-              <p className="text-2xl md:text-3xl lg:text-4xl font-black [font-variant-numeric:tabular-nums] text-foreground dark:text-gold truncate">
-                {value}
-              </p>
-              {trend && (
-                <div className="flex items-center mt-1 gap-1">
-                  {trendIsPositive ? (
-                    <TrendingUp className="h-3 w-3 text-success" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-destructive" />
-                  )}
-                  <span
-                    className={cn(
-                      "text-xs font-medium",
-                      trendIsPositive ? "text-success" : "text-destructive"
-                    )}
-                  >
-                    {trendIsPositive && "+"}
-                    {trend.value}%
-                  </span>
-                  {trend.label && (
-                    <span className="text-xs text-muted-foreground">
-                      {trend.label}
-                    </span>
-                  )}
-                </div>
+          </div>
+          <p className="text-3xl font-black [font-variant-numeric:tabular-nums] text-foreground dark:text-gold mt-2">
+            {value}
+          </p>
+          {trend && (
+            <div className="flex items-center mt-2 gap-1">
+              {trendIsPositive ? (
+                <TrendingUp className="h-3 w-3 text-success" />
+              ) : (
+                <TrendingDown className="h-3 w-3 text-destructive" />
+              )}
+              <span
+                className={cn(
+                  "text-xs font-medium",
+                  trendIsPositive ? "text-success" : "text-destructive"
+                )}
+              >
+                {trendIsPositive && "+"}
+                {trend.value}%
+              </span>
+              {trend.label && (
+                <span className="text-xs text-muted-foreground">
+                  {trend.label}
+                </span>
               )}
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     )
