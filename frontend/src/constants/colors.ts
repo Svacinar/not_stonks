@@ -14,18 +14,18 @@ export const BANK_COLORS: Record<string, string> = {
  * These correspond to CSS variables: --chart-1 through --chart-12
  */
 export const CHART_COLORS_HEX = [
-  '#22c55e', // chart-1: green
-  '#3b82f6', // chart-2: blue
-  '#eab308', // chart-3: amber
-  '#a855f7', // chart-4: purple
-  '#ef4444', // chart-5: red
-  '#06b6d4', // chart-6: cyan
-  '#64748b', // chart-7: slate
-  '#6b7280', // chart-8: gray
-  '#ec4899', // chart-9: pink
-  '#14b8a6', // chart-10: teal
-  '#f97316', // chart-11: orange
-  '#84cc16', // chart-12: lime
+  '#2D6A4F', // deep emerald
+  '#4A6FA5', // slate blue
+  '#C9A84C', // gold
+  '#8B5E6B', // dusty rose
+  '#5B8A72', // sage
+  '#7A6F9B', // muted purple
+  '#B8860B', // dark goldenrod
+  '#5F8A8B', // muted teal
+  '#A0522D', // sienna
+  '#708090', // slate gray
+  '#8FBC8F', // dark sea green
+  '#CD853F', // peru
 ] as const;
 
 /**
@@ -72,7 +72,7 @@ export const UNCATEGORIZED_COLOR_HSL = 'hsl(var(--uncategorized))';
  * Income/success color for charts (emerald-500).
  * Used for income line charts and positive values.
  */
-export const INCOME_COLOR = '#10b981';
+export const INCOME_COLOR = '#C9A84C';
 
 /**
  * Income/success color using CSS variable for theme-aware styling.

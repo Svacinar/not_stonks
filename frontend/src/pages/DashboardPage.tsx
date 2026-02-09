@@ -518,10 +518,7 @@ export function DashboardPage() {
             {/* Spending by Category Pie Chart */}
             <Card elevation="md" className="overflow-hidden">
               <CardHeader className="pb-2">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-1 rounded-full bg-gradient-to-b from-primary to-primary/40" />
-                  <CardTitle className="text-lg font-semibold">Spending by Category</CardTitle>
-                </div>
+                <CardTitle className="text-base font-bold">Spending by Category</CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
                 {categoryPieData ? (
@@ -539,10 +536,7 @@ export function DashboardPage() {
             {/* Spending by Bank Bar Chart */}
             <Card elevation="md" className="overflow-hidden">
               <CardHeader className="pb-2">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-1 rounded-full bg-gradient-to-b from-chart-2 to-chart-2/40" />
-                  <CardTitle className="text-lg font-semibold">Spending by Bank</CardTitle>
-                </div>
+                <CardTitle className="text-base font-bold">Spending by Bank</CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
                 {bankBarData ? (
@@ -563,10 +557,7 @@ export function DashboardPage() {
             {/* Spending Over Time Line Chart */}
             <Card elevation="md" className="overflow-hidden">
               <CardHeader className="pb-2">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-1 rounded-full bg-gradient-to-b from-destructive to-destructive/40" />
-                  <CardTitle className="text-lg font-semibold">Spending Over Time</CardTitle>
-                </div>
+                <CardTitle className="text-base font-bold">Spending Over Time</CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
                 {timeLineData ? (
@@ -584,10 +575,7 @@ export function DashboardPage() {
             {/* Income Over Time Line Chart */}
             <Card elevation="md" className="overflow-hidden">
               <CardHeader className="pb-2">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-1 rounded-full bg-gradient-to-b from-success to-success/40" />
-                  <CardTitle className="text-lg font-semibold">Income Over Time</CardTitle>
-                </div>
+                <CardTitle className="text-base font-bold">Income Over Time</CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
                 {incomeLineData ? (

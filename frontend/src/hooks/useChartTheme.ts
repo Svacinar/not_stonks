@@ -42,33 +42,33 @@ export function useChartTheme() {
   const colors = useMemo((): ChartThemeColors => {
     if (resolvedTheme === 'dark') {
       return {
-        text: 'hsl(210, 40%, 98%)', // foreground in dark mode
-        textMuted: 'hsl(215, 20%, 65%)', // muted-foreground in dark mode
-        grid: 'hsla(217, 33%, 30%, 0.3)', // subtle grid lines
-        tooltipBackground: 'hsla(222, 84%, 8%, 0.95)', // glass effect
-        tooltipText: 'hsl(210, 40%, 98%)', // foreground in dark mode
-        tooltipBorder: 'hsla(217, 33%, 40%, 0.3)', // subtle border
-        spendingLine: 'hsl(217, 91%, 65%)', // chart-2 in dark mode
-        spendingFill: 'hsla(217, 91%, 65%, 0.15)', // chart-2 with alpha for dark mode
-        incomeLine: 'hsl(152, 70%, 50%)', // success in dark mode
-        incomeFill: 'hsla(152, 70%, 50%, 0.15)', // success with alpha for dark mode
-        spendingRGB: '96, 165, 250', // blue-400 RGB
-        incomeRGB: '52, 211, 153', // emerald-400 RGB
+        text: 'hsl(30, 12%, 88%)',
+        textMuted: 'hsl(220, 4%, 50%)',
+        grid: 'rgba(255, 255, 255, 0.04)',
+        tooltipBackground: 'rgba(10, 13, 17, 0.92)',
+        tooltipText: 'hsl(30, 12%, 88%)',
+        tooltipBorder: 'rgba(201, 168, 76, 0.3)',
+        spendingLine: 'hsl(153, 41%, 38%)',
+        spendingFill: 'hsla(153, 41%, 38%, 0.12)',
+        incomeLine: 'hsl(44, 52%, 54%)',
+        incomeFill: 'hsla(44, 52%, 54%, 0.12)',
+        spendingRGB: '64, 145, 108',
+        incomeRGB: '201, 168, 76',
       };
     }
     return {
-      text: 'hsl(222, 84%, 5%)', // foreground in light mode
-      textMuted: 'hsl(215, 16%, 47%)', // muted-foreground in light mode
-      grid: 'hsla(214, 32%, 70%, 0.2)', // very subtle grid lines
-      tooltipBackground: 'hsla(0, 0%, 100%, 0.95)', // glass effect
-      tooltipText: 'hsl(222, 84%, 5%)', // foreground in light mode
-      tooltipBorder: 'hsla(214, 32%, 80%, 0.5)', // subtle border
-      spendingLine: 'hsl(217, 91%, 60%)', // chart-2 in light mode
-      spendingFill: 'hsla(217, 91%, 60%, 0.1)', // chart-2 with alpha for light mode
-      incomeLine: 'hsl(152, 76%, 45%)', // success in light mode
-      incomeFill: 'hsla(152, 76%, 45%, 0.1)', // success with alpha for light mode
-      spendingRGB: '59, 130, 246', // blue-500 RGB
-      incomeRGB: '16, 185, 129', // emerald-500 RGB
+      text: 'hsl(0, 0%, 10%)',
+      textMuted: 'hsl(30, 3%, 41%)',
+      grid: 'rgba(0, 0, 0, 0.05)',
+      tooltipBackground: 'rgba(255, 255, 255, 0.95)',
+      tooltipText: 'hsl(0, 0%, 10%)',
+      tooltipBorder: 'rgba(201, 168, 76, 0.3)',
+      spendingLine: 'hsl(153, 41%, 30%)',
+      spendingFill: 'hsla(153, 41%, 30%, 0.1)',
+      incomeLine: 'hsl(44, 52%, 54%)',
+      incomeFill: 'hsla(44, 52%, 54%, 0.1)',
+      spendingRGB: '45, 106, 79',
+      incomeRGB: '201, 168, 76',
     };
   }, [resolvedTheme]);
 
@@ -105,7 +105,7 @@ export function useChartTheme() {
         labels: {
           color: colors.text,
           font: {
-            family: 'system-ui, -apple-system, sans-serif',
+            family: 'Satoshi, system-ui, sans-serif',
             weight: 500,
           },
           padding: 16,
@@ -139,7 +139,7 @@ export function useChartTheme() {
           color: colors.textMuted,
           font: {
             size: 11,
-            weight: 500,
+            weight: 300,
           },
           padding: 8,
         },
@@ -155,7 +155,7 @@ export function useChartTheme() {
           color: colors.textMuted,
           font: {
             size: 11,
-            weight: 500,
+            weight: 300,
           },
           padding: 12,
         },
@@ -190,14 +190,14 @@ export function useChartTheme() {
     elements: {
       line: {
         tension: 0.4, // Smoother curves
-        borderWidth: 3,
+        borderWidth: 2,
         borderCapStyle: 'round' as const,
         borderJoinStyle: 'round' as const,
       },
       point: {
-        radius: 5, // Show points for visibility (especially with single data point)
+        radius: 0, // Hidden by default, appear on hover
         borderWidth: 2,
-        hoverRadius: 8,
+        hoverRadius: 6,
         hoverBorderWidth: 3,
         hoverBackgroundColor: colors.tooltipBackground,
         hitRadius: 20, // Larger hit area for better UX
@@ -235,13 +235,14 @@ export function useChartTheme() {
   const getPieChartOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
+    cutout: '65%',
     plugins: {
       legend: {
         position: 'right' as const,
         labels: {
           color: colors.text,
           font: {
-            family: 'system-ui, -apple-system, sans-serif',
+            family: 'Satoshi, system-ui, sans-serif',
             weight: 500,
             size: 12,
           },
