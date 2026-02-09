@@ -10,7 +10,6 @@ import { Card } from '@/components/ui/card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { CheckCircle2 } from 'lucide-react';
-import { GradientText } from '@/components/ui/gradient-text';
 
 interface SelectedFile {
   file: File;
@@ -219,9 +218,10 @@ export function UploadPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">
-        <GradientText>Upload Bank Statements</GradientText>
-      </h1>
+      <div className="mb-6">
+        <h1 className="text-3xl font-light">Upload Bank Statements</h1>
+        <div className="h-px bg-gradient-to-r from-gold/40 to-transparent mt-2" />
+      </div>
 
       {/* Currency Conversion Modal */}
       {parseResult && (

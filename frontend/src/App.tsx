@@ -15,7 +15,7 @@ function AppLayout() {
       {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-16 bg-background border-b border-border flex items-center px-4">
+        <header className="h-16 bg-background border-b border-border/30 flex items-center px-4">
           {/* Mobile menu button */}
           <button
             type="button"
@@ -35,7 +35,7 @@ function AppLayout() {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto p-4 md:p-6">
+        <main className="flex-1 overflow-auto p-6 md:p-12 max-w-[1400px] mx-auto">
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/transactions" element={<TransactionsPage />} />
