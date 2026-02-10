@@ -485,15 +485,29 @@ router.post('/bulk-categorize', (req: Request<{}, {}, BulkCategorizeBody>, res: 
       }
     }
 
-    // Update all transactions
+    // Update the selected transactions
     const placeholders = ids.map(() => '?').join(', ');
     const result = db.prepare(`UPDATE transactions SET category_id = ? WHERE id IN (${placeholders}) AND is_hidden = 0`).run(category_id, ...ids);
+
+    // If a rule was created, also apply it to all other matching uncategorized transactions
+    let ruleApplied = 0;
+    if (ruleCreated && ruleKeyword) {
+      const applyResult = db.prepare(`
+        UPDATE transactions
+        SET category_id = ?
+        WHERE category_id IS NULL
+          AND is_hidden = 0
+          AND LOWER(description) LIKE '%' || LOWER(?) || '%'
+      `).run(category_id, ruleKeyword);
+      ruleApplied = applyResult.changes;
+    }
 
     res.json({
       success: true,
       updated: result.changes,
       rule_created: ruleCreated,
-      rule_keyword: ruleKeyword
+      rule_keyword: ruleKeyword,
+      rule_applied: ruleApplied,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';

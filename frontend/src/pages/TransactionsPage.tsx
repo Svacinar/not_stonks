@@ -267,32 +267,41 @@ export function TransactionsPage() {
         updated: number;
         rule_created: boolean;
         rule_keyword: string | null;
+        rule_applied: number;
       }>('/api/transactions/bulk-categorize', {
         ids: [categorizeTransaction.id],
         category_id: singleCategoryId,
         create_rule: createRuleOnSingle,
       });
 
-      // Update local state with the new category
-      const selectedCategory = categories.find(c => c.id === singleCategoryId);
-      setTransactions((prev) =>
-        prev.map((t) =>
-          t.id === categorizeTransaction.id
-            ? {
-                ...t,
-                category_id: singleCategoryId,
-                category_name: selectedCategory?.name || null,
-                category_color: selectedCategory?.color || null,
-              }
-            : t
-        )
-      );
-
       let message = 'Category updated';
       if (response.rule_created && response.rule_keyword) {
-        message += ` and created rule "${response.rule_keyword}"`;
+        message += `, created rule "${response.rule_keyword}"`;
+        if (response.rule_applied > 0) {
+          message += ` and applied to ${response.rule_applied} more transaction${response.rule_applied !== 1 ? 's' : ''}`;
+        }
       }
       addToast('success', message);
+
+      // Refresh the full list since the rule may have categorized other visible transactions
+      if (response.rule_applied > 0) {
+        await fetchTransactions();
+      } else {
+        // Just update the single transaction locally
+        const selectedCategory = categories.find(c => c.id === singleCategoryId);
+        setTransactions((prev) =>
+          prev.map((t) =>
+            t.id === categorizeTransaction.id
+              ? {
+                  ...t,
+                  category_id: singleCategoryId,
+                  category_name: selectedCategory?.name || null,
+                  category_color: selectedCategory?.color || null,
+                }
+              : t
+          )
+        );
+      }
 
       setCategorizeTransaction(null);
       setSingleCategoryId(null);
@@ -401,32 +410,40 @@ export function TransactionsPage() {
         updated: number;
         rule_created: boolean;
         rule_keyword: string | null;
+        rule_applied: number;
       }>('/api/transactions/bulk-categorize', {
         ids: Array.from(selectedIds),
         category_id: bulkCategoryId,
         create_rule: createRuleOnCategorize,
       });
 
-      // Update local state with the new category
-      const selectedCategory = categories.find(c => c.id === bulkCategoryId);
-      setTransactions((prev) =>
-        prev.map((t) =>
-          selectedIds.has(t.id)
-            ? {
-                ...t,
-                category_id: bulkCategoryId,
-                category_name: selectedCategory?.name || null,
-                category_color: selectedCategory?.color || null,
-              }
-            : t
-        )
-      );
-
       let message = `Categorized ${response.updated} transaction${response.updated !== 1 ? 's' : ''}`;
       if (response.rule_created && response.rule_keyword) {
-        message += ` and created rule "${response.rule_keyword}"`;
+        message += `, created rule "${response.rule_keyword}"`;
+        if (response.rule_applied > 0) {
+          message += ` and applied to ${response.rule_applied} more`;
+        }
       }
       addToast('success', message);
+
+      // Refresh list since the rule may have categorized other visible transactions
+      if (response.rule_applied > 0) {
+        await fetchTransactions();
+      } else {
+        const selectedCategory = categories.find(c => c.id === bulkCategoryId);
+        setTransactions((prev) =>
+          prev.map((t) =>
+            selectedIds.has(t.id)
+              ? {
+                  ...t,
+                  category_id: bulkCategoryId,
+                  category_name: selectedCategory?.name || null,
+                  category_color: selectedCategory?.color || null,
+                }
+              : t
+          )
+        );
+      }
 
       setSelectedIds(new Set());
       setShowBulkCategorizeDialog(false);
