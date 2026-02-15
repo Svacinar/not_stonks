@@ -91,9 +91,10 @@ export function TransactionsPage() {
   const sortOrder = (searchParams.get('order') as SortOrder) || 'desc';
   const page = parseInt(searchParams.get('page') || '1', 10);
 
-  // Single transaction categorize dialog state
+  // Single transaction categorize/edit dialog state
   const [categorizeTransaction, setCategorizeTransaction] = useState<TransactionWithCategory | null>(null);
   const [singleCategoryId, setSingleCategoryId] = useState<number | null>(null);
+  const [editDescription, setEditDescription] = useState('');
   const [createRuleOnSingle, setCreateRuleOnSingle] = useState(false);
   const [updatingCategory, setUpdatingCategory] = useState(false);
 
@@ -257,54 +258,86 @@ export function TransactionsPage() {
     setSearchParams(new URLSearchParams());
   };
 
-  // Handle single transaction category change (via dialog)
+  // Handle single transaction category/description change (via dialog)
   const handleSingleCategorize = async () => {
-    if (!categorizeTransaction || singleCategoryId === null) return;
+    if (!categorizeTransaction) return;
+
+    const descriptionChanged = editDescription.trim() !== categorizeTransaction.description;
+    const categoryChanged = singleCategoryId !== categorizeTransaction.category_id;
+
+    if (!descriptionChanged && !categoryChanged) {
+      setCategorizeTransaction(null);
+      return;
+    }
 
     setUpdatingCategory(true);
     try {
-      const response = await api.post<{
-        updated: number;
-        rule_created: boolean;
-        rule_keyword: string | null;
-        rule_applied: number;
-      }>('/api/transactions/bulk-categorize', {
-        ids: [categorizeTransaction.id],
-        category_id: singleCategoryId,
-        create_rule: createRuleOnSingle,
-      });
+      // Save description change via PATCH if needed
+      if (descriptionChanged) {
+        await api.patch(`/api/transactions/${categorizeTransaction.id}`, {
+          description: editDescription.trim(),
+        });
+      }
 
-      let message = 'Category updated';
-      if (response.rule_created && response.rule_keyword) {
-        message += `, created rule "${response.rule_keyword}"`;
+      let message = '';
+
+      // Save category change via bulk-categorize if needed
+      if (categoryChanged && singleCategoryId !== null) {
+        const response = await api.post<{
+          updated: number;
+          rule_created: boolean;
+          rule_keyword: string | null;
+          rule_applied: number;
+        }>('/api/transactions/bulk-categorize', {
+          ids: [categorizeTransaction.id],
+          category_id: singleCategoryId,
+          create_rule: createRuleOnSingle,
+        });
+
+        message = 'Category updated';
+        if (response.rule_created && response.rule_keyword) {
+          message += `, created rule "${response.rule_keyword}"`;
+          if (response.rule_applied > 0) {
+            message += ` and applied to ${response.rule_applied} more`;
+          }
+        }
+
         if (response.rule_applied > 0) {
-          message += ` and applied to ${response.rule_applied} more transaction${response.rule_applied !== 1 ? 's' : ''}`;
+          await fetchTransactions();
+          addToast('success', descriptionChanged ? 'Description and category updated' : message);
+          setCategorizeTransaction(null);
+          setSingleCategoryId(null);
+          setEditDescription('');
+          setCreateRuleOnSingle(false);
+          return;
         }
       }
-      addToast('success', message);
 
-      // Refresh the full list since the rule may have categorized other visible transactions
-      if (response.rule_applied > 0) {
-        await fetchTransactions();
-      } else {
-        // Just update the single transaction locally
-        const selectedCategory = categories.find(c => c.id === singleCategoryId);
-        setTransactions((prev) =>
-          prev.map((t) =>
-            t.id === categorizeTransaction.id
-              ? {
-                  ...t,
+      // Update local state
+      const selectedCategory = categories.find(c => c.id === singleCategoryId);
+      setTransactions((prev) =>
+        prev.map((t) =>
+          t.id === categorizeTransaction.id
+            ? {
+                ...t,
+                description: descriptionChanged ? editDescription.trim() : t.description,
+                ...(categoryChanged ? {
                   category_id: singleCategoryId,
                   category_name: selectedCategory?.name || null,
                   category_color: selectedCategory?.color || null,
-                }
-              : t
-          )
-        );
-      }
+                } : {}),
+              }
+            : t
+        )
+      );
+
+      if (!message) message = 'Transaction updated';
+      else if (descriptionChanged) message = 'Description and category updated';
+      addToast('success', message);
 
       setCategorizeTransaction(null);
       setSingleCategoryId(null);
+      setEditDescription('');
       setCreateRuleOnSingle(false);
     } catch (err) {
       const message =
@@ -319,6 +352,7 @@ export function TransactionsPage() {
   const openCategorizeDialog = (tx: TransactionWithCategory) => {
     setCategorizeTransaction(tx);
     setSingleCategoryId(tx.category_id);
+    setEditDescription(tx.description);
     setCreateRuleOnSingle(false);
   };
 
@@ -947,22 +981,25 @@ export function TransactionsPage() {
           if (!updatingCategory && !open) {
             setCategorizeTransaction(null);
             setSingleCategoryId(null);
+            setEditDescription('');
             setCreateRuleOnSingle(false);
           }
         }}
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Categorize Transaction</DialogTitle>
-            <DialogDescription>
-              {categorizeTransaction && (
-                <span className="block mt-1 font-medium text-foreground truncate">
-                  {categorizeTransaction.description}
-                </span>
-              )}
-            </DialogDescription>
+            <DialogTitle>Edit Transaction</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Input
+                id="edit-description"
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Transaction description"
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="single-category-select">Category</Label>
               <select
@@ -1026,7 +1063,7 @@ export function TransactionsPage() {
             </Button>
             <Button
               onClick={handleSingleCategorize}
-              disabled={updatingCategory || singleCategoryId === null}
+              disabled={updatingCategory}
             >
               {updatingCategory && <LoadingSpinner size="sm" className="mr-2" />}
               Save

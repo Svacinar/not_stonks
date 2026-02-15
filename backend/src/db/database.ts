@@ -17,6 +17,8 @@ const DEFAULT_CATEGORIES = [
   { name: 'Health', color: '#ef4444' },
   { name: 'Utilities', color: '#06b6d4' },
   { name: 'Finance', color: '#64748b' },
+  { name: 'Social Security and Insurances', color: '#0d9488' },
+  { name: 'Car Payments', color: '#d97706' },
   { name: 'Other', color: '#9ca3af' },
 ];
 
@@ -84,6 +86,28 @@ function runMigrations(database: Database.Database): void {
   const hasIsHidden = columns.some(col => col.name === 'is_hidden');
   if (!hasIsHidden) {
     database.exec('ALTER TABLE transactions ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0');
+  }
+
+  // Migration: Add "Social Security and Insurances" category to existing databases
+  // (Fresh databases get it via seedDefaultCategories, so only apply if categories already exist)
+  const categoryCount = database.prepare('SELECT COUNT(*) as count FROM categories').get() as { count: number };
+  if (categoryCount.count > 0) {
+    const hasSocialSecurity = database.prepare(
+      "SELECT id FROM categories WHERE name = 'Social Security and Insurances'"
+    ).get();
+    if (!hasSocialSecurity) {
+      database.prepare(
+        "INSERT OR IGNORE INTO categories (name, color) VALUES ('Social Security and Insurances', '#0d9488')"
+      ).run();
+    }
+    const hasCarPayments = database.prepare(
+      "SELECT id FROM categories WHERE name = 'Car Payments'"
+    ).get();
+    if (!hasCarPayments) {
+      database.prepare(
+        "INSERT OR IGNORE INTO categories (name, color) VALUES ('Car Payments', '#d97706')"
+      ).run();
+    }
   }
 
   // Migration: Add currency columns for multi-currency support

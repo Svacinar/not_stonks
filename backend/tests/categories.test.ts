@@ -50,8 +50,8 @@ describe('Categories Route Logic', () => {
 
       const categories = db.prepare(query).all() as { name: string; transaction_count: number }[];
 
-      // Should have all 8 default categories
-      expect(categories.length).toBe(8);
+      // Should have all 10 default categories
+      expect(categories.length).toBe(10);
 
       // Food category should have 2 transactions
       const food = categories.find((c) => c.name === 'Food');
@@ -78,7 +78,7 @@ describe('Categories Route Logic', () => {
 
       const categories = db.prepare(query).all() as { name: string }[];
 
-      expect(categories[0].name).toBe('Entertainment');
+      expect(categories[0].name).toBe('Car Payments');
       expect(categories[categories.length - 1].name).toBe('Utilities');
     });
   });

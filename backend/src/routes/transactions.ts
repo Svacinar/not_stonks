@@ -291,16 +291,16 @@ router.get('/:id', validateIdParam, (req: Request<{ id: string }>, res: Response
 
 /**
  * PATCH /api/transactions/:id
- * Update a transaction's category (auto-creates rule from description)
+ * Update a transaction's category and/or description
  */
 router.patch(
   '/:id',
   validateIdParam,
-  (req: Request<{ id: string }, {}, { category_id: number | null }>, res: Response): void => {
+  (req: Request<{ id: string }, {}, { category_id?: number | null; description?: string }>, res: Response): void => {
     try {
       const db = getDatabase();
       const { id } = req.params;
-      const { category_id } = req.body;
+      const { category_id, description } = req.body;
 
       // Check transaction exists
       const existing = db.prepare('SELECT * FROM transactions WHERE id = ?').get(id) as
@@ -321,8 +321,23 @@ router.patch(
         }
       }
 
-      // Update transaction
-      db.prepare('UPDATE transactions SET category_id = ? WHERE id = ?').run(category_id, id);
+      // Validate description if provided
+      if (description !== undefined) {
+        if (typeof description !== 'string' || description.trim().length === 0) {
+          res.status(400).json(createErrorResponse(ErrorCodes.BAD_REQUEST, 'Description must be a non-empty string'));
+          return;
+        }
+      }
+
+      // Update description if provided
+      if (description !== undefined) {
+        db.prepare('UPDATE transactions SET description = ? WHERE id = ?').run(description.trim(), id);
+      }
+
+      // Update category if provided
+      if (category_id !== undefined) {
+        db.prepare('UPDATE transactions SET category_id = ? WHERE id = ?').run(category_id, id);
+      }
 
       // Auto-create rule from description keyword when category is set
       if (category_id !== null && category_id !== undefined) {
