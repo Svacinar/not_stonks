@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { DashboardPage } from '../../src/pages/DashboardPage';
 import { ThemeProvider } from '../../src/contexts/ThemeContext';
@@ -328,6 +329,93 @@ describe('DashboardPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('No transactions in this period')).toBeInTheDocument();
+    });
+  });
+
+  describe('category multi-select', () => {
+    const setupWithData = () => {
+      vi.mocked(apiClient.api.get).mockImplementation((url: string) => {
+        if (url.includes('/stats')) return Promise.resolve(mockStats);
+        if (url.includes('/categories')) return Promise.resolve(mockCategories);
+        return Promise.resolve(mockTransactions);
+      });
+    };
+
+    it('renders custom legend items for expense categories', async () => {
+      setupWithData();
+      renderDashboard();
+
+      await waitFor(() => {
+        // Custom legend should render buttons for each expense category
+        // (Groceries, Transport, Uncategorized — but NOT Income)
+        const legendButtons = screen.getAllByRole('button', { name: /Groceries|Transport|Uncategorized/ });
+        expect(legendButtons.length).toBe(3);
+      });
+    });
+
+    it('toggles category selection when legend item is clicked', async () => {
+      setupWithData();
+      const user = userEvent.setup();
+      renderDashboard();
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Groceries/ })).toBeInTheDocument();
+      });
+
+      const groceriesBtn = screen.getByRole('button', { name: /Groceries/ });
+      await user.click(groceriesBtn);
+
+      // After selecting, the "View transactions" link should appear
+      expect(screen.getByText(/View transactions/)).toBeInTheDocument();
+    });
+
+    it('does not show "View transactions" link when nothing is selected', async () => {
+      setupWithData();
+      renderDashboard();
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Groceries/ })).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText(/View transactions/)).not.toBeInTheDocument();
+    });
+
+    it('shows "View transactions" link with correct category params when selected', async () => {
+      setupWithData();
+      const user = userEvent.setup();
+      renderDashboard();
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Groceries/ })).toBeInTheDocument();
+      });
+
+      // Select Groceries (id=1) and Transport (id=2)
+      await user.click(screen.getByRole('button', { name: /Groceries/ }));
+      await user.click(screen.getByRole('button', { name: /Transport/ }));
+
+      const link = screen.getByText(/View transactions/).closest('a');
+      expect(link).toBeTruthy();
+      const href = link?.getAttribute('href') || '';
+      expect(href).toContain('category=1');
+      expect(href).toContain('category=2');
+    });
+
+    it('deselects category when clicked again', async () => {
+      setupWithData();
+      const user = userEvent.setup();
+      renderDashboard();
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Groceries/ })).toBeInTheDocument();
+      });
+
+      const groceriesBtn = screen.getByRole('button', { name: /Groceries/ });
+      await user.click(groceriesBtn);
+      expect(screen.getByText(/View transactions/)).toBeInTheDocument();
+
+      // Click again to deselect
+      await user.click(groceriesBtn);
+      expect(screen.queryByText(/View transactions/)).not.toBeInTheDocument();
     });
   });
 

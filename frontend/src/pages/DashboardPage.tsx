@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useDateRangeParams } from '@/hooks/useDateRangeParams';
 import {
   Chart as ChartJS,
@@ -31,6 +31,8 @@ import {
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { BANK_COLORS, CHART_COLORS_HEX, UNCATEGORIZED_COLOR } from '@/constants/colors';
 import { useChartTheme } from '@/hooks/useChartTheme';
+import { useCategorySelection } from '@/hooks/useCategorySelection';
+import { hexToRgba } from '@/utils/colors';
 import { formatDateForDisplay } from '../utils/dateUtils';
 import type { TransactionStats, Transaction, BankName, Category } from '../../../shared/types';
 
@@ -97,7 +99,6 @@ function generateMonthRange(startDate: string, endDate: string): string[] {
 
 export function DashboardPage() {
   const { dateRange, startDate, endDate, setDateRange, searchParams } = useDateRangeParams();
-  const navigate = useNavigate();
   const [stats, setStats] = useState<TransactionStats | null>(null);
   const [recentTransactions, setRecentTransactions] = useState<TransactionWithCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -120,24 +121,6 @@ export function DashboardPage() {
     });
     return map;
   }, [categories]);
-
-  // Handle pie chart click - navigate to transactions with category filter
-  const handlePieClick = useCallback((categoryName: string) => {
-    const params = new URLSearchParams();
-    if (startDate) params.set('startDate', startDate);
-    if (endDate) params.set('endDate', endDate);
-
-    if (categoryName === 'Uncategorized') {
-      params.set('uncategorized', 'true');
-    } else {
-      const categoryId = categoryIdMap.get(categoryName);
-      if (categoryId) {
-        params.set('category', String(categoryId));
-      }
-    }
-
-    navigate(`/transactions?${params.toString()}`);
-  }, [startDate, endDate, categoryIdMap, navigate]);
 
   // Fetch stats, categories, and recent transactions
   const fetchData = async () => {
@@ -203,36 +186,77 @@ export function DashboardPage() {
     createGradient
   } = useChartTheme();
 
-  // Pie chart data for spending by category (expenses only, ignore income)
-  const categoryPieData = useMemo(() => {
-    if (!stats || stats.by_category.length === 0) return null;
+  // Expense categories for pie chart and selection
+  const expenseCategories = useMemo(() => {
+    if (!stats || stats.by_category.length === 0) return [];
+    return stats.by_category.filter(c => c.sum < 0 && c.name !== 'Income');
+  }, [stats]);
 
-    // Filter to only show expenses (negative sums), excluding Income
-    const expenses = stats.by_category.filter(c => c.sum < 0 && c.name !== 'Income');
-
-    // Return null if no expenses to show
-    if (expenses.length === 0) return null;
-
-    // Use category colors from the color map, fallback to chart colors for missing
+  // Color for each expense category
+  const expenseCategoryColors = useMemo(() => {
     let fallbackIndex = 0;
-    const colors = expenses.map(c => {
-      if (c.name === 'Uncategorized') {
-        return UNCATEGORIZED_COLOR;
-      }
-      // Use the category's stored color, or fallback to chart colors
+    return expenseCategories.map(c => {
+      if (c.name === 'Uncategorized') return UNCATEGORIZED_COLOR;
       return categoryColorMap.get(c.name) || CHART_COLORS_HEX[fallbackIndex++ % CHART_COLORS_HEX.length];
+    });
+  }, [expenseCategories, categoryColorMap]);
+
+  // Category selection hook
+  const selectionData = useMemo(
+    () => expenseCategories.map(c => ({ name: c.name, amount: Math.abs(c.sum) })),
+    [expenseCategories]
+  );
+  const {
+    toggleCategory,
+    clearSelection,
+    hasSelection,
+    selectedSum,
+    selectionLabel,
+    isSelected,
+  } = useCategorySelection(selectionData);
+
+  // Build URL for "View transactions" link with selected categories
+  const buildCategoryFilterUrl = useCallback(() => {
+    const params = new URLSearchParams();
+    if (startDate) params.set('startDate', startDate);
+    if (endDate) params.set('endDate', endDate);
+
+    for (const catName of expenseCategories.map(c => c.name)) {
+      if (!isSelected(catName)) continue;
+      if (catName === 'Uncategorized') {
+        params.set('uncategorized', 'true');
+      } else {
+        const categoryId = categoryIdMap.get(catName);
+        if (categoryId) {
+          params.append('category', String(categoryId));
+        }
+      }
+    }
+
+    return `/transactions?${params.toString()}`;
+  }, [startDate, endDate, categoryIdMap, expenseCategories, isSelected]);
+
+  // Pie chart data with dimming for unselected categories
+  const categoryPieData = useMemo(() => {
+    if (expenseCategories.length === 0) return null;
+
+    const colors = expenseCategoryColors.map((color, i) => {
+      if (!hasSelection || isSelected(expenseCategories[i].name)) {
+        return color;
+      }
+      return hexToRgba(color, 0.3);
     });
 
     return {
-      labels: expenses.map(c => c.name),
+      labels: expenseCategories.map(c => c.name),
       datasets: [{
-        data: expenses.map(c => Math.abs(c.sum)),
+        data: expenseCategories.map(c => Math.abs(c.sum)),
         backgroundColor: colors,
         borderWidth: 0,
         hoverOffset: 8,
       }],
     };
-  }, [stats, categoryColorMap]);
+  }, [expenseCategories, expenseCategoryColors, hasSelection, isSelected]);
 
   // Bar chart data for spending by bank
   const bankBarData = useMemo(() => {
@@ -335,7 +359,33 @@ export function DashboardPage() {
     };
   }, [stats, chartColors, createGradient, allMonths]);
 
-  // Chart options - modern premium styling with click handler
+  // Doughnut center text plugin
+  const doughnutCenterTextPlugin = useMemo(() => ({
+    id: 'doughnutCenterText',
+    afterDraw(chart: { ctx: CanvasRenderingContext2D; chartArea: { top: number; bottom: number; left: number; right: number } }) {
+      const { ctx, chartArea } = chart;
+      const centerX = (chartArea.left + chartArea.right) / 2;
+      const centerY = (chartArea.top + chartArea.bottom) / 2;
+
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Main value
+      ctx.font = 'bold 16px Satoshi, system-ui, sans-serif';
+      ctx.fillStyle = chartColors.text;
+      ctx.fillText(formatCurrency(selectedSum), centerX, centerY - 8);
+
+      // Label
+      ctx.font = '11px Satoshi, system-ui, sans-serif';
+      ctx.fillStyle = chartColors.textMuted;
+      ctx.fillText(selectionLabel, centerX, centerY + 12);
+
+      ctx.restore();
+    },
+  }), [selectedSum, selectionLabel, chartColors]);
+
+  // Chart options - toggle selection on click, custom legend via HTML
   const pieOptions = useMemo(() => ({
     ...getPieChartOptions,
     onClick: (_event: unknown, elements: { index: number }[]) => {
@@ -343,12 +393,15 @@ export function DashboardPage() {
         const index = elements[0].index;
         const categoryName = categoryPieData.labels[index];
         if (categoryName) {
-          handlePieClick(categoryName);
+          toggleCategory(categoryName);
         }
       }
     },
     plugins: {
       ...getPieChartOptions.plugins,
+      legend: {
+        display: false,
+      },
       tooltip: {
         ...getPieChartOptions.plugins.tooltip,
         callbacks: {
@@ -358,7 +411,7 @@ export function DashboardPage() {
         },
       },
     },
-  }), [getPieChartOptions, categoryPieData, handlePieClick]);
+  }), [getPieChartOptions, categoryPieData, toggleCategory]);
 
   const barOptions = useMemo(() => ({
     ...getBarChartOptions,
@@ -512,12 +565,52 @@ export function DashboardPage() {
             {/* Spending by Category Pie Chart */}
             <Card elevation="md" className="overflow-hidden">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base font-bold">Spending by Category</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base font-bold">Spending by Category</CardTitle>
+                  {hasSelection && (
+                    <Button variant="ghost" size="sm" onClick={clearSelection} className="text-xs text-muted-foreground h-auto py-1 px-2">
+                      Clear
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="pt-4">
                 {categoryPieData ? (
-                  <div className="h-72 cursor-pointer" title="Click to view transactions">
-                    <Pie data={categoryPieData} options={pieOptions} />
+                  <div className="flex flex-col gap-4">
+                    <div className="h-56 cursor-pointer">
+                      <Pie data={categoryPieData} options={pieOptions} plugins={[doughnutCenterTextPlugin]} />
+                    </div>
+                    {/* Custom legend */}
+                    <div className="flex flex-wrap gap-2">
+                      {expenseCategories.map((cat, i) => (
+                        <button
+                          key={cat.name}
+                          onClick={() => toggleCategory(cat.name)}
+                          className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-colors duration-150 border ${
+                            !hasSelection || isSelected(cat.name)
+                              ? 'border-border bg-secondary/50 text-foreground'
+                              : 'border-transparent bg-transparent text-muted-foreground/50'
+                          }`}
+                        >
+                          <span
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                            style={{
+                              backgroundColor: expenseCategoryColors[i],
+                              opacity: !hasSelection || isSelected(cat.name) ? 1 : 0.3,
+                            }}
+                          />
+                          {cat.name}
+                        </button>
+                      ))}
+                    </div>
+                    {/* View transactions link */}
+                    {hasSelection && (
+                      <Button variant="link" asChild className="p-0 h-auto text-xs self-start">
+                        <Link to={buildCategoryFilterUrl()}>
+                          View transactions →
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <div className="h-72 flex items-center justify-center text-muted-foreground">
