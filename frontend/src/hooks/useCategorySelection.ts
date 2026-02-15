@@ -33,7 +33,8 @@ export function useCategorySelection(categoryData: CategoryDatum[]) {
     setSelectedCategories(new Set());
   }, []);
 
-  const hasSelection = selectedCategories.size > 0;
+  const allSelected = selectedCategories.size >= categoryData.length && categoryData.length > 0;
+  const hasSelection = selectedCategories.size > 0 && !allSelected;
 
   const selectedSum = useMemo(() => {
     if (!hasSelection) {

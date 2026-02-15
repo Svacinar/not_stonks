@@ -45,7 +45,7 @@ export function useChartTheme() {
         text: 'hsl(30, 12%, 88%)',
         textMuted: 'hsl(220, 4%, 50%)',
         grid: 'rgba(255, 255, 255, 0.04)',
-        tooltipBackground: 'rgba(10, 13, 17, 0.92)',
+        tooltipBackground: 'rgb(10, 13, 17)',
         tooltipText: 'hsl(30, 12%, 88%)',
         tooltipBorder: 'rgba(201, 168, 76, 0.3)',
         spendingLine: 'hsl(153, 41%, 38%)',

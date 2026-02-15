@@ -155,6 +155,30 @@ describe('useCategorySelection', () => {
     expect(result.current.hasSelection).toBe(true);
   });
 
+  it('returns label "All spending" when all categories are selected', () => {
+    const { result } = renderHook(() => useCategorySelection(categoryData));
+
+    // Select every single category
+    act(() => { result.current.toggleCategory('Food'); });
+    act(() => { result.current.toggleCategory('Utilities'); });
+    act(() => { result.current.toggleCategory('Shopping'); });
+    act(() => { result.current.toggleCategory('Transport'); });
+
+    expect(result.current.selectionLabel).toBe('All spending');
+    expect(result.current.selectedSum).toBe(13500);
+  });
+
+  it('hasSelection is false when all categories are selected', () => {
+    const { result } = renderHook(() => useCategorySelection(categoryData));
+
+    act(() => { result.current.toggleCategory('Food'); });
+    act(() => { result.current.toggleCategory('Utilities'); });
+    act(() => { result.current.toggleCategory('Shopping'); });
+    act(() => { result.current.toggleCategory('Transport'); });
+
+    expect(result.current.hasSelection).toBe(false);
+  });
+
   it('resets selection when categoryData changes', () => {
     const { result, rerender } = renderHook(
       ({ data }) => useCategorySelection(data),

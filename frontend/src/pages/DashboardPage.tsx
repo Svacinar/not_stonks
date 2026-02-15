@@ -405,6 +405,7 @@ export function DashboardPage() {
       tooltip: {
         ...getPieChartOptions.plugins.tooltip,
         callbacks: {
+          title: () => '',
           label: (context: { label: string; parsed: number }) => {
             return `${context.label}: ${formatCurrency(context.parsed)}`;
           },
