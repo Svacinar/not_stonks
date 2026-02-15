@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useDateRangeParams } from '@/hooks/useDateRangeParams';
 import {
@@ -359,10 +359,15 @@ export function DashboardPage() {
     };
   }, [stats, chartColors, createGradient, allMonths]);
 
-  // Doughnut center text plugin
-  const doughnutCenterTextPlugin = useMemo(() => ({
+  // Refs for doughnut center text plugin (so plugin always reads current values)
+  const centerTextRef = useRef({ sum: selectedSum, label: selectionLabel, text: chartColors.text, textMuted: chartColors.textMuted });
+  centerTextRef.current = { sum: selectedSum, label: selectionLabel, text: chartColors.text, textMuted: chartColors.textMuted };
+
+  // Doughnut center text plugin — uses afterDatasetsDraw so tooltip renders on top
+  const [doughnutCenterTextPlugin] = useState(() => ({
     id: 'doughnutCenterText',
-    afterDraw(chart: { ctx: CanvasRenderingContext2D; chartArea: { top: number; bottom: number; left: number; right: number } }) {
+    afterDatasetsDraw(chart: { ctx: CanvasRenderingContext2D; chartArea: { top: number; bottom: number; left: number; right: number } }) {
+      const { sum, label, text, textMuted } = centerTextRef.current;
       const { ctx, chartArea } = chart;
       const centerX = (chartArea.left + chartArea.right) / 2;
       const centerY = (chartArea.top + chartArea.bottom) / 2;
@@ -373,17 +378,17 @@ export function DashboardPage() {
 
       // Main value
       ctx.font = 'bold 16px Satoshi, system-ui, sans-serif';
-      ctx.fillStyle = chartColors.text;
-      ctx.fillText(formatCurrency(selectedSum), centerX, centerY - 8);
+      ctx.fillStyle = text;
+      ctx.fillText(formatCurrency(sum), centerX, centerY - 8);
 
       // Label
       ctx.font = '11px Satoshi, system-ui, sans-serif';
-      ctx.fillStyle = chartColors.textMuted;
-      ctx.fillText(selectionLabel, centerX, centerY + 12);
+      ctx.fillStyle = textMuted;
+      ctx.fillText(label, centerX, centerY + 12);
 
       ctx.restore();
     },
-  }), [selectedSum, selectionLabel, chartColors]);
+  }));
 
   // Chart options - toggle selection on click, custom legend via HTML
   const pieOptions = useMemo(() => ({
